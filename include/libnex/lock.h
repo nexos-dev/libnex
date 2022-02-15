@@ -32,7 +32,7 @@
 typedef pthread_mutex_t lock_t;
 #elif defined HAVE_WIN32_THREADS
 #include <windows.h>
-typedef lock_t CRITICAL_SECTION;
+typedef CRITICAL_SECTION lock_t;
 #else
 #ifndef LIBNEX_BAREMETAL
 #error Target platform has no supported supported threading library

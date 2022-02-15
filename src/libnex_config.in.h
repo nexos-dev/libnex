@@ -52,4 +52,10 @@
 #define PUBLIC
 #endif
 
+// Ensure that ssize_t is defined
+#ifdef WIN32
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 #endif
