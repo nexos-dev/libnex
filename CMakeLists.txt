@@ -199,7 +199,7 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
 
 # Figure out which tests to run
-list(APPEND LIBNEX_TESTS 
+list(APPEND LIBNEX_TESTS
      endian
      list
      bits)
