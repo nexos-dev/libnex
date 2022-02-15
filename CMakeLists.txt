@@ -96,7 +96,7 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/list.h
      ${CMAKE_SOURCE_DIR}/include/libnex/safestring.h
      ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
-     ${CMAKE_SOURCE_DIR}/include/object.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/object.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
