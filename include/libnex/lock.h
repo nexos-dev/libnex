@@ -30,11 +30,19 @@
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
 typedef pthread_mutex_t lock_t;
+#elif defined HAVE_WIN32_THREADS
+#include <windows.h>
+typedef lock_t CRITICAL_SECTION;
 #else
 #ifndef LIBNEX_BAREMETAL
-#error Target platform has no threading library
+#error Target platform has no supported supported threading library
 #endif
 #endif
+
+/**
+ * These functions SHALL NOT be used by consumers
+ * Their interfaces are privy to change at any time, without notice
+ */
 
 /**
  * @brief Initializes a lock

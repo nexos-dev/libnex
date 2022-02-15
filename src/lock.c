@@ -18,19 +18,11 @@
 
 /// @file lock.c
 
-#include "lock.h"
+#include <libnex/lock.h>
 #ifdef IN_LIBNEX
 #include <libnex_config.h>
 #else
 #include <libnex/libnex_config.h>
-#endif
-
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-#else
-#ifndef LIBNEX_BAREMETAL
-#error Target platform has no threading library
-#endif
 #endif
 
 /**
@@ -45,6 +37,8 @@ void _libnex_lock_init (lock_t* lock)
 #ifdef HAVE_PTHREAD
     pthread_mutexattr_t attr;
     pthread_mutex_init (lock, &attr);
+#elif defined HAVE_WIN32_THREADS
+    InitializeCriticalSection (lock);
 #else
     UNUSED (lock);
 #endif
@@ -60,6 +54,8 @@ void _libnex_lock_lock (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutex_lock (lock);
+#elif defined HAVE_WIN32_THREADS
+    EnterCriticalSection (lock);
 #else
     UNUSED (lock);
 #endif
@@ -75,6 +71,8 @@ void _libnex_lock_unlock (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock (lock);
+#elif defined HAVE_WIN32_THREADS
+    LeaveCriticalSection (lock);
 #else
     UNUSED (lock);
 #endif

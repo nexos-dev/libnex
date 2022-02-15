@@ -29,14 +29,7 @@
 #include <libnex/libnex_config.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-typedef pthread_mutex_t lock_t;
-#else
-#ifndef LIBNEX_BAREMETAL
-#error Target platform has no threading library
-#endif
-#endif
+#include <libnex/lock.h>
 
 #include <stddef.h>
 
@@ -45,8 +38,8 @@ __DECL_START
 /**
  * @brief Describes an entry in a linked list
  *
- * It contains two links to make a doubly linked list, for fast insertion and removal
- * It also contains a pointer to some arbitrary piece of data
+ * It contains two links to make a doubly linked list, for fast insertion and
+ * removal It also contains a pointer to some arbitrary piece of data
  */
 typedef struct _ListEntry
 {
@@ -132,7 +125,8 @@ PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEn
  * @param[in] data the data to initialize it with
  * @param[in] key the key of the new item
  * @param[in] keyAfter the key after the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyAfter doesn't exist
+ * @return The new ListEntry_t*. NULL if entry specified by keyAfter doesn't
+ * exist
  */
 PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter);
 
@@ -158,7 +152,8 @@ PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEnt
  * @param[in] data the data to initialize it with
  * @param[in] key the key of the new item
  * @param[in] keyBefore the key before the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't exist
+ * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
+ * exist
  */
 PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore);
 

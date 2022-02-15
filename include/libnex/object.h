@@ -18,10 +18,12 @@
 
 /**
  * @file object.h
- * So, just what is an object? An object is the abstraction which most classes in libnex (and hopefully users)
- * work with. Basically, an object is anything. The idea is that a structure includes a type Object_t
- * as its first member. Users or the implementation then use the object functions on this struct to allow for
- * reference counting, comparison, and other useful things. See source or header for more info
+ * So, just what is an object? An object is the abstraction which most classes
+ * in libnex (and hopefully users) work with. Basically, an object is anything.
+ * The idea is that a structure includes a type Object_t as its first member.
+ * Users or the implementation then use the object functions on this struct to
+ * allow for reference counting, comparison, and other useful things. See source
+ * or header for more info
  */
 
 #ifndef _OBJECT_H
@@ -35,23 +37,17 @@
 #include <libnex/libnex_config.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-typedef pthread_mutex_t lock_t;
-#else
-#ifndef LIBNEX_BAREMETAL
-#error Target platform has no threading library
-#endif
-#endif
+#include <libnex/lock.h>
 
 /**
  * @brief An object.
  *
- * Object_t is a type that defines an object. An object is designed to be used for conviencince by allowing
- * for comparison, type comparison, and other useful things for divergent types. It also can be used
- * to promote memory safety by reference counting. To use Object_t in your own types, ensure it is
- * the first thing in the structure. That way, users can you types coequally as Object_t and whatever its
- * native form it as well.
+ * Object_t is a type that defines an object. An object is designed to be used
+ * for conviencince by allowing for comparison, type comparison, and other
+ * useful things for divergent types. It also can be used to promote memory
+ * safety by reference counting. To use Object_t in your own types, ensure it is
+ * the first thing in the structure. That way, users can you types coequally as
+ * Object_t and whatever its native form it as well.
  */
 typedef struct _Object
 {
@@ -64,8 +60,8 @@ typedef struct _Object
 /**
  * @brief Creates a new object
  *
- * ObjCreate() intializes a new object, assigning an ID, and lock, and also initializing a type name
- * for it.
+ * ObjCreate() intializes a new object, assigning an ID, and lock, and also
+ * initializing a type name for it.
  * @param[in] type the type to use for this object
  * @param[out] obj the object to initialize
  * @return 1 on success, 0 on error

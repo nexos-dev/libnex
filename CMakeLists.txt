@@ -47,12 +47,15 @@ endif()
 check_symbol_exists(strlcpy "string.h" HAVE_BSD_STRING)
 check_symbol_exists(setprogname "stdlib.h" HAVE_PROGNAME)
 check_symbol_exists(pthread_self "pthread.h" HAVE_PTHREAD)
+if(NOT HAVE_PTHREAD)
+    check_symbol_exists(EnterCriticalSection "windows.h" HAVE_WIN32_THREADS)
+endif()
 
 # Configure the header
 configure_file(${CMAKE_SOURCE_DIR}/src/libnex_config.in.h ${CMAKE_BINARY_DIR}/libnex_config.h)
 configure_file(${CMAKE_SOURCE_DIR}/data/nex.pc.in ${CMAKE_BINARY_DIR}/nex.pc @ONLY)
 
-set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS 
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
                  ${CMAKE_SOURCE_DIR}/data/nex.pc.in
                  ${CMAKE_SOURCE_DIR}/src/libnex_config.in.h
                  ${CMAKE_SOURCE_DIR}/data/LibNexConfig.cmake.in)
@@ -96,7 +99,8 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/list.h
      ${CMAKE_SOURCE_DIR}/include/libnex/safestring.h
      ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/object.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/object.h
+     ${CMAKE_SOURCE_DIR}/include/libnex/lock.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -141,7 +145,7 @@ target_include_directories(nex PRIVATE ${LIBNEX_INCLUDE_DIRS})
 
 # libnex_config.h is in the binary directory for the libnex build, 
 # but in ${CMAKE_INSTALL_INCLUDEDIR}/include/libnex for consumers. Ensure the headers differentiate
-# between them
+# between them. This also is needed for deciding between dllexport and dllimport
 target_compile_definitions(nex PRIVATE "IN_LIBNEX")
 
 # Ensure symbols are hidden by default

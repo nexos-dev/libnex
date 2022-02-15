@@ -18,8 +18,8 @@
 
 /// @file list.c
 
-#include "lock.h"
 #include <libnex/list.h>
+#include <libnex/lock.h>
 #include <libnex/safemalloc.h>
 #include <stdlib.h>
 
@@ -166,7 +166,8 @@ ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* 
  * @param[in] data the data to initialize it with
  * @param[in] key the key of the new item
  * @param[in] keyBefore the key before the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't exist
+ * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
+ * exist
  */
 ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter)
 {
@@ -215,7 +216,8 @@ ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* e
  * @param[in] data the data to initialize it with
  * @param[in] key the key of the new item
  * @param[in] keyBefore the key before the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't exist
+ * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
+ * exist
  */
 ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore)
 {

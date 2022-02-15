@@ -32,14 +32,7 @@
 #include <libnex/libnex_config.h>
 #endif
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-typedef pthread_mutex_t lock_t;
-#else
-#ifndef LIBNEX_BAREMETAL
-#error Target platform has no threading library
-#endif
-#endif
+#include <libnex/lock.h>
 
 // Valid text encodings
 #define TEXT_ENC_ASCII   1    ///< File is encoded in tradit
@@ -65,8 +58,9 @@ __DECL_START
 /**
  * @brief Describes a file stream
  *
- * TextStream_t is an opaque data type used by the program to represent a text file
- * It contains things such as the staging buffer, C FILE object, and various other metadata items
+ * TextStream_t is an opaque data type used by the program to represent a text
+ * file It contains things such as the staging buffer, C FILE object, and
+ * various other metadata items
  */
 typedef struct _TextStream
 {
@@ -81,8 +75,8 @@ typedef struct _TextStream
 /**
  * @brief Opens a up a text stream
  *
- * TextOpen takes a file name and a mode, and creates a new buffer according to the mode
- * that was requested
+ * TextOpen takes a file name and a mode, and creates a new buffer according to
+ * the mode that was requested
  *
  * @param[in] name specifies the file name to open
  * @param[in] mode the opening mode
@@ -93,7 +87,8 @@ PUBLIC TextStream_t* TextOpen (char* file, char mode, char encoding, char hasBom
 /**
  * @brief Closes a text stream
  *
- * TextClose takes a textStream and closes it, freeing all associated data about it
+ * TextClose takes a textStream and closes it, freeing all associated data about
+ * it
  *
  * @param[in] stream the stream to close
  */
@@ -104,8 +99,8 @@ PUBLIC void TextClose (TextStream_t* stream);
  *
  * TextRead takes a buffer, character count, and stream object,
  * and reads / decodes count codepoints into buf from stream.
- * Data is intially read into a staging buffer, and then the staging buffer is decoded into
- * the main buffer specified by buf
+ * Data is intially read into a staging buffer, and then the staging buffer is
+ * decoded into the main buffer specified by buf
  *
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
@@ -120,8 +115,8 @@ PUBLIC int TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
  * TextReadLine takes a buffer, buffer size, and stream object,
  * and reads / decodes one line of codepoints into buf from stream.
  * It is garunteed that no more then count codepoints will be read, however
- * Data is intially read into a staging buffer, and then the staging buffer is decoded into
- * the main buffer specified by buf
+ * Data is intially read into a staging buffer, and then the staging buffer is
+ * decoded into the main buffer specified by buf
  *
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
@@ -157,9 +152,10 @@ PUBLIC ssize_t TextSize (TextStream_t* stream);
  * @brief Sets the size of the staging buffer
  *
  * TextSetBufSz resizes the staging buffer to the size specified by sz
- * This could used to help optimize performance by selecting a large buffer size,
- * or optimizing memory usage by selecting a small buffer size
- * This function has a potential exit point. It may call exit(1) in an error condition
+ * This could used to help optimize performance by selecting a large buffer
+ * size, or optimizing memory usage by selecting a small buffer size This
+ * function has a potential exit point. It may call exit(1) in an error
+ * condition
  *
  * @param[in] stream the stream to operate on
  * @param[in] sz the new buffer size

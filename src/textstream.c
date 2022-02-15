@@ -18,7 +18,6 @@
 
 /// @file textstream.c
 
-#include "lock.h"
 #include <errno.h>
 #include <libnex/safemalloc.h>
 #include <libnex/textstream.h>
@@ -30,8 +29,8 @@
 /**
  * @brief Opens a up a text stream
  *
- * TextOpen takes a file name and a mode, and creates a new buffer according to the mode
- * that was requested
+ * TextOpen takes a file name and a mode, and creates a new buffer according to
+ * the mode that was requested
  *
  * @param[in] name specifies the file name to open
  * @param[in] mode the opening mode
@@ -108,7 +107,8 @@ PUBLIC TextStream_t* TextOpen (char* file, char mode, char encoding, char hasBom
 /**
  * @brief Closes a text stream
  *
- * TextClose takes a textStream and closes it, freeing all associated data about it
+ * TextClose takes a textStream and closes it, freeing all associated data about
+ * it
  *
  * @param[in] stream the stream to close
  */
