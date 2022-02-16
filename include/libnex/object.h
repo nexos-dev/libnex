@@ -48,6 +48,8 @@
  * safety by reference counting. To use Object_t in your own types, ensure it is
  * the first thing in the structure. That way, users can you types coequally as
  * Object_t and whatever its native form it as well.
+ * This is an opaque data type, meaning you shouldn't access the internal members in your
+ * code
  */
 typedef struct _Object
 {
@@ -66,12 +68,63 @@ typedef struct _Object
  * @param[out] obj the object to initialize
  * @return 1 on success, 0 on error
  */
-PUBLIC int ObjCreate (char* type, Object_t* obj);
+PUBLIC void ObjCreate (char* type, Object_t* obj);
 
 /**
  * @brief Destroys an object instance
- * 
+ *
  * ObjDestroy() destroys an object. It decrements the reference count, and if it equals zero,
- * ObjDestroy() will delete the lock as well. It returns the new reference count.
+ * ObjDestroy() will delete the core object data as well. It returns the new reference count.
+ * @param[in] obj the object to destroy
+ */
+PUBLIC int ObjDestroy (Object_t* obj);
+
+/**
+ * @brief References an object
+ *
+ * ObjRef() adds a reference to this object. Use this to ensure an object isn't destroyed while another
+ * consumer is using it. It should be called EVERY time a reference to an object is handed out
+ * @param[in] obj the object to reference
+ * @return the object
+ */
+PUBLIC Object_t* ObjRef (Object_t* obj);
+
+/**
+ * @brief Compares two objects
+ *
+ * ObjCompare() compares to object by their IDs. If the IDs are the same, then is assumes that
+ * the objects are the same
+ * @param[in] obj1 the first object to compare
+ * @param[in] obj2 the second object to compare
+ * @return 1 if they are equal, 0 other wise
+ */
+PUBLIC int ObjCompare (Object_t* obj1, Object_t* obj2);
+
+/**
+ * @brief Compares two object's types
+ * @param[in] obj1 the first object to compare
+ * @param[in] obj2 the second object to compare
+ * @return 1 if equal, 0 otherwise
+ */
+PUBLIC int ObjCompareType (Object_t* obj1, Object_t* obj2);
+
+/**
+ * @brief Locks this object
+ * @param[in] obj the object to lock
+ */
+PUBLIC void ObjLock (Object_t* obj);
+
+/**
+ * @brief Unlocks this object
+ * @param[in] obj the object to unlock
+ */
+PUBLIC void ObjUnlock (Object_t* obj);
+
+/**
+ * @brief Gets the type of an object
+ * @param[in] obj the object to get the type of
+ * @return The name of the type
+ */
+#define ObjGetType ((Object_t*) (obj)->type));
 
 #endif

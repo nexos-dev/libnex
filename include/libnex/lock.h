@@ -39,10 +39,7 @@ typedef CRITICAL_SECTION lock_t;
 #endif
 #endif
 
-/**
- * These functions SHALL NOT be used by consumers
- * Their interfaces are privy to change at any time, without notice
- */
+#ifdef IN_LIBNEX
 
 /**
  * @brief Initializes a lock
@@ -68,5 +65,15 @@ void _libnex_lock_lock (lock_t* lock);
  * @param lock the lock to unlock
  */
 void _libnex_lock_unlock (lock_t* lock);
+
+/**
+ * @brief Destroys a lock
+ *
+ * Wraps over whatever is needed to destroy a lock
+ * @param lock the lock to destroy
+ */
+void _libnex_lock_destroy (lock_t* lock);
+
+#endif
 
 #endif

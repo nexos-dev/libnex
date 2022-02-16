@@ -77,3 +77,20 @@ void _libnex_lock_unlock (lock_t* lock)
     UNUSED (lock);
 #endif
 }
+
+/**
+ * @brief Destroys a lock
+ *
+ * Wraps over whatever is needed to destroy a lock
+ * @param lock the lock to destroy
+ */
+void _libnex_lock_destroy (lock_t* lock)
+{
+#ifdef HAVE_PTHREAD
+    pthread_mutex_destroy (lock);
+#elif defined HAVE_WIN32_THREADS
+    DeleteCriticalSection (lock);
+#else
+    UNUSED (lock);
+#endif
+}

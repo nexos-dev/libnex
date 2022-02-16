@@ -38,6 +38,7 @@ include(NexTest)
 include(CheckSymbolExists)
 include(CheckCSourceCompiles)
 include(CMakePackageConfigHelpers)
+include(SdkCompilerTest)
 
 # See if tests should be enabled
 if(${LIBNEX_ENABLE_TESTS})
@@ -160,19 +161,8 @@ if(BUILD_SHARED_LIBS)
     set_target_properties(nex PROPERTIES C_VISIBILITY_PRESET hidden)
 endif()
 
-# Check for __declspec(dllexport)
-check_c_source_compiles([=[
-    __declspec(dllexport) int f() {}
-    int main() {}
-]=] HAVE_DECLSPEC_EXPORT)
-
-if(NOT HAVE_DECLSPEC_EXPORT)
-    # Check for __attribute__((visibility("default")))
-    check_c_source_compiles([=[
-        __attribute__((visibility("default"))) int f() {}
-        int main(){}
-    ]=] HAVE_VISIBILITY)
-endif()
+# Check for a visibility method
+check_library_visibility(HAVE_DECLSPEC_EXPORT HAVE_VISIBILITY)
 
 # Install pkgconfig script
 install(FILES ${CMAKE_BINARY_DIR}/nex.pc DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig)
@@ -211,9 +201,9 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
 
 # Figure out which tests to run
 list(APPEND LIBNEX_TESTS
-     endian
-     list
-     bits)
+     endian list
+     bits object
+     )
 
 if(NOT HAVE_BSD_STRING)
     list(APPEND LIBNEX_TESTS strlcat strlcpy)
