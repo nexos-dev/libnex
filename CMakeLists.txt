@@ -36,7 +36,6 @@ find_package(NexNixSdk REQUIRED)
 include(GNUInstallDirs)
 include(NexTest)
 include(CheckSymbolExists)
-include(CheckCSourceCompiles)
 include(CMakePackageConfigHelpers)
 include(SdkCompilerTest)
 
@@ -173,10 +172,12 @@ install(TARGETS nex)
 # Figure out library type
 if(BUILD_SHARED_LIBS)
     set(LIBNEX_LIBTYPE "SHARED")
-    set(LIBNEX_LIBRARY_FILE "${CMAKE_INSTALL_FULL_LIBDIR}/libnex.so")
+    set(LIBNEX_LIBRARY_FILE 
+        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}nex.${CMAKE_SHARED_LIBRARY_SUFFIX}")
 else()
     set(LIBNEX_LIBTYPE "STATIC")
-    set(LIBNEX_LIBRARY_FILE "${CMAKE_INSTALL_FULL_LIBDIR}/libnex.a")
+    set(LIBNEX_LIBRARY_FILE 
+        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}nex.${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
 
 # Install header files

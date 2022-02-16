@@ -22,14 +22,7 @@
 #define _LIST_H
 
 #include <libnex/decls.h>
-
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
-#include <libnex/libnex_config.h>
-#endif
-
-#include <libnex/lock.h>
+#include <libnex/object.h>
 
 #include <stddef.h>
 
@@ -43,9 +36,9 @@ __DECL_START
  */
 typedef struct _ListEntry
 {
+    Object_t obj;               ///< The underlying object
     void* data;                 ///< The underlying data in thist list entry
     int key;                    ///< Used to uniquely identify this entry
-    lock_t lock;                ///< Lock for this item
     struct _ListEntry* next;    ///< Pointer to next entry in list. NULL means end
     struct _ListEntry* prev;    ///< Pointer to previous entry in linked list. NULL means beginning
 } ListEntry_t;
@@ -57,16 +50,17 @@ typedef struct _ListEntry
  */
 typedef struct _ListHead
 {
-    lock_t lock;                 ///< Lock for this list
+    Object_t obj;                ///< The underlying object
     struct _ListEntry* front;    ///< The first item on the list
     struct _ListEntry* back;     ///< The last item on the list
 } ListHead_t;
 
 /**
  * @brief Creates a new linked list
+ * @param type the data type of this entry. Used in the underlying object
  * @return The allocated list entry
  */
-PUBLIC ListHead_t* ListCreate();
+PUBLIC ListHead_t* ListCreate (char* type);
 
 /**
  * @brief Adds an item to the front of the list
@@ -179,19 +173,53 @@ PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key);
 /**
  * @brief Removes an entry
  *
- * This function accepts a key, and returns the item identified by that key
- * @param list the list to remove it from
+ * This function accepts a key, and returns the item identified by that key.
+ * Note that if other consumers are referencing this entry still, it is not removed
+ * @param list the list to remove from
  * @param entry the entry to remove
  * @return The removed entry
  */
 PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry);
 
+/**
+ * @brief Destroys an entry
+ *
+ * Destroys a list entry, returning the data associated with it.
+ * Note that if other consumers are referencing this entry still, it is not destroyed
+ * @param list the list to destroy from
+ * @param entry the entry to destroy
+ * @return The data associated with this entry
+ */
+PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry);
+
+/**
+ * @brief Destroys an entry and its data
+ *
+ * Destroys a list entry and the data associated with it
+ * Note that if other consumers are referencing this entry still, it is not destroyed
+ * @param list the list to destroy from
+ * @param entry the entry to destroy
+ * @return The data associated with this entry
+ */
+PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry);
+
+/**
+ * @brief Destroys a list
+ * Note that if other consumers are referencing this list still, it is not destroyed
+ * @param list the list to destroy from
+ * @param entry the entry to destroy
+ * @return The data associated with this entry
+ */
+PUBLIC void ListDestroy (ListHead_t* list);
+
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry)    ((entry)->data)                          ///< Helper to access list entry data
-#define ListEntryFree(entry)    (free (entry))                           ///< Helper to free a list entry
-#define ListEntryFreeAll(entry) (free ((entry)->data); free (entry);)    ///< Helper to free entry data and entry
-#define ListPushFront           ListAddFront                             ///< Useful when using as a queue
+#define ListEntryData(entry) ((entry)->data)                                       ///< Helper to access list entry data
+#define ListPushFront        ListAddFront                                          ///< Useful when using as a queue
+#define ListRef(item)        ((ListEntry_t*) ObjRef ((Object_t*) &(item)->obj))    ///< References the underlying the object
+#define ListLock(item)       (ObjLock ((Object_t*) &(item)->obj))                  ///< Locks this entry (or list)
+#define ListUnlock(item)     (ObjUnlock ((Object_t*) &(item)->obj))                ///< Unlocks the entry
+#define ListDeRef(item)      (ObjDestroy ((Object_t*) &(item)->obj))               ///< Dereferences this entry
 
 #endif

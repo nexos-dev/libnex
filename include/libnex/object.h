@@ -59,6 +59,8 @@ typedef struct _Object
     lock_t lock;     ///< Used to synchronize access to this object
 } Object_t;
 
+__DECL_START
+
 /**
  * @brief Creates a new object
  *
@@ -125,6 +127,8 @@ PUBLIC void ObjUnlock (Object_t* obj);
  * @param[in] obj the object to get the type of
  * @return The name of the type
  */
-#define ObjGetType ((Object_t*) (obj)->type));
+#define ObjGetType(obj) (((Object_t*) (obj))->type)
+
+__DECL_END
 
 #endif

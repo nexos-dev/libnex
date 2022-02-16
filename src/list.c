@@ -27,11 +27,12 @@
  * @brief Creates a new linked list
  * @return The allocated list entry
  */
-ListHead_t* ListCreate()
+PUBLIC ListHead_t* ListCreate (char* type)
 {
     ListHead_t* head = malloc_s (sizeof (ListHead_t));
-    _libnex_lock_init (&head->lock);
-
+    // Initialize the object associated with this list
+    ObjCreate (type, &head->obj);
+    // Initialize the other stuff
     head->front = NULL;
     head->back = NULL;
     return head;
@@ -48,11 +49,10 @@ ListHead_t* ListCreate()
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
+PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
-    _libnex_lock_lock (&head->lock);
-
+    ListLock (head);
     // Set all the links
     if (head->front)
         head->front->prev = entry;
@@ -62,11 +62,11 @@ ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
     // If this is the first entry
     if (!head->back)
         head->back = head->front;
-
     // Set everything else
     entry->data = data;
     entry->key = key;
-    _libnex_lock_unlock (&head->lock);
+    ObjCreate (ObjGetType (head), &entry->obj);
+    ListUnlock (head);
     return entry;
 }
 
@@ -79,11 +79,11 @@ ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
+PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
-    _libnex_lock_lock (&head->lock);
-
+    ObjCreate (ObjGetType (head), &entry->obj);
+    ListLock (head);
     // Set all the links
     entry->prev = head->back;
     if (head->back)
@@ -93,11 +93,10 @@ ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
     // If this is the first entry
     if (!head->front)
         head->front = head->back;
-
     // Set everything else
     entry->data = data;
     entry->key = key;
-    _libnex_lock_unlock (&head->lock);
+    ListUnlock (head);
     return entry;
 }
 
@@ -110,20 +109,24 @@ ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
  * @param[in] key the key to search for
  * @return The list entry associated with the key
  */
-ListEntry_t* ListFind (ListHead_t* list, int key)
+PUBLIC ListEntry_t* ListFind (ListHead_t* list, int key)
 {
-    _libnex_lock_lock (&list->lock);
+    ListLock (list);
     ListEntry_t* search = list->front;
     while (search)
     {
+        ListLock (search);
         if (search->key == key)
         {
-            _libnex_lock_unlock (&list->lock);
+            ListUnlock (search);
+            ListUnlock (list);
             return search;
         }
+        ListEntry_t* old = search;
         search = search->next;
+        ListUnlock (old);
     }
-    _libnex_lock_unlock (&list->lock);
+    ListUnlock (list);
     return NULL;
 }
 
@@ -138,11 +141,13 @@ ListEntry_t* ListFind (ListHead_t* list, int key)
  * @param[in] entry the entry before the new item
  * @return The new ListEntry_t*
  */
-ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* entryAfter)
+PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* entryAfter)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
-    _libnex_lock_lock (&list->lock);
-
+    ListLock (list);
+    ListRef (entryAfter);
+    ListLock (entryAfter);
+    ObjCreate (ObjGetType (list), &entry->obj);
     entry->key = key;
     entry->data = data;
     entry->next = entryAfter;
@@ -152,8 +157,9 @@ ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* 
     entryAfter->prev = entry;
     if (list->front == entryAfter)
         list->front = entry;
-
-    _libnex_lock_unlock (&list->lock);
+    ListUnlock (entryAfter);
+    ListDeRef (entryAfter);
+    ListUnlock (list);
     return entry;
 }
 
@@ -169,7 +175,7 @@ ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* 
  * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
  * exist
  */
-ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter)
+PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter)
 {
     ListEntry_t* entryAfter = ListFind (list, keyAfter);
     if (!entryAfter)
@@ -188,11 +194,13 @@ ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAft
  * @param[in] entryBefore the entry before the new item
  * @return The new ListEntry_t*
  */
-ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* entryBefore)
+PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* entryBefore)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
-    _libnex_lock_lock (&list->lock);
-
+    ListLock (list);
+    ListRef (entryBefore);
+    ListLock (entryBefore);
+    ObjCreate (ObjGetType (list), &entry->obj);
     entry->key = key;
     entry->data = data;
     entry->prev = entryBefore;
@@ -202,8 +210,9 @@ ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* e
     entryBefore->next = entry;
     if (list->back == entryBefore)
         list->back = entry;
-
-    _libnex_lock_unlock (&list->lock);
+    ListUnlock (entryBefore);
+    ListDeRef (entryBefore);
+    ListUnlock (list);
     return entry;
 }
 
@@ -219,7 +228,7 @@ ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* e
  * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
  * exist
  */
-ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore)
+PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore)
 {
     ListEntry_t* entryBefore = ListFind (list, keyBefore);
     if (!entryBefore)
@@ -234,14 +243,17 @@ ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefo
  * @param list the list head to remove the entry from
  * @return The ListEntry_t*
  */
-ListEntry_t* ListPopFront (ListHead_t* list)
+PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
 {
-    _libnex_lock_lock (&list->lock);
-    ListEntry_t* entry = list->front;
+    ListLock (list);
+    ListEntry_t* entry = ListRef (list->front);
+    ListLock (entry);
     if (entry->next)
         entry->next->prev = NULL;
     list->front = entry->next;
-    _libnex_lock_unlock (&list->lock);
+    ListUnlock (entry);
+    ListDeRef (entry);
+    ListUnlock (list);
     return entry;
 }
 
@@ -253,7 +265,7 @@ ListEntry_t* ListPopFront (ListHead_t* list)
  * @param key the key to remove
  * @return The removed entry
  */
-ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
+PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
 {
     ListEntry_t* entry = ListFind (list, key);
     if (!entry)
@@ -261,17 +273,13 @@ ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
     return ListRemove (list, entry);
 }
 
-/**
- * @brief Removes an entry
- *
- * This function accepts a key, and returns the item identified by that key
- * @param list the list to remove it from
- * @param entry the entry to remove
- * @return The removed entry
- */
-ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
+// Internal function to remove a list entry
+ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
 {
-    _libnex_lock_lock (&list->lock);
+    ListLock (list);
+    if (doRef)
+        ListRef (entry);
+    ListLock (entry);
     if (entry->prev)
         entry->prev->next = entry->next;
     if (entry->next)
@@ -280,6 +288,88 @@ ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
         list->front = entry->next;
     if (list->back == entry)
         list->back = entry->prev;
-    _libnex_lock_unlock (&list->lock);
+    ListUnlock (entry);
+    if (doRef)
+        ListDeRef (entry);
+    ListUnlock (list);
     return entry;
+}
+
+/**
+ * @brief Removes an entry
+ *
+ * This function accepts a key, and returns the item identified by that key.
+ * Note that if other consumers are referencing this entry still, it is not removed
+ * @param list the list to remove from
+ * @param entry the entry to remove
+ * @return The removed entry
+ */
+PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
+{
+    if (!ListDeRef (entry))
+        return _listRemove (list, entry, 0);
+    else
+        return entry;
+}
+
+/**
+ * @brief Destroys an entry
+ *
+ * Destroys a list entry, returning the data associated with it.
+ * Note that if other consumers are referencing this entry still, it is not destroyed
+ * @param list the list to destroy from
+ * @param entry the entry to destroy
+ * @return The data associated with this entry
+ */
+PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
+{
+    void* data = entry->data;
+    // De-reference the entry and remove it
+    if (!ListDeRef (entry))
+        _listRemove (list, entry, 0);
+    // Destroy it
+    free (entry);
+    return data;
+}
+
+/**
+ * @brief Destroys an entry and its data
+ *
+ * Destroys a list entry and the data associated with it
+ * Note that if other consumers are referencing this entry still, it is not destroyed
+ * @param list the list to destroy from
+ * @param entry the entry to destroy
+ * @return The data associated with this entry
+ */
+PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
+{
+    // De-reference the entry and remove it
+    if (!ListDeRef (entry))
+        _listRemove (list, entry, 0);
+    // Destroy it
+    free (entry->data);
+    free (entry);
+}
+
+/**
+ * @brief Destroys a list
+ * Note that if other consumers are referencing this list still, it is not destroyed
+ * @param list the list to destroy
+ */
+PUBLIC void ListDestroy (ListHead_t* list)
+{
+    ListLock (list);
+    if (!ListDeRef (list))
+    {
+        // Go through every entry, destroying it
+        ListEntry_t* curEntry = list->front;
+        while (curEntry)
+        {
+            ListEntry_t* next = curEntry->next;
+            // We want to free the memory as well
+            ListDestroyEntryAll (list, curEntry);
+            curEntry = next;
+        }
+    }
+    ListUnlock (list);
 }
