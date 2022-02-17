@@ -215,11 +215,11 @@ PUBLIC void ListDestroy (ListHead_t* list);
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry) ((entry)->data)                                       ///< Helper to access list entry data
-#define ListPushFront        ListAddFront                                          ///< Useful when using as a queue
-#define ListRef(item)        ((ListEntry_t*) ObjRef ((Object_t*) &(item)->obj))    ///< References the underlying the object
-#define ListLock(item)       (ObjLock ((Object_t*) &(item)->obj))                  ///< Locks this entry (or list)
-#define ListUnlock(item)     (ObjUnlock ((Object_t*) &(item)->obj))                ///< Unlocks the entry
-#define ListDeRef(item)      (ObjDestroy ((Object_t*) &(item)->obj))               ///< Dereferences this entry
+#define ListEntryData(entry) ((entry)->data)                           ///< Helper to access list entry data
+#define ListPushFront        ListAddFront                              ///< Useful when using as a queue
+#define ListRef(item)        ((ListEntry_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
+#define ListLock(item)       (ObjLock (&(item)->obj))                  ///< Locks this entry (or list)
+#define ListUnlock(item)     (ObjUnlock (&(item)->obj))                ///< Unlocks the entry
+#define ListDeRef(item)      (ObjDestroy (&(item)->obj))               ///< Dereferences this entry
 
 #endif

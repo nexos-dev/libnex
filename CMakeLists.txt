@@ -29,8 +29,13 @@ if(${LIBNEX_ENABLE_TESTS} AND NOT ${CMAKE_CROSSCOMPILING})
     enable_testing()
 endif()
 
-# Find the NexNix SDK
-find_package(NexNixSdk REQUIRED)
+# Check if we should use the SDK or not
+if(CMAKE_SYSTEM_NAME STREQUAL "NexNix")
+    find_package(NexNixSdk REQUIRED)
+else()
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/nextest")
+    include_directories(nextest)
+endif()
 
 # Include modules
 include(GNUInstallDirs)

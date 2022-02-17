@@ -94,13 +94,13 @@ PUBLIC TextStream_t* TextOpen (char* file, char mode, char encoding, char hasBom
     else
     {
         // We make an assumption here. This file is either an 8 bit format,
-        // in which case endianess doesn't matter. Or this file is UTF-16 or UTF-32,
+        // in which case endianess doesn't matter. Or this file is UTF-16,
         // and doesn't have a BOM. In either case, we assume this is little endian
         // If that assumption is false, we are in a world of hurting
         stream->encoding = TEXT_ORDER_LE;
     }
-    // Finally, create the lock
-    _libnex_lock_init (&stream->lock);
+    // Finally, create the object
+    ObjCreate (file, &stream->obj);
     return stream;
 }
 
@@ -114,8 +114,14 @@ PUBLIC TextStream_t* TextOpen (char* file, char mode, char encoding, char hasBom
  */
 PUBLIC void TextClose (TextStream_t* stream)
 {
-    // Lock the stream
-    _libnex_lock_lock (&stream->lock);
-    // Free the buffer
-    free (stream->buf);
+    // Ensure we can do this
+    if (!TextDeRef (stream))
+    {
+        TextLock (stream);
+        // Free the buffer
+        free (stream->buf);
+        // Close the file
+        fclose (stream->file);
+        TextUnlock (stream);
+    }
 }

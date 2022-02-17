@@ -22,17 +22,10 @@
 #define _TEXTSTREAM_H
 
 #include <libnex/decls.h>
+#include <libnex/object.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
-#include <libnex/libnex_config.h>
-#endif
-
-#include <libnex/lock.h>
 
 // Valid text encodings
 #define TEXT_ENC_ASCII   1    ///< File is encoded in tradit
@@ -64,12 +57,12 @@ __DECL_START
  */
 typedef struct _TextStream
 {
+    Object_t obj;     ///< The object for this stream
     FILE* file;       ///< Pointer to underlying file object
     uint8_t* buf;     ///< Buffer to use for staging
     int bufSize;      ///< Size of above buffer (defaults to 512 bytes)
     char encoding;    ///< Underlying encoding of the stream
     char order;       ///< Order of bytes for multi byte character sets
-    lock_t lock;      ///< The lock for this stream
 } TextStream_t;
 
 /**
@@ -165,8 +158,12 @@ PUBLIC void TextSetBufSz (TextStream_t* stream, size_t sz);
 __DECL_END
 
 // Helper macros
-#define TextEncoding (stream) ((stream)->encoding)    ///< Grabs the character encoding of stream
-#define TextOrder    (stream) ((stream)->order)       ///< Grabs the byte order of stream
-#define TextGetBufSz (stream) ((stream)->bufSize)     ///< Grabs the size of the staging buffer in stream
+#define TextGetEncoding  (stream) ((stream)->encoding)              ///< Grabs the character encoding of stream
+#define TextGetOrder     (stream) ((stream)->order)                 ///< Grabs the byte order of stream
+#define TextGetBufSz     (stream) ((stream)->bufSize)               ///< Grabs the size of the staging buffer in stream
+#define TextRef(item)    ((TextStream_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
+#define TextLock(item)   (ObjLock (&(item)->obj))                   ///< Locks this stream
+#define TextUnlock(item) (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
+#define TextDeRef(item)  (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
 
 #endif
