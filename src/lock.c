@@ -36,6 +36,10 @@ void _libnex_lock_init (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutexattr_t attr;
+    // FIXME: attr is leaked. I currently can't think of an easy way to structure this so that
+    // _libnex_lock_destroy can destroy the mutex and mutexattr. TBD.
+    pthread_mutexattr_init (&attr);
+    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init (lock, &attr);
 #elif defined HAVE_WIN32_THREADS
     InitializeCriticalSection (lock);

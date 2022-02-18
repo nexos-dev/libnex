@@ -25,8 +25,8 @@ endfunction()
 function(nextest_add_library_test)
     if("${__NEXTEST_TESTS_ENABLED}" EQUAL "1")
         # Read in the arguments
-        cmake_parse_arguments(__TESTARG "" "NAME;SOURCE" "DEFINES;LIBS;INCLUDES" ${ARGN})
-        if(NOT __TESTARG_NAME OR NOT __TESTARG_SOURCE OR NOT __TESTARG_LIBS)
+        cmake_parse_arguments(__TESTARG "" "NAME;SOURCE;WORKDIR" "DEFINES;LIBS;INCLUDES" ${ARGN})
+        if(NOT __TESTARG_NAME OR NOT __TESTARG_SOURCE OR NOT __TESTARG_LIBS OR NOT __TESTARG_WORKDIR)
             message(FATAL_ERROR "Required argument missing")
         endif()
         string(TOLOWER ${__TESTARG_NAME} __TESTARG_EXENAME)
@@ -44,7 +44,9 @@ function(nextest_add_library_test)
         
         # Check if we are using CTest
         if(NOT ${CMAKE_CROSSCOMPILING})
-            add_test(NAME ${__TESTARG_NAME} COMMAND ${__TESTARG_EXENAME})
+            add_test(NAME ${__TESTARG_NAME} 
+                     COMMAND ${__TESTARG_EXENAME} 
+                     WORKING_DIRECTORY ${__TESTARG_WORKDIR})
         else()
             # Move the files to the system root so they can be run in the target
             install(TARGETS ${__TARGET_EXENAME} DESTINATION ${CMAKE_INSTALL_BINDIR}/tests)

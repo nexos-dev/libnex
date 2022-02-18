@@ -39,12 +39,9 @@
 #define TEXT_ORDER_BE   2    ///< File is big endian
 
 // Modes for textOpen
-#define TEXT_MODE_READ               0    ///< File will be opened solely for reading
-#define TEXT_MODE_WRITE              1    ///< File will be created (or truncating), and writing solely allowed
-#define TEXT_MODE_APPEND             2    ///< File will be appended to
-#define TEXT_MODE_READ_APPEND        3    ///< File will be appended to and read from
-#define TEXT_MODE_READ_WRITE         4    ///< File will be created or truncated, for writing, and reading is allowed
-#define TEXT_MODE_READ_WRITE_NOTRUNC 5    ///< Same as TEXT_MODE_READ_WRITE, except file will not be truncated
+#define TEXT_MODE_READ   0    ///< File will be opened solely for reading
+#define TEXT_MODE_WRITE  1    ///< File will be created (or truncating), and writing solely allowed
+#define TEXT_MODE_APPEND 2    ///< File will be appended to
 
 __DECL_START
 
@@ -57,12 +54,12 @@ __DECL_START
  */
 typedef struct _TextStream
 {
-    Object_t obj;     ///< The object for this stream
-    FILE* file;       ///< Pointer to underlying file object
-    uint8_t* buf;     ///< Buffer to use for staging
-    int bufSize;      ///< Size of above buffer (defaults to 512 bytes)
-    char encoding;    ///< Underlying encoding of the stream
-    char order;       ///< Order of bytes for multi byte character sets
+    Object_t obj;      ///< The object for this stream
+    FILE* file;        ///< Pointer to underlying file object
+    uint8_t* buf;      ///< Buffer to use for staging
+    size_t bufSize;    ///< Size of above buffer (defaults to 512 bytes)
+    char encoding;     ///< Underlying encoding of the stream
+    char order;        ///< Order of bytes for multi byte character sets
 } TextStream_t;
 
 /**
@@ -98,9 +95,9 @@ PUBLIC void TextClose (TextStream_t* stream);
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
  * @param[in] count the number of wchar_t's to decode
- * @return value > 0 on success, 0 on failure
+ * @return the number of characters read on success, -1 on failure
  */
-PUBLIC int TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC ssize_t TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
 
 /**
  * @brief Reads data from a text stream
@@ -114,9 +111,9 @@ PUBLIC int TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
  * @param[in] count the max number of wchar_t's to decode
- * @return value > 0 on success, 0 on failure
+ * @return the number of characters read on success, -1 on failure
  */
-PUBLIC int TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC ssize_t TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count);
 
 /**
  * @brief Writes data into a text stream
@@ -127,9 +124,9 @@ PUBLIC int TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count);
  * @param[in] stream the stream to write to
  * @param[in] buf the buffer to write from
  * @param[in] count the number of wchar_t's to write
- * @return value > 0 on success, 0 on failure
+ * @return count of wchar_t's written on success, -1 on failure
  */
-PUBLIC int TextWrite (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC ssize_t TextWrite (TextStream_t* stream, wchar_t* buf, size_t count);
 
 /**
  * @brief Gets size of text stream
@@ -139,7 +136,7 @@ PUBLIC int TextWrite (TextStream_t* stream, wchar_t* buf, size_t count);
  * @param[in] stream the stream to get the size from
  * @return < 0 on error, else, the size
  */
-PUBLIC ssize_t TextSize (TextStream_t* stream);
+PUBLIC long TextSize (TextStream_t* stream);
 
 /**
  * @brief Sets the size of the staging buffer
@@ -147,7 +144,7 @@ PUBLIC ssize_t TextSize (TextStream_t* stream);
  * TextSetBufSz resizes the staging buffer to the size specified by sz
  * This could used to help optimize performance by selecting a large buffer
  * size, or optimizing memory usage by selecting a small buffer size This
- * function has a potential exit point. It may call exit(1) in an error
+ * function has a potential exit point. It may call exit(3) in an error
  * condition
  *
  * @param[in] stream the stream to operate on

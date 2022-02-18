@@ -215,10 +215,15 @@ if(NOT HAVE_BSD_STRING)
     list(APPEND LIBNEX_TESTS strlcat strlcpy)
 endif()
 
+if(NOT LIBNEX_BAREMETAL)
+    list(APPEND LIBNEX_TESTS textstream)
+endif()
+
 foreach(test ${LIBNEX_TESTS})
     nextest_add_library_test(NAME ${test}
                              SOURCE tests/${test}.c
                              LIBS nex
                              INCLUDES ${LIBNEX_INCLUDE_DIRS}
-                             DEFINES IN_LIBNEX)
+                             DEFINES IN_LIBNEX
+                             WORKDIR ${CMAKE_SOURCE_DIR}/tests)
 endforeach()
