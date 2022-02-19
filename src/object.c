@@ -37,9 +37,8 @@ static int nextId = 1;
  * initializing a type name for it.
  * @param[in] type the type to use for this object
  * @param[out] obj the object to initialize
- * @return 1 on success, 0 on error
  */
-PUBLIC void ObjCreate (char* type, Object_t* obj)
+PUBLIC void ObjCreate (const char* type, Object_t* obj)
 {
     // Set the members
     obj->id = nextId++;
@@ -94,7 +93,7 @@ PUBLIC Object_t* ObjRef (Object_t* obj)
  * @param[in] obj2 the second object to compare
  * @return 1 if they are equal, 0 other wise
  */
-PUBLIC int ObjCompare (Object_t* obj1, Object_t* obj2)
+PUBLIC int ObjCompare (const Object_t* obj1, const Object_t* obj2)
 {
     return obj1->id == obj2->id;
 }
@@ -105,7 +104,7 @@ PUBLIC int ObjCompare (Object_t* obj1, Object_t* obj2)
  * @param[in] obj2 the second object to compare
  * @return 1 if equal, 0 otherwise
  */
-PUBLIC int ObjCompareType (Object_t* obj1, Object_t* obj2)
+PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2)
 {
     return !strcmp (obj1->type, obj2->type);
 }

@@ -56,6 +56,13 @@ check_symbol_exists(pthread_self "pthread.h" HAVE_PTHREAD)
 if(NOT HAVE_PTHREAD)
     check_symbol_exists(EnterCriticalSection "windows.h" HAVE_WIN32_THREADS)
 endif()
+check_symbol_exists(stat "sys/stat.h" HAVE_UNIX_STAT)
+if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)
+    check_symbol_exists(_stat "sys/stat.h" HAVE_WIN32_STAT)
+    if(NOT HAVE_WIN32_STAT)
+        message(FATAL_ERROR "Stat is required")
+    endif()
+endif()
 
 # Configure the header
 configure_file(${CMAKE_SOURCE_DIR}/src/libnex_config.in.h ${CMAKE_BINARY_DIR}/libnex_config.h)

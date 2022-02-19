@@ -47,7 +47,7 @@ PUBLIC char EndianHost();
  * @param val 16 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite16 (uint16_t* buf, uint16_t val, char endian);
+PUBLIC int EndianWrite16 (uint16_t* buf, const uint16_t val, const char endian);
 
 /**
  * @brief Writes a 32 bit value with specified endianess
@@ -55,7 +55,7 @@ PUBLIC int EndianWrite16 (uint16_t* buf, uint16_t val, char endian);
  * @param val 32 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite32 (uint32_t* buf, uint32_t val, char endian);
+PUBLIC int EndianWrite32 (uint32_t* buf, const uint32_t val, const char endian);
 
 /**
  * @brief Writes a 64 bit value with specified endianess
@@ -63,7 +63,7 @@ PUBLIC int EndianWrite32 (uint32_t* buf, uint32_t val, char endian);
  * @param val 64 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite64 (uint64_t* buf, uint64_t val, char endian);
+PUBLIC int EndianWrite64 (uint64_t* buf, const uint64_t val, const char endian);
 
 /**
  * @brief Reads a 16 bit value with specified endianess
@@ -71,7 +71,7 @@ PUBLIC int EndianWrite64 (uint64_t* buf, uint64_t val, char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint16_t EndianRead16 (uint16_t* buf, char endian);
+PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian);
 
 /**
  * @brief Reads a 32 bit value with specified endianess
@@ -79,7 +79,7 @@ PUBLIC uint16_t EndianRead16 (uint16_t* buf, char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint32_t EndianRead32 (uint32_t* buf, char endian);
+PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian);
 
 /**
  * @brief Reads a 64 bit value with specified endianess
@@ -87,7 +87,7 @@ PUBLIC uint32_t EndianRead32 (uint32_t* buf, char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint64_t EndianRead64 (uint64_t* buf, char endian);
+PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian);
 
 /**
  * @brief Swaps the endianess of a 16 bit value

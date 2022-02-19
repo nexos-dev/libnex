@@ -45,7 +45,7 @@ __DECL_START
  * @param[in] size the size of dest
  * @return the length of src
  */
-PUBLIC size_t strlcpy (char* dest, char* src, size_t size);
+PUBLIC size_t strlcpy (char* dest, const char* src, size_t size);
 
 /**
  * @brief A safer version of strcat(3)
@@ -58,7 +58,7 @@ PUBLIC size_t strlcpy (char* dest, char* src, size_t size);
  * @param[in] size the size of the buffer dest points to
  * @return the lenght of dest plus the length of source
  */
-PUBLIC size_t strlcat (char* dest, char* src, size_t size);
+PUBLIC size_t strlcat (char* dest, const char* src, size_t size);
 
 __DECL_END
 

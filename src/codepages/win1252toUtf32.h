@@ -19,7 +19,8 @@
 #include <wchar.h>
 
 // The Windows 1252 specific part must be translated with a table.
-// The ISO-8859-1 part start U+00A0, and ends at U+00FF.
+// The ISO-8859-1 part starts at U+00A0, and ends at U+00FF, hence it can be directly
+// copied without a table
 wchar_t win1252toUtf32[] = {
     0x20AC,    // €
     0x0,

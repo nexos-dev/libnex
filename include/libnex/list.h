@@ -60,7 +60,7 @@ typedef struct _ListHead
  * @param type the data type of this entry. Used in the underlying object
  * @return The allocated list entry
  */
-PUBLIC ListHead_t* ListCreate (char* type);
+PUBLIC ListHead_t* ListCreate (const char* type);
 
 /**
  * @brief Adds an item to the front of the list
@@ -73,7 +73,7 @@ PUBLIC ListHead_t* ListCreate (char* type);
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key);
+PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key);
 
 /**
  * @brief Adds an item to the back of the list
@@ -84,7 +84,7 @@ PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key);
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key);
+PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key);
 
 /**
  * @brief Finds an item in a list
@@ -95,7 +95,7 @@ PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key);
  * @param[in] key the key to search for
  * @return The list entry associated with the key
  */
-PUBLIC ListEntry_t* ListFind (ListHead_t* list, int key);
+PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -108,7 +108,7 @@ PUBLIC ListEntry_t* ListFind (ListHead_t* list, int key);
  * @param[in] entry the entry before the new item
  * @return The new ListEntry_t*
  */
-PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* entryAfter);
+PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -122,7 +122,7 @@ PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEn
  * @return The new ListEntry_t*. NULL if entry specified by keyAfter doesn't
  * exist
  */
-PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter);
+PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -135,7 +135,7 @@ PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int
  * @param[in] entryBefore the entry before the new item
  * @return The new ListEntry_t*
  */
-PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* entryBefore);
+PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -149,7 +149,7 @@ PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEnt
  * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
  * exist
  */
-PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore);
+PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, int keyBefore);
 
 /**
  * @brief Removes the head of list, returning the item
@@ -168,7 +168,7 @@ PUBLIC ListEntry_t* ListPopFront (ListHead_t* list);
  * @param key the key to remove
  * @return The removed entry
  */
-PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key);
+PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key);
 
 /**
  * @brief Removes an entry

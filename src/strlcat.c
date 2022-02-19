@@ -32,9 +32,9 @@
  * @param[in] size the size of the buffer dest points to
  * @return the length of dest plus the length of source
  */
-PUBLIC size_t strlcat (char* dest, char* src, size_t size)
+PUBLIC size_t strlcat (char* dest, const char* src, size_t size)
 {
-    char* osrc = src;
+    const char* osrc = src;
     // Advance dest to null terminator
     size_t destSz = 0;
     while (*++dest)

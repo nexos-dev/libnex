@@ -53,10 +53,10 @@
  */
 typedef struct _Object
 {
-    char* type;      ///< The type of this object
-    int id;          ///< A unique ID for this object
-    int refCount;    ///< The number of consumers this object currently has
-    lock_t lock;     ///< Used to synchronize access to this object
+    const char* type;    ///< The type of this object
+    int id;              ///< A unique ID for this object
+    int refCount;        ///< The number of consumers this object currently has
+    lock_t lock;         ///< Used to synchronize access to this object
 } Object_t;
 
 __DECL_START
@@ -68,9 +68,8 @@ __DECL_START
  * initializing a type name for it.
  * @param[in] type the type to use for this object
  * @param[out] obj the object to initialize
- * @return 1 on success, 0 on error
  */
-PUBLIC void ObjCreate (char* type, Object_t* obj);
+PUBLIC void ObjCreate (const char* type, Object_t* obj);
 
 /**
  * @brief Destroys an object instance
@@ -100,7 +99,7 @@ PUBLIC Object_t* ObjRef (Object_t* obj);
  * @param[in] obj2 the second object to compare
  * @return 1 if they are equal, 0 other wise
  */
-PUBLIC int ObjCompare (Object_t* obj1, Object_t* obj2);
+PUBLIC int ObjCompare (const Object_t* obj1, const Object_t* obj2);
 
 /**
  * @brief Compares two object's types
@@ -108,7 +107,7 @@ PUBLIC int ObjCompare (Object_t* obj1, Object_t* obj2);
  * @param[in] obj2 the second object to compare
  * @return 1 if equal, 0 otherwise
  */
-PUBLIC int ObjCompareType (Object_t* obj1, Object_t* obj2);
+PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2);
 
 /**
  * @brief Locks this object

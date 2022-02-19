@@ -23,11 +23,7 @@
 #include <libnex/safemalloc.h>
 #include <stdlib.h>
 
-/**
- * @brief Creates a new linked list
- * @return The allocated list entry
- */
-PUBLIC ListHead_t* ListCreate (char* type)
+PUBLIC ListHead_t* ListCreate (const char* type)
 {
     ListHead_t* head = malloc_s (sizeof (ListHead_t));
     // Initialize the object associated with this list
@@ -38,18 +34,7 @@ PUBLIC ListHead_t* ListCreate (char* type)
     return head;
 }
 
-/**
- * @brief Adds an item to the front of the list
- *
- * This function add an item before the front member of the ListHead.
- * It accepts a data pointer to initializes the member with, and a key
- * to identify the item
- * @param[in] list the list head to add to
- * @param[in] data a pointer to some data
- * @param[in] key the key for the data so it can identified
- * @return The list entry that was allocated
- */
-PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
+PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
     ListLock (head);
@@ -70,16 +55,7 @@ PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, int key)
     return entry;
 }
 
-/**
- * @brief Adds an item to the back of the list
- *
- * This function does the same ListAddFront(), just the other way
- * @param[in] list the list head to add to
- * @param[in] data a pointer to some data
- * @param[in] key the key for the data so it can identified
- * @return The list entry that was allocated
- */
-PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
+PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
     ObjCreate (ObjGetType (head), &entry->obj);
@@ -100,16 +76,7 @@ PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, int key)
     return entry;
 }
 
-/**
- * @brief Finds an item in a list
- *
- * Accepts a key value, and finds the item associated with that key
- *
- * @param[in] list the list to search in
- * @param[in] key the key to search for
- * @return The list entry associated with the key
- */
-PUBLIC ListEntry_t* ListFind (ListHead_t* list, int key)
+PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
 {
     ListLock (list);
     ListEntry_t* search = list->front;
@@ -130,18 +97,7 @@ PUBLIC ListEntry_t* ListFind (ListHead_t* list, int key)
     return NULL;
 }
 
-/**
- * @brief Adds an item to a list somewhere in the middle
- *
- * This functions accepts the pointer to the item before what we want to add
- * The other form accepts a key value
- * @param[in] list the list head to add to
- * @param[in] data the data to initialize it with
- * @param[in] key the key of the new item
- * @param[in] entry the entry before the new item
- * @return The new ListEntry_t*
- */
-PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEntry_t* entryAfter)
+PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
     ListLock (list);
@@ -163,19 +119,7 @@ PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, int key, ListEn
     return entry;
 }
 
-/**
- * @brief Adds an item to a list somewhere in the middle
- *
- * This functions accepts the key of the item before what we want to add
- * The other form accepts a listEntry_t pointer
- * @param[in] list the list head to add to
- * @param[in] data the data to initialize it with
- * @param[in] key the key of the new item
- * @param[in] keyBefore the key before the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
- * exist
- */
-PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int keyAfter)
+PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter)
 {
     ListEntry_t* entryAfter = ListFind (list, keyAfter);
     if (!entryAfter)
@@ -183,18 +127,7 @@ PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, int key, int
     return ListAddBefore (list, data, key, entryAfter);
 }
 
-/**
- * @brief Adds an item to a list somewhere in the middle
- *
- * This functions accepts the pointer to the item before what we want to add
- * The other form accepts a key value
- * @param[in] list the list head to add to
- * @param[in] data the data to initialize it with
- * @param[in] key the key of the new item
- * @param[in] entryBefore the entry before the new item
- * @return The new ListEntry_t*
- */
-PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEntry_t* entryBefore)
+PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
     ListLock (list);
@@ -216,19 +149,7 @@ PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, int key, ListEnt
     return entry;
 }
 
-/**
- * @brief Adds an item to a list somewhere in the middle
- *
- * This functions accepts the key of the item before what we want to add
- * The other form accepts a ListEntry_t pointer
- * @param[in] list the list head to add to
- * @param[in] data the data to initialize it with
- * @param[in] key the key of the new item
- * @param[in] keyBefore the key before the new item
- * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
- * exist
- */
-PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int keyBefore)
+PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, const int keyBefore)
 {
     ListEntry_t* entryBefore = ListFind (list, keyBefore);
     if (!entryBefore)
@@ -236,13 +157,6 @@ PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, int key, int 
     return ListAddAfter (list, data, key, entryBefore);
 }
 
-/**
- * @brief Removes the head of list, returning the item
- *
- * This function could be useful when treating a linked list as a queue
- * @param list the list head to remove the entry from
- * @return The ListEntry_t*
- */
 PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
 {
     ListLock (list);
@@ -257,15 +171,7 @@ PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
     return entry;
 }
 
-/**
- * @brief Removes entry by key
- *
- * This function accepts a key, and returns the item identified by that key
- * @param list the list to remove it from
- * @param key the key to remove
- * @return The removed entry
- */
-PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
+PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key)
 {
     ListEntry_t* entry = ListFind (list, key);
     if (!entry)
@@ -274,7 +180,7 @@ PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
 }
 
 // Internal function to remove a list entry
-ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
+ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, const int doRef)
 {
     ListLock (list);
     if (doRef)
@@ -295,15 +201,6 @@ ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
     return entry;
 }
 
-/**
- * @brief Removes an entry
- *
- * This function accepts a key, and returns the item identified by that key.
- * Note that if other consumers are referencing this entry still, it is not removed
- * @param list the list to remove from
- * @param entry the entry to remove
- * @return The removed entry
- */
 PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
 {
     if (!ListDeRef (entry))
@@ -312,15 +209,6 @@ PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
         return entry;
 }
 
-/**
- * @brief Destroys an entry
- *
- * Destroys a list entry, returning the data associated with it.
- * Note that if other consumers are referencing this entry still, it is not destroyed
- * @param list the list to destroy from
- * @param entry the entry to destroy
- * @return The data associated with this entry
- */
 PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
 {
     void* data = entry->data;
@@ -332,15 +220,6 @@ PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
     return data;
 }
 
-/**
- * @brief Destroys an entry and its data
- *
- * Destroys a list entry and the data associated with it
- * Note that if other consumers are referencing this entry still, it is not destroyed
- * @param list the list to destroy from
- * @param entry the entry to destroy
- * @return The data associated with this entry
- */
 PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
 {
     // De-reference the entry and remove it
@@ -351,11 +230,6 @@ PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
     free (entry);
 }
 
-/**
- * @brief Destroys a list
- * Note that if other consumers are referencing this list still, it is not destroyed
- * @param list the list to destroy
- */
 PUBLIC void ListDestroy (ListHead_t* list)
 {
     ListLock (list);

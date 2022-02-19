@@ -33,12 +33,6 @@
 #error Platform with wchar_t is required
 #endif
 
-#if WCHAR_MAX > 0x1000000
-#define HAVE_WIDE_WCHAR
-#else
-#define HAVE_NARROW_WCHAR
-#endif
-
 // Get visibility stuff right
 #ifdef HAVE_VISIBILITY
 #define PUBLIC __attribute__ ((visibility ("default")))
@@ -56,6 +50,14 @@
 #ifdef WIN32
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
+#endif
+
+// Make sure stat is defined right
+#ifdef HAVE_WIN32_STAT
+#define stat   _stat
+#define stat_t struct _stat
+#else
+#define stat_t struct stat
 #endif
 
 #endif

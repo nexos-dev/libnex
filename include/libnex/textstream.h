@@ -32,6 +32,7 @@
 #define TEXT_ENC_WIN1252 2    ///< File is encoded Windows codepage 1252 character set
 #define TEXT_ENC_UTF8    3    ///< File is encoded in UTF-8
 #define TEXT_ENC_UTF16   4    ///< File is encoded in UTF-16
+#define TEXT_ENC_UTF32   5    ///< File is encoded in UTF-32
 
 // Valid orderings
 #define TEXT_ORDER_NONE 0    ///< No ordering. This is used for single byte sets (like ASCII)
@@ -42,6 +43,14 @@
 #define TEXT_MODE_READ   0    ///< File will be opened solely for reading
 #define TEXT_MODE_WRITE  1    ///< File will be created (or truncating), and writing solely allowed
 #define TEXT_MODE_APPEND 2    ///< File will be appended to
+
+// Valid errors that can occur
+#define TEXT_SUCCESS           1    ///< No error
+#define TEXT_SYS_ERROR         2    ///< errno contains the error
+#define TEXT_INVALID_PARAMETER 3    ///< User passed an invalid parameter
+#define TEXT_BAD_BOM           4    ///< A bad BOM was encountered
+#define TEXT_NARROW_WCHAR      5    ///< Attempting to parse UTF-32 on a system with a narrow wchar_t
+#define TEXT_INVALID_CHAR      6    ///< Character doesn't fit in destination character set
 
 __DECL_START
 
@@ -56,6 +65,7 @@ typedef struct _TextStream
 {
     Object_t obj;      ///< The object for this stream
     FILE* file;        ///< Pointer to underlying file object
+    char* fileName;    ///< The original file name
     uint8_t* buf;      ///< Buffer to use for staging
     size_t bufSize;    ///< Size of above buffer (defaults to 512 bytes)
     char encoding;     ///< Underlying encoding of the stream
@@ -70,9 +80,13 @@ typedef struct _TextStream
  *
  * @param[in] name specifies the file name to open
  * @param[in] mode the opening mode
- * @return A new textStream_t object. NULL on error
+ * @param[in] hasBom if the specified stream has a BOM. Only used if mode is append or read
+ * @param[in] order the byte order of the stream, either TEXT_ORDER_LE of TEXT_ORDER_BE. Only used if
+ * mode is write
+ * @param[out] stream result variable to put the stream in
+ * @return TEXT_SUCCESS, otherwise, an error code
  */
-PUBLIC TextStream_t* TextOpen (char* file, char mode, char encoding, char hasBom);
+PUBLIC short TextOpen (char* file, TextStream_t** stream, char mode, char encoding, char hasBom, char order);
 
 /**
  * @brief Closes a text stream
@@ -95,9 +109,10 @@ PUBLIC void TextClose (TextStream_t* stream);
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
  * @param[in] count the number of wchar_t's to decode
- * @return the number of characters read on success, -1 on failure
+ * @param[out] the number or characters read
+ * @return a result code
  */
-PUBLIC ssize_t TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC short TextRead (TextStream_t* stream, wchar_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Reads data from a text stream
@@ -111,9 +126,10 @@ PUBLIC ssize_t TextRead (TextStream_t* stream, wchar_t* buf, size_t count);
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
  * @param[in] count the max number of wchar_t's to decode
- * @return the number of characters read on success, -1 on failure
+ * @param[out] charsRead the number or characters read
+ * @return a status code
  */
-PUBLIC ssize_t TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC short TextReadLine (TextStream_t* stream, wchar_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
@@ -124,9 +140,10 @@ PUBLIC ssize_t TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count);
  * @param[in] stream the stream to write to
  * @param[in] buf the buffer to write from
  * @param[in] count the number of wchar_t's to write
- * @return count of wchar_t's written on success, -1 on failure
+ * @param[out] charsWritten the number or characters written
+ * @return a status code
  */
-PUBLIC ssize_t TextWrite (TextStream_t* stream, wchar_t* buf, size_t count);
+PUBLIC short TextWrite (TextStream_t* stream, const wchar_t* buf, const size_t count, size_t* charsWritten);
 
 /**
  * @brief Gets size of text stream
@@ -134,7 +151,7 @@ PUBLIC ssize_t TextWrite (TextStream_t* stream, wchar_t* buf, size_t count);
  * TextSize obtains the size of the text stream specified by stream
  *
  * @param[in] stream the stream to get the size from
- * @return < 0 on error, else, the size
+ * @return The size. -1 on error
  */
 PUBLIC long TextSize (TextStream_t* stream);
 
