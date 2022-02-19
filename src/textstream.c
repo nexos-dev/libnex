@@ -20,6 +20,7 @@
 
 #include "codepages/win1252toUtf32.h"
 #include <errno.h>
+#include <libnex/base.h>
 #include <libnex/bits.h>
 #include <libnex/safemalloc.h>
 #include <libnex/textstream.h>
@@ -175,7 +176,7 @@ PUBLIC void TextSetBufSz (TextStream_t* stream, size_t sz)
 }
 
 // Checks if we reached a newline
-char _textCheckNewLine (wchar_t* buf, int i, size_t bytesLeft)
+char _textCheckNewLine (uint8_t* buf, int i, size_t bytesLeft)
 {
     if (buf[i] == '\n' || buf[i] == '\r')
     {
@@ -203,7 +204,7 @@ ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, size_t count, int termi
             // Check if a terminator was reached
             if (terminator == 1)
             {
-                char doWhat = _textCheckNewLine (buf, i, count);
+                char doWhat = _textCheckNewLine (stream->buf, i, count);
                 if (doWhat == 0)
                     continue;
                 else if (doWhat == 1)
@@ -234,7 +235,7 @@ ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, size_t count, int termi
             // Check if a terminator was reached
             if (terminator == 1)
             {
-                char doWhat = _textCheckNewLine (buf, i, count);
+                char doWhat = _textCheckNewLine (stream->buf, i, count);
                 if (doWhat == 0)
                     continue;
                 else if (doWhat == 1)
@@ -264,8 +265,43 @@ ssize_t _textEncode (TextStream_t* stream, wchar_t* buf, size_t count)
                 return -1;
             }
             stream->buf[i] = (uint8_t) buf[i];
-            charEncoded = (ssize_t) count;
         }
+        charEncoded = (ssize_t) count;
+    }
+    else if (stream->encoding == TEXT_ENC_WIN1252)
+    {
+        // Loop and encode
+        for (int i = 0; i < count; ++i)
+        {
+            // This is where the algorithm starts. Check if this character's Unicode code
+            // is the same as its Windows-1252 one. If it is, directly copy to destination
+            // buffer
+            if (buf[i] <= 0x7F || (buf[i] >= 0xA0 && buf[i] <= 0xFF))
+            {
+                // Copy out
+                stream->buf[i] = (uint8_t) buf[i];
+            }
+            // It's a Windows-1252 character
+            else
+            {
+                // This is kind of slow, but the best way overall.
+                // We loop through the translation table until we find character that matches
+                // buf[i]. We set bit 7 on the index, and that's the character
+                int tableSize = ARRAY_SIZE (win1252toUtf32);
+                int tableIndex = 0;
+                while (tableIndex < tableSize)
+                {
+                    // Check for a match
+                    if (win1252toUtf32[tableIndex] == buf[i])
+                    {
+                        // Set bit 7 on tableIndex, and that is the character
+                        stream->buf[i] = BitSetNew (tableIndex, 7);
+                    }
+                    tableIndex++;
+                }
+            }
+        }
+        charEncoded = (ssize_t) count;
     }
     return charEncoded;
 }
@@ -303,7 +339,7 @@ PUBLIC ssize_t TextRead (TextStream_t* stream, wchar_t* buf, size_t count)
     // Read the data into the staging buffer
     ssize_t charRead = (ssize_t) fread (stream->buf, 1, count * sizeof (wchar_t), stream->file);
     // Decode the string
-    ssize_t charParsed = _textDecode (stream, buf, charRead, 0);
+    ssize_t charParsed = _textDecode (stream, buf, charRead, TEXT_DECODE_ALL);
     if (charParsed == -1)
         return -1;
     // That's it
@@ -345,7 +381,7 @@ PUBLIC ssize_t TextReadLine (TextStream_t* stream, wchar_t* buf, size_t count)
     // Read the data into the staging buffer
     ssize_t charRead = (ssize_t) fread (stream->buf, 1, count * sizeof (wchar_t), stream->file);
     // Decode the string
-    ssize_t charParsed = _textDecode (stream, buf, charRead, 1);
+    ssize_t charParsed = _textDecode (stream, buf, charRead, TEXT_DECODE_TERMINATE_ON_NEWLINE);
     // That's it
     TextUnlock (stream);
     return charParsed;

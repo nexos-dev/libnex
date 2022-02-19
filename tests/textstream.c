@@ -37,12 +37,21 @@ int main()
             return 1;
         // FIXME: If C compiler doesn't use unicode by default, these wcscmp's may not work
         // Luckily, CL uses UTF-16 and Clang and GCC use UTF-32, making this work most of the time.
-        wchar_t buf2[] = L"Test string. This is an ASCII document.\n";
+        wchar_t buf2[] = L"Test string. This is an ASCII document.\r\n";
         TEST_BOOL (!wcscmp (buf, buf2), "reading ASCII");
         // Test TextSize
         TEST (TextSize (stream), wcslen (buf2), "TextSize");
         free (buf);
         TextClose (stream);
+        // Test TextReadLine
+        stream = TextOpen ("testAscii1.testxt", TEXT_MODE_READ, TEXT_ENC_ASCII, 0);
+        buf = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
+        if (TextReadLine (stream, buf, 500) == -1)
+            return 1;
+        wchar_t buf5[] = L"Test string. This is an ASCII document.\r\n";
+        TEST_BOOL (!wcscmp (buf, buf5), "reading a line of ASCII");
+        TextClose (stream);
+        free (buf);
         // Write out some text
         wchar_t buf3[] = L"This is a test document.\n";
         // Create a new file
@@ -70,11 +79,28 @@ int main()
             return 1;
         wchar_t* buf = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
         if (TextRead (stream1, buf, 500) == -1)
-            return -1;
+            return 1;
         wchar_t buf2[] = L"Test windows 1252 document. Here is a non-ASCII character: ÿ Ž\n";
         TEST_BOOL (!wcscmp (buf, buf2), "reading Windows 1252");
         free (buf);
         TextClose (stream1);
+        // Test writing it
+        TextStream_t* stream2 = TextOpen ("testWin1252.testout", TEXT_MODE_WRITE, TEXT_ENC_WIN1252, 0);
+        if (!stream2)
+            return 1;
+        if (TextWrite (stream2, buf2, wcslen (buf2)) == -1)
+            return 1;
+        TextClose (stream2);
+        // Read and compare
+        buf = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
+        stream2 = TextOpen ("testWin1252.testout", TEXT_MODE_READ, TEXT_ENC_WIN1252, 0);
+        if (!stream2)
+            return 1;
+        if (TextRead (stream2, buf, wcslen (buf2)) == -1)
+            return 1;
+        TEST_BOOL (!wcscmp (buf, buf2), "writing Windows 1252");
+        TextClose (stream2);
+        free (buf);
     }
     return 0;
 }

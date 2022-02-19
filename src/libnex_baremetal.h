@@ -26,6 +26,4 @@
 #include <libnex/endian.h>
 #include <libnex/safestring.h>
 
-#define UNUSED(param) (void) (param);
-
 #endif

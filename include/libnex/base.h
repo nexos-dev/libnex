@@ -1,5 +1,5 @@
 /*
-    libnex_hosted.h - contains libnex base stuff that is applicable to hosted environments
+    base.h - contains macros that handle base stuff
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +16,15 @@
     limitations under the License.
 */
 
-/// @file libnex_hosted.h
+/// @file base.h
 
-#ifndef _LIBNEX_H
-#define _LIBNEX_H
+#ifndef _BASE_H
+#define _BASE_H
 
-#include <libnex/bits.h>
-#include <libnex/container.h>
-#include <libnex/endian.h>
-#include <libnex/error.h>
-#include <libnex/getopt.h>
-#include <libnex/progname.h>
-#include <libnex/safemalloc.h>
-#include <libnex/safestring.h>
-#include <libnex/textstream.h>
+// Used to specify that a parameter is unused
+#define UNUSED(param) (void) (param);
+
+// To find the size of an array
+#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
 
 #endif
