@@ -19,6 +19,7 @@
 /// @file textstream.c
 
 #include "codepages/win1252toUtf32.h"
+#include "utf16stateTab.h"
 #include <errno.h>
 #include <libnex/base.h>
 #include <libnex/bits.h>
@@ -27,6 +28,7 @@
 #include <libnex/textstream.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 
 // Helper macros
@@ -73,6 +75,8 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
                 stream->order = TEXT_ORDER_LE;
             else
                 return TEXT_BAD_BOM;
+            // Surrogate pairs are expanded by default
+            stream->expandSur = true;
         }
         else if (encoding == TEXT_ENC_UTF8)
         {
@@ -107,16 +111,25 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
         {
             if (stream->encoding == TEXT_ENC_UTF16 || stream->encoding == TEXT_ENC_UTF32)
             {
-                // We make an assumption here. This file is UTF-16 or UTF-32,
-                // and doesn't have a BOM. In either case, we assume this is little endian
-                // If that assumption is false, we are in a world of hurting
-                stream->order = TEXT_ORDER_LE;
+                // According to RFC 2781, UTF-16 text (so presuambly UTF-32 as well)
+                // should be treated as big endian in the absence of a BOM
+                stream->order = TEXT_ORDER_BE;
             }
             // This is a single byte character set
             else
                 stream->order = TEXT_ORDER_NONE;
         }
     }
+    // Set size of encoding
+    if (encoding == TEXT_ENC_ASCII || encoding == TEXT_ENC_WIN1252)
+        stream->encSize = 1;
+    else if (encoding == TEXT_ENC_UTF8)
+        stream->encSize = 4;
+    else if (encoding == TEXT_ENC_UTF16)
+        stream->encSize = 2;
+    else if (encoding == TEXT_ENC_UTF32)
+        stream->encSize = 4;
+
     // Finally, create the object
     ObjCreate (file, &stream->obj);
     // Check if we need to write out a BOM
@@ -219,6 +232,19 @@ static const char _textCheckNewLine8 (const uint8_t* buf, const int i, const siz
     return 2;
 }
 
+static const char _textCheckNewLine16 (const uint16_t* buf, const int i, const size_t charsLeft)
+{
+    if (buf[i] == '\n' || buf[i] == '\r')
+    {
+        // If this is CRLF, run the loop one more time so the '\n' can be copied
+        if ((i + 1) < charsLeft && buf[i + 1] == '\n')
+            return 0;
+        else
+            return 1;
+    }
+    return 2;
+}
+
 static const char _textCheckNewLine32 (const uint32_t* buf, const int i, const size_t charsLeft)
 {
     if (buf[i] == '\n' || buf[i] == '\r')
@@ -232,9 +258,14 @@ static const char _textCheckNewLine32 (const uint32_t* buf, const int i, const s
     return 2;
 }
 
+// UTF-16 parser state
+#define UTF16_ACCEPT         0
+#define UTF16_LOW_SURROGATE  1
+#define UTF16_HIGH_SURROGATE 2
+
 // Internal function to decode characters
 // terminator = 0 means to parse everything, 1 means parse until LF, CR, or CRLF is encountered
-static ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, const size_t count, const int terminator)
+static ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, size_t count, const int terminator)
 {
     ssize_t charParsed = 0;
     // Check what encoding is being used
@@ -292,7 +323,7 @@ static ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, const size_t cou
         // Ensure wchar_t is 4 bytes wide. Else, we don't support UTF-32
         if (sizeof (wchar_t) < 4)
             return -TEXT_NARROW_WCHAR;
-        const uint32_t* wideBuf = (uint32_t*) stream->buf;
+        const uint32_t* wideBuf = (const uint32_t*) stream->buf;
         for (int i = 0; i < count; ++i)
         {
             // Make sure we decode to host's byte order
@@ -308,6 +339,112 @@ static ssize_t _textDecode (TextStream_t* stream, wchar_t* buf, const size_t cou
             }
             ++charParsed;
         }
+    }
+    else if (stream->encoding == TEXT_ENC_UTF16)
+    {
+        // Get the buffer
+        const uint16_t* buf16 = (const uint16_t*) stream->buf;
+        for (int i = 0, bufIdx = 0; bufIdx < count; ++i, ++bufIdx)
+        {
+            // You may be wondering why there is a seperate bufIdx and i variables
+            // The reason why is because when a surrogate pair gets encountered, that's
+            // two characters that need to be iterated over instead of 1.
+            // The reason bufIdx is the condition is because count is the number of characters in the source
+            // buffer, not the destination buffer
+
+            // Things diverge a little here. On a platform where sizeof(wchar_t) == 2,
+            // we leave surrogate pairs unexpanded
+            // Else, we expand them using a finite state machine model
+            if (sizeof (wchar_t) == 2)
+            {
+                buf[i] = (wchar_t) EndianRead16 (&buf16[bufIdx], stream->order);
+                // Check if this is a low surrogate
+                if (BitMask (buf[i], 0xD800) == 0xD800)
+                {
+                    // Check if the user even want surrogate pairs expanded
+                    if (stream->expandSur == false)
+                        return -TEXT_NO_SURROGATE;
+                    // Copy the high surrogate
+                    if ((i + 1) < count)
+                    {
+                        buf[i] = (wchar_t) EndianRead16 (&buf16[bufIdx], stream->order);
+                        ++bufIdx;
+                        // Check for an incomplete surrogate pair
+                        if (BitMask (buf[i], 0xDC00) != 0xDC00)
+                            return -TEXT_INVALID_CHAR;
+                    }
+                    // A decode error
+                    else
+                        return -TEXT_BUF_TOO_SMALL;
+                }
+            }
+            else
+            {
+                // Setup the state
+                unsigned char state = UTF16_ACCEPT;
+                unsigned char prevState = UTF16_ACCEPT;
+                int32_t codepoint = 0;
+                // Keep parsing until accepted
+                do
+                {
+                    // Get the new state. See description of table for how this works
+                    state = utf16stateTab[EndianRead16 (&buf16[bufIdx], stream->order) >> 10];
+                    // If we are done:
+                    if (state == UTF16_ACCEPT)
+                    {
+                        // Ensure that their isn't an incomplete surrogate pair
+                        if (prevState == UTF16_LOW_SURROGATE)
+                            return -TEXT_INVALID_CHAR;
+                        codepoint = (int32_t) EndianRead16 (&buf16[bufIdx], stream->order);
+                    }
+                    else if (state == UTF16_LOW_SURROGATE)
+                    {
+                        // Clear surrogate indicator part
+                        uint16_t val = EndianRead16 (&buf16[bufIdx], stream->order);
+                        // What this means depends on the endianess of the host
+                        if (EndianHost() == ENDIAN_LITTLE)
+                            codepoint = ((BitClearRangeNew (val, 10, 6)) << 10);
+                        else
+                            codepoint = BitClearRangeNew (val, 10, 6);
+                        ++bufIdx;
+                    }
+                    else if (state == UTF16_HIGH_SURROGATE)
+                    {
+                        // Ensure there was a low surrogate
+                        if (prevState != UTF16_LOW_SURROGATE)
+                            return -TEXT_INVALID_CHAR;
+                        // Clear surrogate indicator
+                        uint16_t val = EndianRead16 (&buf16[bufIdx], stream->order);
+                        if (EndianHost() == ENDIAN_LITTLE)
+                            codepoint |= BitClearRangeNew (val, 10, 6);
+                        else
+                            codepoint |= ((BitClearRangeNew (val, 10, 6)) << 10);
+                        codepoint += 0x10000;
+                        // Accept it
+                        state = UTF16_ACCEPT;
+                    }
+                    prevState = state;
+                } while (state != UTF16_ACCEPT);
+                buf[i] = codepoint;
+            }
+            // Check for a terminator
+            if (terminator == 1)
+            {
+                const char doWhat = _textCheckNewLine16 (&buf16[i], i, count);
+                if (doWhat == 0)
+                    continue;
+                else if (doWhat == 1)
+                    return i;
+            }
+            ++charParsed;
+        }
+    }
+    if (charParsed > count)
+        return -TEXT_BUF_TOO_SMALL;
+    if (buf[charParsed] != 0)
+    {
+        // Ensure buf is null termintaed
+        buf[charParsed] = 0;
     }
     return charParsed;
 }
@@ -325,7 +462,7 @@ static ssize_t _textEncode (TextStream_t* stream, const wchar_t* buf, const size
         {
             // Ensure buf[i] isn't too big
             if (buf[i] > SCHAR_MAX)
-                return -TEXT_INVALID_CHAR;
+                continue;
             stream->buf[i] = (uint8_t) buf[i];
             ++charEncoded;
         }
@@ -384,6 +521,9 @@ static ssize_t _textEncode (TextStream_t* stream, const wchar_t* buf, const size
             ++charEncoded;
         }
     }
+    else if (stream->encoding == TEXT_ENC_UTF16)
+    {
+    }
     return charEncoded;
 }
 
@@ -395,14 +535,14 @@ PUBLIC short TextRead (TextStream_t* stream, wchar_t* buf, const size_t count, s
     TextLock (stream);
     // Sanity check. Make sure count isn't greater then the size of the buffer.
     // Else, buffer overflow here we come...
-    if ((count * sizeof (wchar_t)) > stream->bufSize)
+    if ((count * stream->encSize) > stream->bufSize)
     {
         TextUnlock (stream);
         return TEXT_INVALID_PARAMETER;
     }
     // Read the data into the staging buffer
-    const ssize_t charRead = (ssize_t) fread (stream->buf, 1, count * sizeof (wchar_t), stream->file);
-    // Decode the string
+    const ssize_t charRead = (ssize_t) fread (stream->buf, stream->encSize, count, stream->file);
+    //  Decode the string
     const ssize_t charParsed = _textDecode (stream, buf, charRead, TEXT_DECODE_ALL);
     if (charParsed < 0)
     {
@@ -424,15 +564,15 @@ PUBLIC short TextReadLine (TextStream_t* stream, wchar_t* buf, const size_t coun
     TextLock (stream);
     // Sanity check. Make sure count isn't greater then the size of the buffer.
     // Else, buffer overflow here we come...
-    if ((count * sizeof (wchar_t)) > stream->bufSize)
+    if ((count * stream->encSize) > stream->bufSize)
     {
         TextUnlock (stream);
         return TEXT_INVALID_PARAMETER;
     }
     // Read the data into the staging buffer
-    const ssize_t charRead = (ssize_t) fread (stream->buf, 1, count * sizeof (wchar_t), stream->file);
+    ssize_t charRead = (ssize_t) fread (stream->buf, stream->encSize, count, stream->file);
     // Decode the string
-    const ssize_t charParsed = _textDecode (stream, buf, charRead, TEXT_DECODE_TERMINATE_ON_NEWLINE);
+    ssize_t charParsed = _textDecode (stream, buf, charRead, TEXT_DECODE_TERMINATE_ON_NEWLINE);
     if (charParsed < 0)
     {
         TextUnlock (stream);
@@ -457,11 +597,11 @@ PUBLIC short TextWrite (TextStream_t* stream, const wchar_t* buf, const size_t c
         return TEXT_INVALID_PARAMETER;
     }
     // Encode into staging buffer
-    const ssize_t charsEncoded = _textEncode (stream, buf, count);
+    ssize_t charsEncoded = _textEncode (stream, buf, count);
     if (charsEncoded < 0)
         return (short) -charsEncoded;
     // Write it out
-    const size_t charswritten = fwrite (stream->buf, 1, charsEncoded, stream->file);
+    size_t charswritten = fwrite (stream->buf, 1, charsEncoded * stream->encSize, stream->file);
     if (charsWritten)
         *charsWritten = charswritten;
     TextUnlock (stream);
@@ -469,9 +609,26 @@ PUBLIC short TextWrite (TextStream_t* stream, const wchar_t* buf, const size_t c
 }
 
 // FIXME: this should be i18n
-// I am not going to do this until I create the i18n component of libnex
+// I am not going to do this until I do i18n
+static const char* errorStrings[] = {
+    "",                      // 0 doesn't represent anything
+    "No error",              // TEXT_SUCCESS
+    NULL,                    // TEXT_SYS_ERROR. This is NULL so TextError knows to call strerror(3) instead
+    "Invalid parameter",     // TEXT_INVALID_PARAMETER
+    "Invalid BOM",           // TEXT_BAD_BOM
+    "Character too wide",    // TEXT_NARROW_WCHAR
+    "Character can't be encoded by character set",    // TEXT_INVALID_CHAR
+    "Buffer too small",                               // TEXT_BUF_TOO_SMALL
+    "Character too wide"                              // TEXT_NO_SURROGATE
+};
 
 PUBLIC const char* TextError (int code)
 {
-    return NULL;
+    if (code > ARRAY_SIZE (errorStrings))
+        return errorStrings[3];
+    const char* msg = errorStrings[code];
+    // Check if we should get the message using strerror
+    if (!msg)
+        return strerror (errno);
+    return msg;
 }

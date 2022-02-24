@@ -149,8 +149,6 @@ list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}
 # Create the library
 add_library(nex ${LIBNEX_SOURCES})
 
-# Set compiler flags
-
 # Set SOName
 set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION})
 # Include the directories

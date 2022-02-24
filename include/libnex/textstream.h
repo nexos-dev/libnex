@@ -23,6 +23,7 @@
 
 #include <libnex/decls.h>
 #include <libnex/object.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -49,8 +50,11 @@
 #define TEXT_SYS_ERROR         2    ///< errno contains the error
 #define TEXT_INVALID_PARAMETER 3    ///< User passed an invalid parameter
 #define TEXT_BAD_BOM           4    ///< A bad BOM was encountered
-#define TEXT_NARROW_WCHAR      5    ///< Attempting to parse UTF-32 on a system with a narrow wchar_t
+#define TEXT_NARROW_WCHAR      5    ///< Attempting to parse UTF-32 on system with narrow wchar_t
 #define TEXT_INVALID_CHAR      6    ///< Character doesn't fit in destination character set
+#define TEXT_BUF_TOO_SMALL     7    ///< Character won't fit in buffer
+#define TEXT_NO_SURROGATE \
+    8    ///< User specified that no surrogates should be expanded. Only affect systems where sizeof(wchar_t) == 2
 
 __DECL_START
 
@@ -70,6 +74,8 @@ typedef struct _TextStream
     size_t bufSize;    ///< Size of above buffer (defaults to 512 bytes)
     char encoding;     ///< Underlying encoding of the stream
     char order;        ///< Order of bytes for multi byte character sets
+    bool expandSur;    ///< Wheter surrogate pairs should be expanded.
+    char encSize;      ///< Size of one char in the encoding
 } TextStream_t;
 
 /**
@@ -104,12 +110,18 @@ PUBLIC void TextClose (TextStream_t* stream);
  * TextRead takes a buffer, character count, and stream object,
  * and reads / decodes count codepoints into buf from stream.
  * Data is intially read into a staging buffer, and then the staging buffer is
- * decoded into the main buffer specified by buf
+ * decoded into the main buffer specified by buf.
+ *
+ * WARNING: If you are on a platform where sizeof(wchar_t) == 2 and you are decoding a UTF-16 stream,
+ * you SHALL make buf's size equal to the number of characters you want to decode times 2.
+ * This is in case buf contains surrogate pairs; those are copied as one character and take 4 bytes.
+ * Ensure count is equal to the number of characters, NOT the size you malloc'ed.
+ * Else, TextRead will fail with error TEXT_BUF_TOO_SMALL
  *
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of wchar_t's to decode into
  * @param[in] count the number of wchar_t's to decode
- * @param[out] the number or characters read
+ * @param[out] charsRead the number or characters read
  * @return a result code
  */
 PUBLIC short TextRead (TextStream_t* stream, wchar_t* buf, const size_t count, size_t* charsRead);
@@ -169,6 +181,13 @@ PUBLIC long TextSize (TextStream_t* stream);
  */
 PUBLIC void TextSetBufSz (TextStream_t* stream, size_t sz);
 
+/**
+ * @brief Returns t a textual representation of code
+ * @param code the error code turn into a string
+ * @return the string message
+ */
+PUBLIC const char* TextError (int code);
+
 __DECL_END
 
 // Helper macros
@@ -179,5 +198,7 @@ __DECL_END
 #define TextLock(item)   (ObjLock (&(item)->obj))                   ///< Locks this stream
 #define TextUnlock(item) (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
 #define TextDeRef(item)  (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
+#define TextNoSurroate(stream) \
+    ((stream)->expandSur = false)    ///< Necessary if the user doesn't want to deal with surrogate pairs
 
 #endif

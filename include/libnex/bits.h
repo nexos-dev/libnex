@@ -120,4 +120,14 @@
  */
 #define BitGetRange(set, start, count) (((set) >> (start)) & ((1 << (count)) - 1))
 
+/**
+ * @brief Masks off certain bits
+ *
+ * BitMask() returns those bits a specified set has in common with a specified mask
+ * @param set the value to mask in
+ * @param mask the bit mask
+ * @return the bits in common
+ */
+#define BitMask(set, mask) ((set) & (mask))
+
 #endif

@@ -20,12 +20,14 @@
 
 #include <libnex.h>
 #define NEXTEST_NAME "textstream"
-#include <locale.h>
 #include <nextest.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main()
 {
+    // Test TextError
+    TEST_BOOL (!strcmp (TextError (TEXT_INVALID_CHAR), "Character can't be encoded by character set"), "TextError");
     {
         // Test opening a text stream
         TextStream_t* stream;
@@ -60,7 +62,7 @@ int main()
         if (TextOpen ("testAscii1.testout", &stream2, TEXT_MODE_WRITE, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
         // Write out buf
-        if (TextWrite (stream2, buf3, wcslen (buf3), NULL) != TEXT_SUCCESS)
+        if (TextWrite (stream2, buf3, wcslen (buf3) + 1, NULL) != TEXT_SUCCESS)
             return 1;
         TextClose (stream2);
         // Read it in now
@@ -68,7 +70,7 @@ int main()
             return 1;
         // Read and compare
         wchar_t* buf4 = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
-        if (TextRead (stream2, buf4, wcslen (buf3), NULL) != TEXT_SUCCESS)
+        if (TextRead (stream2, buf4, wcslen (buf3) + 1, NULL) != TEXT_SUCCESS)
             return 1;
         TEST_BOOL (!wcscmp (buf4, buf3), "writing ASCII");
         free (buf4);
@@ -90,14 +92,14 @@ int main()
         TextStream_t* stream2;
         if (TextOpen ("testWin1252.testout", &stream2, TEXT_MODE_WRITE, TEXT_ENC_WIN1252, 0, 0) != TEXT_SUCCESS)
             return 1;
-        if (TextWrite (stream2, buf2, wcslen (buf2), NULL) != TEXT_SUCCESS)
+        if (TextWrite (stream2, buf2, wcslen (buf2) + 1, NULL) != TEXT_SUCCESS)
             return 1;
         TextClose (stream2);
         // Read and compare
         buf = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
         if (TextOpen ("testWin1252.testout", &stream2, TEXT_MODE_READ, TEXT_ENC_WIN1252, 0, 0) != TEXT_SUCCESS)
             return 1;
-        if (TextRead (stream2, buf, wcslen (buf2), NULL) != TEXT_SUCCESS)
+        if (TextRead (stream2, buf, wcslen (buf2) + 1, NULL) != TEXT_SUCCESS)
             return 1;
         TEST_BOOL (!wcscmp (buf, buf2), "writing Windows 1252");
         TextClose (stream2);
@@ -109,7 +111,43 @@ int main()
         if (TextOpen ("testUtf32.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF32, 1, 0) != TEXT_SUCCESS)
             return 1;
         TEST (stream1->order, TEXT_ORDER_LE, "UTF-32 BOM support");
+        wchar_t buf[] = L"Test document €\n";
+        wchar_t* buf2 = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
+        if (TextRead (stream1, buf2, 500, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!wcscmp (buf, buf2), "reading UTF-32");
         TextClose (stream1);
+        // Write UTF-32
+        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF32, 1, TEXT_ORDER_BE) != TEXT_SUCCESS)
+            return 1;
+        wchar_t buf3[] = L"Test document € 𮀀\n";
+        if (TextWrite (stream1, buf3, wcslen (buf3), NULL) != TEXT_SUCCESS)
+            return 1;
+        TextClose (stream1);
+        // Test that it is correct
+        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF32, 1, 0) != TEXT_SUCCESS)
+            return 1;
+        wchar_t* buf4 = (wchar_t*) malloc_s (500 * sizeof (wchar_t));
+        if (TextRead (stream1, buf4, wcslen (buf3) + 1, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!wcscmp (buf4, buf3), "writing UTF-32");
+        TextClose (stream1);
+        free (buf4);
+        free (buf2);
+    }
+    // Test UTF-16
+    {
+        TextStream_t* stream1 = NULL;
+        if (TextOpen ("testUtf16.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF16, 1, 0) != TEXT_SUCCESS)
+            return 1;
+        TEST (stream1->order, TEXT_ORDER_BE, "UTF-16 BOM support");
+        wchar_t buf1[] = L"Test document € 𠀀 test2\n";
+        wchar_t* buf2 = (wchar_t*) malloc_s (500);
+        if (TextRead (stream1, buf2, wcslen (buf1) + 1, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!wcscmp (buf1, buf2), "reading UTF-16");
+        TextClose (stream1);
+        free (buf2);
     }
     return 0;
 }
