@@ -30,5 +30,6 @@
 #include <libnex/safemalloc.h>
 #include <libnex/safestring.h>
 #include <libnex/textstream.h>
+#include <libnex/unicode.h>
 
 #endif

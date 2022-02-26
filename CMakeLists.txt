@@ -19,6 +19,8 @@
 cmake_minimum_required(VERSION 3.00)
 cmake_policy(SET CMP0054 NEW)
 project(libnex VERSION 0.0.1)
+enable_language(C)
+set(CMAKE_C_STANDARD 11)
 
 # Various options
 option(BUILD_SHARED_LIBS "Specifies if shared libraries should be built" OFF)
@@ -78,7 +80,8 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/list.c
      src/lock.c
      src/endian.c
-     src/object.c)
+     src/object.c
+     src/char32.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
@@ -113,7 +116,8 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/safestring.h
      ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
      ${CMAKE_SOURCE_DIR}/include/libnex/object.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/lock.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/lock.h
+     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -221,7 +225,7 @@ if(NOT HAVE_BSD_STRING)
 endif()
 
 if(NOT LIBNEX_BAREMETAL)
-    list(APPEND LIBNEX_TESTS textstream)
+    list(APPEND LIBNEX_TESTS textstream char32)
 endif()
 
 foreach(test ${LIBNEX_TESTS})

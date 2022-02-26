@@ -1,5 +1,5 @@
 /*
-    base.h - contains macros that handle base stuff
+    unicode.h - contains declarations to work with text
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,15 +16,23 @@
     limitations under the License.
 */
 
-/// @file base.h
+/// @file unicode.h
 
-#ifndef _BASE_H
-#define _BASE_H
+#ifndef _UNICODE_H
+#define _UNICODE_H
 
-/// Used to specify that a parameter is unused
-#define UNUSED(param) (void) (param);
+#ifdef IN_LIBNEX
+#include <libnex_config.h>
+#else
+#include <libnex/libnex_config.h>
+#endif
+#include <libnex/char32.h>
+#include <libnex/decls.h>
+#include <uchar.h>
+#include <wchar.h>
 
-/// To find the size of an array
-#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
+__DECL_START
+
+__DECL_END
 
 #endif

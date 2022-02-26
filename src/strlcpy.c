@@ -33,7 +33,7 @@
  */
 PUBLIC size_t strlcpy (char* dest, const char* src, size_t size)
 {
-    char* osrc = src;
+    const char* osrc = src;
     size_t sz = size;
     // Main copy loop
     if (size)

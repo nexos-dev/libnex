@@ -50,6 +50,8 @@
 #ifdef WIN32
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
+#else
+#include <sys/types.h>
 #endif
 
 // Make sure stat is defined right

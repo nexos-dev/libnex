@@ -19,7 +19,7 @@
 /// @file textstream.c
 
 #include "codepages/win1252toUtf32.h"
-#include "utf16stateTab.h"
+#include "unicode/utf16stateTab.h"
 #include <errno.h>
 #include <libnex/base.h>
 #include <libnex/bits.h>

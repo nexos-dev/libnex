@@ -1,0 +1,97 @@
+.TH libnex_bits 3 2022-02-24
+.SH NAME
+\fBlibnex_bits\fP \- bitwise operations wrapper
+
+.SH SYNOPSIS
+.B "#include <libnex.h>"
+.sp
+.BI "#define BitSetNew(set, bit)"
+.br
+.BI "#define BitSet(set, bit)"
+.br
+.BI "#define BitClearNew(set, bit)"
+.br
+.BI "#define BitClear(set, bit)"
+.br
+.BI "#define BitGet(set, bit)"
+.br
+.BI "#define BitSetRange(set, start, count)"
+.br
+.BI "#define BitSetRangeNew(set, start, count)"
+.br
+.BI "#define BitClearRange(set, start, count)"
+.br
+.BI "#define BitClearRangeNew(set, start, count)"
+.br
+.BI "#define BitGetRange(set, start, count)"
+.br
+.BI "#define BitMask(set, mask)"
+.br
+
+.SH DESCRIPTION
+These macros are wrappers over the most common bitwise operations.
+.br
+Using them can greatly simplify and clean up your code.
+.br
+Here is there descriptions:
+
+.BI BitSetNew
+accepts a bitset and a bit to set. It sets that bit using a bitwise OR operation. Instead of changing
+.B set,
+it returns a new set to be used.
+
+.BI BitSet
+is the same as
+.BI BitSetNew,
+except it actually changes
+.B set
+instead of returning a new set.
+
+.BI BitClearNew
+accepts a bitset and a bit to clear. It clears the bit with a bitwise AND. It returns a new bitset.
+
+.BI BitClear
+is the same as
+.BI BitClearNew,
+except it changes
+.B set
+instead of returning a new set.
+
+.BI BitGet
+gets the state of a specified bit in a specified set using a bitwise AND.
+
+.BI BitSetRangeNew
+sets a range of bits, starting at a specified start and setting a specified count of bits.
+It returns a new set of bits with the range set.
+
+.BI BitSetRange
+is the same as
+.BI BitSetRangeNew,
+except it changes
+.B set
+instead of returning a new set.
+
+.BI BitClearRangeNew
+clears a range of bits, starting at a specified start, and continuing on a specified count of bits.
+It returns a new set
+
+.BI BitClearRange
+is the same as
+.BI BitClearRangeNew,
+except it changes
+.B set
+instead of returning a new set.
+
+.BI BitGetRange
+returns the state of a specified count of bits, starting at a specified start. It returns a new set
+containing the state of that range.
+
+.BI BitMask
+returns the state of a specified set after applying a specified mask. It uses the AND operation.
+
+.SH "RETURN VALUE"
+All of the *New macros return a new bitset, the BitGet and BitGetRange macros return the status of the bit(s)
+requested. All other macros don't return anything
+
+.SH "SEE ALSO"
+libnex(3)

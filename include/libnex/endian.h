@@ -18,8 +18,8 @@
 
 /// @file endian.h
 
-#ifndef _ENDIAN_H
-#define _ENDIAN_H
+#ifndef _LIBNEX_ENDIAN_H
+#define _LIBNEX_ENDIAN_H
 
 #ifdef IN_LIBNEX
 #include <libnex_config.h>

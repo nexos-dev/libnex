@@ -25,5 +25,6 @@
 #include <libnex/container.h>
 #include <libnex/endian.h>
 #include <libnex/safestring.h>
+#include <libnex/unicode.h>
 
 #endif
