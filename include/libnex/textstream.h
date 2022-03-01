@@ -21,6 +21,7 @@
 #ifndef _TEXTSTREAM_H
 #define _TEXTSTREAM_H
 
+#include <libnex/char32.h>
 #include <libnex/decls.h>
 #include <libnex/object.h>
 #include <stdbool.h>
@@ -50,11 +51,8 @@
 #define TEXT_SYS_ERROR         2    ///< errno contains the error
 #define TEXT_INVALID_PARAMETER 3    ///< User passed an invalid parameter
 #define TEXT_BAD_BOM           4    ///< A bad BOM was encountered
-#define TEXT_NARROW_WCHAR      5    ///< Attempting to parse UTF-32 on system with narrow wchar_t
 #define TEXT_INVALID_CHAR      6    ///< Character doesn't fit in destination character set
 #define TEXT_BUF_TOO_SMALL     7    ///< Character won't fit in buffer
-#define TEXT_NO_SURROGATE \
-    8    ///< User specified that no surrogates should be expanded. Only affect systems where sizeof(wchar_t) == 2
 
 __DECL_START
 
@@ -67,15 +65,15 @@ __DECL_START
  */
 typedef struct _TextStream
 {
-    Object_t obj;      ///< The object for this stream
-    FILE* file;        ///< Pointer to underlying file object
-    char* fileName;    ///< The original file name
-    uint8_t* buf;      ///< Buffer to use for staging
-    size_t bufSize;    ///< Size of above buffer (defaults to 512 bytes)
-    char encoding;     ///< Underlying encoding of the stream
-    char order;        ///< Order of bytes for multi byte character sets
-    bool expandSur;    ///< Wheter surrogate pairs should be expanded.
-    char encSize;      ///< Size of one char in the encoding
+    Object_t obj;       ///< The object for this stream
+    FILE* file;         ///< Pointer to underlying file object
+    char* fileName;     ///< The original file name
+    uint8_t* buf;       ///< Buffer to use for staging
+    size_t bufSize;     ///< Size of above buffer (defaults to 512 bytes)
+    char encoding;      ///< Underlying encoding of the stream
+    char order;         ///< Order of bytes for multi byte character sets
+    char maxEncSize;    ///< Max size of one char in the encoding
+    char minEncSize;    ///< Minimum size of one char in the encoding
 } TextStream_t;
 
 /**
@@ -112,19 +110,13 @@ PUBLIC void TextClose (TextStream_t* stream);
  * Data is intially read into a staging buffer, and then the staging buffer is
  * decoded into the main buffer specified by buf.
  *
- * WARNING: If you are on a platform where sizeof(wchar_t) == 2 and you are decoding a UTF-16 stream,
- * you SHALL make buf's size equal to the number of characters you want to decode times 2.
- * This is in case buf contains surrogate pairs; those are copied as one character and take 4 bytes.
- * Ensure count is equal to the number of characters, NOT the size you malloc'ed.
- * Else, TextRead will fail with error TEXT_BUF_TOO_SMALL
- *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of wchar_t's to decode into
- * @param[in] count the number of wchar_t's to decode
+ * @param[out] buf a buffer of char32_t's to decode into
+ * @param[in] count the number of char32_t's to decode
  * @param[out] charsRead the number or characters read
  * @return a result code
  */
-PUBLIC short TextRead (TextStream_t* stream, wchar_t* buf, const size_t count, size_t* charsRead);
+PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Reads data from a text stream
@@ -136,26 +128,26 @@ PUBLIC short TextRead (TextStream_t* stream, wchar_t* buf, const size_t count, s
  * decoded into the main buffer specified by buf
  *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of wchar_t's to decode into
- * @param[in] count the max number of wchar_t's to decode
+ * @param[out] buf a buffer of char32_t's to decode into
+ * @param[in] count the max number of char32_t's to decode
  * @param[out] charsRead the number or characters read
  * @return a status code
  */
-PUBLIC short TextReadLine (TextStream_t* stream, wchar_t* buf, const size_t count, size_t* charsRead);
+PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
  *
- * TextWrite writes out a buffer of wchar_t's to a file, encoding them first.
+ * TextWrite writes out a buffer of char32_t's to a file, encoding them first.
  * Data is encoded into a staging buffer, and then written to stream
  *
  * @param[in] stream the stream to write to
  * @param[in] buf the buffer to write from
- * @param[in] count the number of wchar_t's to write
+ * @param[in] count the number of char32_t's to write
  * @param[out] charsWritten the number or characters written
  * @return a status code
  */
-PUBLIC short TextWrite (TextStream_t* stream, const wchar_t* buf, const size_t count, size_t* charsWritten);
+PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten);
 
 /**
  * @brief Gets size of text stream
@@ -198,7 +190,5 @@ __DECL_END
 #define TextLock(item)   (ObjLock (&(item)->obj))                   ///< Locks this stream
 #define TextUnlock(item) (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
 #define TextDeRef(item)  (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
-#define TextNoSurroate(stream) \
-    ((stream)->expandSur = false)    ///< Necessary if the user doesn't want to deal with surrogate pairs
 
 #endif

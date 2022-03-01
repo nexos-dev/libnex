@@ -161,6 +161,13 @@ PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c);
  */
 PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2);
 
+/**
+ * @brief Duplicates a string
+ * @param str the string to duplicate
+ * @return the duplicated string
+ */
+PUBLIC char32_t* c32dup (char32_t* str);
+
 __DECL_END
 
 #endif

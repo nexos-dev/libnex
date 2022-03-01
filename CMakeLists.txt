@@ -81,7 +81,8 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/lock.c
      src/endian.c
      src/object.c
-     src/char32.c)
+     src/char32.c
+     src/unicode.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
@@ -218,6 +219,7 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
 list(APPEND LIBNEX_TESTS
      endian list
      bits object
+     char32 unicode
      )
 
 if(NOT HAVE_BSD_STRING)
@@ -225,7 +227,7 @@ if(NOT HAVE_BSD_STRING)
 endif()
 
 if(NOT LIBNEX_BAREMETAL)
-    list(APPEND LIBNEX_TESTS textstream char32)
+    list(APPEND LIBNEX_TESTS textstream)
 endif()
 
 foreach(test ${LIBNEX_TESTS})

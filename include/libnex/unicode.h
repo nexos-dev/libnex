@@ -28,10 +28,29 @@
 #endif
 #include <libnex/char32.h>
 #include <libnex/decls.h>
+#include <libnex/endian.h>
 #include <uchar.h>
 #include <wchar.h>
 
 __DECL_START
+
+/**
+ * @brief Decodes a UTF-16 character to UTF-32
+ * @param out the character to write out the decoded data to
+ * @param in a pointer to UTF-16 data to decode
+ * @param endian the endianess of the input buffer, either ENDIAN_LITTLE or ENDIAN_BIG
+ * @return How many 16 bit values were decoded. If -1, then an invalid character was found
+ */
+PUBLIC ssize_t UnicodeDecode16 (char32_t* out, const uint16_t* in, char endian);
+
+/**
+ * @brief Encodes s UTF-32 character as UTF-16
+ * @param out the buffer to write out the 16 bit values to
+ * @param in UTF-32 character to encode
+ * @param endian the endianess of out
+ * @return the number of 16 bit values encoded
+ */
+PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian);
 
 __DECL_END
 

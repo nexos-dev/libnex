@@ -1,5 +1,5 @@
 /*
-    unicode.c - contains text manipulation functions
+    char32.c - contains char32_t* manipulation functions
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -220,4 +220,12 @@ PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
         ++p1;
     }
     return NULL;
+}
+
+PUBLIC char32_t* c32dup (char32_t* str)
+{
+    size_t len = c32len (str);
+    char32_t* s = (char32_t*) malloc_s (len * sizeof (char32_t));
+    c32lcpy (s, str, len);
+    return s;
 }
