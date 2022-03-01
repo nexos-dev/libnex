@@ -1,5 +1,5 @@
 /*
-    char16.c - contains char16_t* manipulation functions
+    char32.c - contains char32_t* manipulation functions
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,13 +24,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-PUBLIC ssize_t c16stombs (char* mbStr, const char16_t* u32str, size_t sz, mbstate_t* state)
+PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state)
 {
     char* ombStr = mbStr;
     ssize_t res = 0;
     while (*u32str && mbStr < (mbStr + sz))
     {
-        res = (ssize_t) c16rtomb (mbStr, *u32str, state);
+        res = (ssize_t) c32rtomb (mbStr, *u32str, state);
         if (res < 0)
             return res;
         mbStr += res;
@@ -39,13 +39,13 @@ PUBLIC ssize_t c16stombs (char* mbStr, const char16_t* u32str, size_t sz, mbstat
     return mbStr - ombStr;
 }
 
-PUBLIC ssize_t mbstoc16s (char16_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state)
+PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state)
 {
-    char16_t* ou32str = u32str;
+    char32_t* ou32str = u32str;
     ssize_t res = 0;
     do
     {
-        res = (ssize_t) mbrtoc16 (u32str, mbStr, mbSz, state);
+        res = (ssize_t) mbrtoc32 (u32str, mbStr, mbSz, state);
         if (res < 0)
             return res;
         else if (!res)
@@ -57,7 +57,7 @@ PUBLIC ssize_t mbstoc16s (char16_t* u32str, const char* mbStr, size_t sz, size_t
     return u32str - ou32str;
 }
 
-PUBLIC ssize_t wcstoc16s (char16_t* u32str, const wchar_t* wcStr, size_t sz)
+PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz)
 {
     // Get lengths of buffers
     size_t wcLen = wcslen (wcStr);
@@ -69,23 +69,23 @@ PUBLIC ssize_t wcstoc16s (char16_t* u32str, const wchar_t* wcStr, size_t sz)
     memset (&state, 0, sizeof (mbstate_t));
     if (wcsrtombs (mbStr, &wcStr, mbLen, &state) == -1)
         return -1;
-    // Convert to char16_t form
-    ssize_t res = mbstoc16s (u32str, mbStr, sz, mbLen, &state);
+    // Convert to char32_t form
+    ssize_t res = mbstoc32s (u32str, mbStr, sz, mbLen, &state);
     free (mbStr);
     return res;
 }
 
-PUBLIC ssize_t c16stowcs (wchar_t* wcStr, const char16_t* u32str, size_t sz)
+PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)
 {
     // Get lengths of buffer
-    size_t wideLen = c16len (u32str);
+    size_t wideLen = c32len (u32str);
     // FIXME: Uses too much memory
     size_t mbLen = wideLen * MB_CUR_MAX;
     // Convert to multibyte
     char* mbStr = malloc_s (mbLen);
     mbstate_t state;
     memset (&state, 0, sizeof (mbstate_t));
-    if (c16stombs (mbStr, u32str, mbLen, &state) < 0)
+    if (c32stombs (mbStr, u32str, mbLen, &state) < 0)
         return -1;
     // Convert to wide
     ssize_t res = (ssize_t) mbsrtowcs (wcStr, (const char**) &mbStr, sz, &state);
@@ -93,15 +93,15 @@ PUBLIC ssize_t c16stowcs (wchar_t* wcStr, const char16_t* u32str, size_t sz)
     return res;
 }
 
-PUBLIC size_t c16len (const char16_t* s)
+PUBLIC size_t c32len (const char32_t* s)
 {
-    const char16_t* os = s;
+    const char32_t* os = s;
     while (*s)
         ++s;
     return s - os;
 }
 
-PUBLIC int c16cmp (const char16_t* s1, const char16_t* s2)
+PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2)
 {
     while (*s1 && *s2)
     {
@@ -113,7 +113,7 @@ PUBLIC int c16cmp (const char16_t* s1, const char16_t* s2)
     return (int) *s1 - (int) *s2;
 }
 
-PUBLIC int c16ncmp (const char16_t* s1, const char16_t* s2, size_t n)
+PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n)
 {
     while (n-- > 0 && *s1 && *s2)
     {
@@ -125,9 +125,9 @@ PUBLIC int c16ncmp (const char16_t* s1, const char16_t* s2, size_t n)
     return (int) *s1 - (int) *s2;
 }
 
-PUBLIC size_t c16lcat (char16_t* dest, const char16_t* src, size_t size)
+PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size)
 {
-    const char16_t* osrc = src;
+    const char32_t* osrc = src;
     // Advance dest to null terminator
     size_t destSz = 0;
     while (*++dest)
@@ -155,9 +155,9 @@ PUBLIC size_t c16lcat (char16_t* dest, const char16_t* src, size_t size)
     return destSz + (src - osrc);
 }
 
-PUBLIC size_t c16lcpy (char16_t* dest, const char16_t* src, size_t size)
+PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size)
 {
-    const char16_t* osrc = src;
+    const char32_t* osrc = src;
     size_t sz = size;
     // Main copy loop
     if (size)
@@ -180,41 +180,41 @@ PUBLIC size_t c16lcpy (char16_t* dest, const char16_t* src, size_t size)
     return src - osrc - 1;
 }
 
-PUBLIC char16_t* c16chr (const char16_t* str, char16_t c)
+PUBLIC char32_t* c32chr (const char32_t* str, char32_t c)
 {
     while (*str)
     {
         if (*str == c)
-            return (char16_t*) str;
+            return (char32_t*) str;
         ++str;
     }
     return NULL;
 }
 
-PUBLIC char16_t* c16rchr (const char16_t* str, char16_t c)
+PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c)
 {
     // There are possibly more effecient ways of doing this...
-    const char16_t* rs = str + c16len (str);
+    const char32_t* rs = str + c32len (str);
     while (rs >= str)
     {
         if (*rs == c)
-            return (char16_t*) rs;
+            return (char32_t*) rs;
         --rs;
     }
     return NULL;
 }
 
-PUBLIC char16_t* c16pbrk (const char16_t* s1, const char16_t* s2)
+PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
 {
-    const char16_t* p1 = s1;
-    const char16_t* p2 = NULL;
+    const char32_t* p1 = s1;
+    const char32_t* p2 = NULL;
     while (*p1)
     {
         p2 = s2;
         while (*p2)
         {
             if (*p1 == *p2)
-                return (char16_t*) p1;
+                return (char32_t*) p1;
             ++p2;
         }
         ++p1;
@@ -222,10 +222,10 @@ PUBLIC char16_t* c16pbrk (const char16_t* s1, const char16_t* s2)
     return NULL;
 }
 
-PUBLIC char16_t* c16dup (char16_t* str)
+PUBLIC char32_t* c32dup (char32_t* str)
 {
-    size_t len = c16len (str);
-    char16_t* s = (char16_t*) malloc_s (len * sizeof (char16_t));
-    c16lcpy (s, str, len);
+    size_t len = c32len (str);
+    char32_t* s = (char32_t*) malloc_s (len * sizeof (char32_t));
+    c32lcpy (s, str, len);
     return s;
 }

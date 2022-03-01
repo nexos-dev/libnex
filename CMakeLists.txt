@@ -81,7 +81,7 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/lock.c
      src/endian.c
      src/object.c
-     src/char16.c
+     src/char32.c
      src/unicode.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
@@ -118,8 +118,7 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
      ${CMAKE_SOURCE_DIR}/include/libnex/object.h
      ${CMAKE_SOURCE_DIR}/include/libnex/lock.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/char16.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -220,7 +219,7 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
 list(APPEND LIBNEX_TESTS
      endian list
      bits object
-     char16 unicode
+     char32 unicode
      )
 
 if(NOT HAVE_BSD_STRING)

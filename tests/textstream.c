@@ -34,43 +34,43 @@ int main()
         if (TextOpen ("testAscii1.testxt", &stream, TEXT_MODE_READ, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
         // Read in some text
-        char16_t* buf = (char16_t*) malloc_s (500 * sizeof (char16_t));
+        char32_t* buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextRead (stream, buf, 500, NULL) != TEXT_SUCCESS)
             return 1;
-        char16_t buf2[] = u"Test string. This is an ASCII document.\r\n";
-        TEST_BOOL (!c16cmp (buf, buf2), "reading ASCII");
+        char32_t buf2[] = U"Test string. This is an ASCII document.\r\n";
+        TEST_BOOL (!c32cmp (buf, buf2), "reading ASCII");
         // Test TextSize
-        TEST (TextSize (stream), c16len (buf2), "TextSize");
+        TEST (TextSize (stream), c32len (buf2), "TextSize");
         free (buf);
         TextClose (stream);
         // Test TextReadLine
         if (TextOpen ("testAscii1.testxt", &stream, TEXT_MODE_READ, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
-        buf = (char16_t*) malloc_s (500 * sizeof (char16_t));
+        buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextReadLine (stream, buf, 500, NULL) != TEXT_SUCCESS)
             return 1;
-        char16_t buf5[] = u"Test string. This is an ASCII document.\n";
-        TEST_BOOL (!c16cmp (buf, buf5), "reading a line of ASCII");
+        char32_t buf5[] = U"Test string. This is an ASCII document.\n";
+        TEST_BOOL (!c32cmp (buf, buf5), "reading a line of ASCII");
         TextClose (stream);
         free (buf);
         // Write out some text
-        char16_t buf3[] = u"This is a test document.\n";
+        char32_t buf3[] = U"This is a test document.\n";
         // Create a new file
         TextStream_t* stream2;
         if (TextOpen ("testAscii1.testout", &stream2, TEXT_MODE_WRITE, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
         // Write out buf
-        if (TextWrite (stream2, buf3, c16len (buf3), NULL) != TEXT_SUCCESS)
+        if (TextWrite (stream2, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)
             return 1;
         TextClose (stream2);
         // Read it in now
         if (TextOpen ("testAscii1.testout", &stream2, TEXT_MODE_READ, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
         // Read and compare
-        char16_t* buf4 = (char16_t*) malloc_s (500 * sizeof (char16_t));
-        if (TextRead (stream2, buf4, c16len (buf3) + 1, NULL) != TEXT_SUCCESS)
+        char32_t* buf4 = (char32_t*) malloc_s (500 * sizeof (char32_t));
+        if (TextRead (stream2, buf4, c32len (buf3) + 1, NULL) != TEXT_SUCCESS)
             return 1;
-        TEST_BOOL (!c16cmp (buf4, buf3), "writing ASCII");
+        TEST_BOOL (!c32cmp (buf4, buf3), "writing ASCII");
         free (buf4);
         TextClose (stream2);
     }
@@ -79,29 +79,59 @@ int main()
         TextStream_t* stream1;
         if (TextOpen ("testWin1252.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_WIN1252, 0, 0) != TEXT_SUCCESS)
             return 1;
-        char16_t* buf = (char16_t*) malloc_s (500 * sizeof (char16_t));
+        char32_t* buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextRead (stream1, buf, 500, NULL) != TEXT_SUCCESS)
             return 1;
-        char16_t buf2[] = u"Test windows 1252 document. Here is a non-ASCII character: ÿ Ž\n";
-        TEST_BOOL (!c16cmp (buf, buf2), "reading Windows 1252");
+        char32_t buf2[] = U"Test windows 1252 document. Here is a non-ASCII character: ÿ Ž\n";
+        TEST_BOOL (!c32cmp (buf, buf2), "reading Windows 1252");
         free (buf);
         TextClose (stream1);
         // Test writing it
         TextStream_t* stream2;
         if (TextOpen ("testWin1252.testout", &stream2, TEXT_MODE_WRITE, TEXT_ENC_WIN1252, 0, 0) != TEXT_SUCCESS)
             return 1;
-        if (TextWrite (stream2, buf2, c16len (buf2), NULL) != TEXT_SUCCESS)
+        if (TextWrite (stream2, buf2, c32len (buf2), NULL) != TEXT_SUCCESS)
             return 1;
         TextClose (stream2);
         // Read and compare
-        buf = (char16_t*) malloc_s (500 * sizeof (char16_t));
+        buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextOpen ("testWin1252.testout", &stream2, TEXT_MODE_READ, TEXT_ENC_WIN1252, 0, 0) != TEXT_SUCCESS)
             return 1;
-        if (TextRead (stream2, buf, c16len (buf2) + 1, NULL) != TEXT_SUCCESS)
+        if (TextRead (stream2, buf, c32len (buf2) + 1, NULL) != TEXT_SUCCESS)
             return 1;
-        TEST_BOOL (!c16cmp (buf, buf2), "writing Windows 1252");
+        TEST_BOOL (!c32cmp (buf, buf2), "writing Windows 1252");
         TextClose (stream2);
         free (buf);
+    }
+    // Test UTF-32 support
+    {
+        TextStream_t* stream1;
+        if (TextOpen ("testUtf32.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF32, 1, 0) != TEXT_SUCCESS)
+            return 1;
+        TEST (stream1->order, TEXT_ORDER_LE, "UTF-32 BOM support");
+        char32_t buf[] = U"Test document €\n";
+        char32_t* buf2 = (char32_t*) malloc_s (500 * sizeof (char32_t));
+        if (TextRead (stream1, buf2, 500, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!c32cmp (buf, buf2), "reading UTF-32");
+        TextClose (stream1);
+        // Write UTF-32
+        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF32, 1, TEXT_ORDER_BE) != TEXT_SUCCESS)
+            return 1;
+        char32_t buf3[] = U"Test document € 𮀀\n";
+        if (TextWrite (stream1, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)
+            return 1;
+        TextClose (stream1);
+        // Test that it is correct
+        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF32, 1, 0) != TEXT_SUCCESS)
+            return 1;
+        char32_t* buf4 = (char32_t*) malloc_s (500 * sizeof (char32_t));
+        if (TextRead (stream1, buf4, c32len (buf3) + 1, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!c32cmp (buf4, buf3), "writing UTF-32");
+        TextClose (stream1);
+        free (buf4);
+        free (buf2);
     }
     // Test UTF-16
     {
@@ -109,25 +139,25 @@ int main()
         if (TextOpen ("testUtf16.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF16, 1, 0) != TEXT_SUCCESS)
             return 1;
         TEST (stream1->order, TEXT_ORDER_BE, "UTF-16 BOM support");
-        char16_t buf1[] = u"Test document € 𠀀 test2\n";
-        char16_t* buf2 = (char16_t*) malloc_s (500);
-        if (TextRead (stream1, buf2, c16len (buf1) + 1, NULL) != TEXT_SUCCESS)
+        char32_t buf1[] = U"Test document € 𠀀 test2\n";
+        char32_t* buf2 = (char32_t*) malloc_s (500);
+        if (TextRead (stream1, buf2, c32len (buf1) + 1, NULL) != TEXT_SUCCESS)
             return 1;
-        TEST_BOOL (!c16cmp (buf1, buf2), "reading UTF-16");
+        TEST_BOOL (!c32cmp (buf1, buf2), "reading UTF-16");
         TextClose (stream1);
         if (TextOpen ("testUtf16.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF16, 1, TEXT_ORDER_BE) != TEXT_SUCCESS)
             return 1;
-        char16_t buf3[] = u"Test document € 𠀀\n";
-        if (TextWrite (stream1, buf3, c16len (buf3), NULL) != TEXT_SUCCESS)
+        char32_t buf3[] = U"Test document € 𠀀\n";
+        if (TextWrite (stream1, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)
             return 1;
         TextClose (stream1);
         // Test that it is correct
         if (TextOpen ("testUtf16.testout", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF16, 1, 0) != TEXT_SUCCESS)
             return 1;
-        char16_t* buf4 = (char16_t*) malloc_s (500 * sizeof (char16_t));
-        if (TextRead (stream1, buf4, c16len (buf3) + 1, NULL) != TEXT_SUCCESS)
+        char32_t* buf4 = (char32_t*) malloc_s (500 * sizeof (char32_t));
+        if (TextRead (stream1, buf4, c32len (buf3) + 1, NULL) != TEXT_SUCCESS)
             return 1;
-        TEST_BOOL (!c16cmp (buf4, buf3), "writing UTF-16");
+        TEST_BOOL (!c32cmp (buf4, buf3), "writing UTF-16");
         TextClose (stream1);
         free (buf4);
         free (buf2);
