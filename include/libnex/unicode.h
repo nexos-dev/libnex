@@ -26,7 +26,7 @@
 #else
 #include <libnex/libnex_config.h>
 #endif
-#include <libnex/char32.h>
+#include <libnex/char16.h>
 #include <libnex/decls.h>
 #include <libnex/endian.h>
 #include <uchar.h>

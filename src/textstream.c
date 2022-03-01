@@ -86,19 +86,6 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
             else
                 return TEXT_BAD_BOM;
         }
-        else if (encoding == TEXT_ENC_UTF32)
-        {
-            // Read in the BOM
-            uint8_t bom[4];
-            fread (bom, 4, 1, stream->file);
-            // Check if UTF-32 BOM in big endian order
-            if (bom[0] == 0x00 && bom[1] == 0x00 && bom[2] == 0xFE && bom[3] == 0xFF)
-                stream->order = TEXT_ORDER_BE;
-            else if (bom[0] == 0xFF && bom[1] == 0xFE && bom[2] == 0x00 && bom[3] == 0x00)
-                stream->order = TEXT_ORDER_LE;
-            else
-                return TEXT_BAD_BOM;
-        }
     }
     else
     {
@@ -107,9 +94,9 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
             stream->order = order;
         else
         {
-            if (stream->encoding == TEXT_ENC_UTF16 || stream->encoding == TEXT_ENC_UTF32)
+            if (stream->encoding == TEXT_ENC_UTF16)
             {
-                // According to RFC 2781, UTF-16 text (so presuambly UTF-32 as well)
+                // According to RFC 2781, UTF-16 text
                 // should be treated as big endian in the absence of a BOM
                 stream->order = TEXT_ORDER_BE;
             }
@@ -132,12 +119,7 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
     else if (encoding == TEXT_ENC_UTF16)
     {
         stream->minEncSize = 2;
-        stream->maxEncSize = 4;
-    }
-    else if (encoding == TEXT_ENC_UTF32)
-    {
-        stream->maxEncSize = 4;
-        stream->minEncSize = 4;
+        stream->maxEncSize = 2;
     }
     else
         return TEXT_INVALID_PARAMETER;
@@ -166,29 +148,6 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
                 return TEXT_INVALID_PARAMETER;
             // Write it out
             fwrite (bom, 1, 2, stream->file);
-        }
-        else if (encoding == TEXT_ENC_UTF32)
-        {
-            uint8_t bom[4];
-            // Check what order the BOM should be
-            if (order == TEXT_ORDER_LE)
-            {
-                bom[0] = 0xFF;
-                bom[1] = 0xFE;
-                bom[2] = 0x00;
-                bom[3] = 0x00;
-            }
-            else if (order == TEXT_ORDER_BE)
-            {
-                bom[0] = 0x00;
-                bom[1] = 0x00;
-                bom[2] = 0xFE;
-                bom[3] = 0xFF;
-            }
-            else
-                return TEXT_INVALID_PARAMETER;
-            // Write it out
-            fwrite (bom, 1, 4, stream->file);
         }
     }
     *out = stream;
@@ -257,22 +216,9 @@ static const char _textCheckNewLine16 (const uint16_t* buf, const int i, const s
     return 2;
 }
 
-static const char _textCheckNewLine32 (const uint32_t* buf, const int i, const size_t charsLeft)
-{
-    if (buf[i] == '\n' || buf[i] == '\r')
-    {
-        // If this is CRLF, run the loop one more time so the '\n' can be copied
-        if ((i + 1) < charsLeft && buf[i + 1] == '\n')
-            return 0;
-        else
-            return 1;
-    }
-    return 2;
-}
-
 // Internal function to decode characters
 // terminator = 0 means to parse everything, 1 means parse until LF, CR, or CRLF is encountered
-static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, const int terminator)
+static ssize_t _textDecode (TextStream_t* stream, char16_t* buf, size_t count, const int terminator)
 {
     ssize_t bytesParsed = 0;
     // Check what encoding is being used
@@ -282,7 +228,7 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
         // Loop through the whole staging buffer, casting to wchar_t
         for (; i < (count - 1); ++i)
         {
-            buf[i] = (wchar_t) stream->buf[i];
+            buf[i] = (char16_t) stream->buf[i];
             // Check if a terminator was reached
             if (terminator == 1)
             {
@@ -347,77 +293,42 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
         }
         buf[i] = 0;
     }
-    else if (stream->encoding == TEXT_ENC_UTF32)
-    {
-        const uint32_t* wideBuf = (const uint32_t*) stream->buf;
-        int i = 0;
-        for (; i < ((count / stream->maxEncSize) - 1); ++i)
-        {
-            // Make sure we decode to host's byte order
-            buf[i] = (wchar_t) EndianRead32 (&wideBuf[i], stream->order);
-            // Check for a terminator
-            if (terminator == 1)
-            {
-                const char doWhat = _textCheckNewLine32 (wideBuf, i, count);
-                if (doWhat == 0)
-                {
-                    buf[i] = '\n';
-                    ++i;
-                    ++bytesParsed;
-                    break;
-                }
-                else if (doWhat == 1)
-                {
-                    ++i;
-                    ++bytesParsed;
-                    break;
-                }
-            }
-            bytesParsed += 4;
-        }
-        buf[i] = 0;
-    }
     else if (stream->encoding == TEXT_ENC_UTF16)
     {
         // Get the buffer
         const uint16_t* buf16 = (const uint16_t*) stream->buf;
         ssize_t i = 0;
-        for (; i < (count - stream->minEncSize);)
+        for (; i < (count - 1) / stream->maxEncSize; ++i)
         {
-            ssize_t res = UnicodeDecode16 (buf, buf16, stream->order);
-            if (res == -1)
-                return -TEXT_INVALID_CHAR;
-            // Check for a terminator
+            buf[i] = (char16_t) EndianRead16 (&buf16[i], stream->order);
+            // Check if a terminator was reached
             if (terminator == 1)
             {
-                const char doWhat = _textCheckNewLine16 (buf16, 0, count);
+                char doWhat = _textCheckNewLine16 (buf16, i, count);
                 if (doWhat == 0)
                 {
-                    *buf = '\n';
+                    buf[i] = u'\n';
                     ++i;
-                    ++bytesParsed;
+                    bytesParsed += 2;
                     break;
                 }
                 else if (doWhat == 1)
                 {
                     ++i;
-                    ++bytesParsed;
+                    bytesParsed += 2;
                     break;
                 }
             }
-            i += res * 2;
-            buf16 += res;
-            ++buf;
-            bytesParsed += res;
+            bytesParsed += 2;
         }
-        *buf = 0;
+        buf[i] = 0;
     }
     return bytesParsed;
 }
 
 // Internal function to encode characters into staging buffer
 // Returns a negative error code on error
-static ssize_t _textEncode (TextStream_t* stream, const char32_t* buf, const size_t count)
+static ssize_t _textEncode (TextStream_t* stream, const char16_t* buf, const size_t count)
 {
     ssize_t charEncoded = 0;
     // Check how to encode
@@ -473,32 +384,20 @@ static ssize_t _textEncode (TextStream_t* stream, const char32_t* buf, const siz
             ++charEncoded;
         }
     }
-    else if (stream->encoding == TEXT_ENC_UTF32)
-    {
-        // Copy to staging buffer, keeping endianess in mind
-        uint32_t* wideBuf = (uint32_t*) stream->buf;
-        for (int i = 0; i < count; ++i)
-        {
-            // Ensure we write in the destination's byte order
-            EndianWrite32 (&wideBuf[i], buf[i], stream->order);
-            charEncoded += 4;
-        }
-    }
     else if (stream->encoding == TEXT_ENC_UTF16)
     {
-        // Encode into staging buffer
+        // Loop and encode everything
         uint16_t* buf16 = (uint16_t*) stream->buf;
         for (int i = 0; i < count; ++i)
         {
-            size_t res = UnicodeEncode16 (buf16, buf[i], stream->order);
-            buf16 += res;
-            charEncoded += (long) (res * 2);
+            EndianWrite16 (&buf16[i], buf[i], stream->order);
+            charEncoded += 2;
         }
     }
     return charEncoded;
 }
 
-PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+PUBLIC short TextRead (TextStream_t* stream, char16_t* buf, const size_t count, size_t* charsRead)
 {
     // Check that buf is valid
     if (!buf || !stream)
@@ -526,7 +425,7 @@ PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, 
     return TEXT_SUCCESS;
 }
 
-PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+PUBLIC short TextReadLine (TextStream_t* stream, char16_t* buf, const size_t count, size_t* charsRead)
 {
     // Check that buf is valid
     if (!buf || !stream)
@@ -555,7 +454,7 @@ PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t cou
     return TEXT_SUCCESS;
 }
 
-PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten)
+PUBLIC short TextWrite (TextStream_t* stream, const char16_t* buf, const size_t count, size_t* charsWritten)
 {
     if (!buf || !stream)
         return TEXT_INVALID_PARAMETER;

@@ -21,7 +21,7 @@
 #ifndef _TEXTSTREAM_H
 #define _TEXTSTREAM_H
 
-#include <libnex/char32.h>
+#include <libnex/char16.h>
 #include <libnex/decls.h>
 #include <libnex/object.h>
 #include <stdbool.h>
@@ -34,7 +34,6 @@
 #define TEXT_ENC_WIN1252 2    ///< File is encoded Windows codepage 1252 character set
 #define TEXT_ENC_UTF8    3    ///< File is encoded in UTF-8
 #define TEXT_ENC_UTF16   4    ///< File is encoded in UTF-16
-#define TEXT_ENC_UTF32   5    ///< File is encoded in UTF-32
 
 // Valid orderings
 #define TEXT_ORDER_NONE 0    ///< No ordering. This is used for single byte sets (like ASCII)
@@ -111,12 +110,12 @@ PUBLIC void TextClose (TextStream_t* stream);
  * decoded into the main buffer specified by buf.
  *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of char32_t's to decode into
- * @param[in] count the number of char32_t's to decode
+ * @param[out] buf a buffer of char16_t's to decode into
+ * @param[in] count the number of char16_t's to decode
  * @param[out] charsRead the number or characters read
  * @return a result code
  */
-PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+PUBLIC short TextRead (TextStream_t* stream, char16_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Reads data from a text stream
@@ -128,26 +127,26 @@ PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, 
  * decoded into the main buffer specified by buf
  *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of char32_t's to decode into
- * @param[in] count the max number of char32_t's to decode
+ * @param[out] buf a buffer of char16_t's to decode into
+ * @param[in] count the max number of char16_t's to decode
  * @param[out] charsRead the number or characters read
  * @return a status code
  */
-PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+PUBLIC short TextReadLine (TextStream_t* stream, char16_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
  *
- * TextWrite writes out a buffer of char32_t's to a file, encoding them first.
+ * TextWrite writes out a buffer of char16_t's to a file, encoding them first.
  * Data is encoded into a staging buffer, and then written to stream
  *
  * @param[in] stream the stream to write to
  * @param[in] buf the buffer to write from
- * @param[in] count the number of char32_t's to write
+ * @param[in] count the number of char16_t's to write
  * @param[out] charsWritten the number or characters written
  * @return a status code
  */
-PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten);
+PUBLIC short TextWrite (TextStream_t* stream, const char16_t* buf, const size_t count, size_t* charsWritten);
 
 /**
  * @brief Gets size of text stream
