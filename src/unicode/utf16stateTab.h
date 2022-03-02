@@ -34,14 +34,17 @@ static unsigned char utf16stateTab[] = {
     1, 1, 1, 1
 };
 
+// The valid next state for a given state
 static unsigned char utf16nextTab[] = {
     0, 4, 3, 4
 };
 
+// The amount to shift the input by for a a given state
 static unsigned char utf16shiftTab[] = {
     0, 0, 10, 0
 };
 
+// What to mask off the input for a given state
 static unsigned short utf16maskTab[] = {
     0xFFFF, 0xFFFF,
     0x03FF, 0x03FF

@@ -57,6 +57,12 @@ PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding,
     stream->file = fopen (file, fopenMode);
     if (!stream->file)
         return TEXT_SYS_ERROR;
+    // If encoding is 0, then chances are, file is in an unsupported format.
+    // The reason for this is because if we use libchardet, and TextGetEncId sees that
+    // libchardet found an encoding that we don't support, it will return 0. Then, when the user passes
+    // that ID, we will see that here
+    if (!encoding)
+        return TEXT_INVALID_ENC;
     // Set the encoding
     stream->encoding = encoding;
     // Check if there is a BOM, and if there is, set the byte order based on that
@@ -384,8 +390,8 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
         ssize_t i = 0;
         for (; i < (count - stream->minEncSize);)
         {
-            ssize_t res = UnicodeDecode16 (buf, buf16, stream->order);
-            if (res == -1)
+            ssize_t res = (ssize_t) UnicodeDecode16 (buf, buf16, i, stream->order);
+            if (!res)
                 return -TEXT_INVALID_CHAR;
             // Check for a terminator
             if (terminator == 1)
@@ -407,6 +413,40 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
             }
             i += res * 2;
             buf16 += res;
+            ++buf;
+            bytesParsed += res * 2;
+        }
+        *buf = 0;
+    }
+    else if (stream->encoding == TEXT_ENC_UTF8)
+    {
+        ssize_t i = 0;
+        const uint8_t* buf8 = stream->buf;
+        for (; i < (count - stream->minEncSize);)
+        {
+            ssize_t res = (ssize_t) UnicodeDecode8 (buf, buf8, i);
+            if (!res)
+                return -TEXT_INVALID_CHAR;
+            // Check terminator
+            if (terminator == 1)
+            {
+                const char doWhat = _textCheckNewLine8 (buf8, 0, count);
+                if (doWhat == 0)
+                {
+                    *buf = '\n';
+                    ++i;
+                    ++bytesParsed;
+                    break;
+                }
+                else if (doWhat == 1)
+                {
+                    ++i;
+                    ++bytesParsed;
+                    break;
+                }
+            }
+            i += res;
+            buf8 += res;
             ++buf;
             bytesParsed += res;
         }
@@ -492,7 +532,20 @@ static ssize_t _textEncode (TextStream_t* stream, const char32_t* buf, const siz
         {
             size_t res = UnicodeEncode16 (buf16, buf[i], stream->order);
             buf16 += res;
-            charEncoded += (long) (res * 2);
+            charEncoded += (ssize_t) (res * 2);
+        }
+    }
+    else if (stream->encoding == TEXT_ENC_UTF8)
+    {
+        uint8_t* buf8 = stream->buf;
+        uint8_t* obuf8 = buf8;
+        for (int i = 0; i < count; ++i)
+        {
+            size_t res = UnicodeEncode8 (buf8, buf[i], stream->bufSize - (buf8 - obuf8));
+            if (!res)
+                return -TEXT_INVALID_CHAR;
+            buf8 += res;
+            charEncoded += (ssize_t) res;
         }
     }
     return charEncoded;
@@ -578,6 +631,45 @@ PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t 
     return TEXT_SUCCESS;
 }
 
+PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
+{
+    if (!strcmp (encName, "ASCII") || !strcmp (encName, "UTF-8"))
+    {
+        *enc = TEXT_ENC_UTF8;
+        *order = TEXT_ORDER_NONE;
+    }
+    else if (!strcmp (encName, "UTF-16LE"))
+    {
+        *enc = TEXT_ENC_UTF16;
+        *order = TEXT_ORDER_LE;
+    }
+    else if (!strcmp (encName, "UTF-16BE"))
+    {
+        *enc = TEXT_ENC_UTF16;
+        *order = TEXT_ORDER_BE;
+    }
+    else if (!strcmp (encName, "UTF-32LE"))
+    {
+        *enc = TEXT_ENC_UTF32;
+        *order = TEXT_ORDER_LE;
+    }
+    else if (!strcmp (encName, "UTF-32BE"))
+    {
+        *enc = TEXT_ENC_UTF32;
+        *order = TEXT_ORDER_BE;
+    }
+    else if (!strcmp (encName, "windows-1252"))
+    {
+        *enc = TEXT_ENC_WIN1252;
+        *order = TEXT_ORDER_NONE;
+    }
+    else
+    {
+        *enc = 0;
+        *order = 0;
+    }
+}
+
 // FIXME: this should be i18n
 // I am not going to do this until I do i18n
 static const char* errorStrings[] = {
@@ -589,7 +681,7 @@ static const char* errorStrings[] = {
     "Character too wide",    // TEXT_NARROW_WCHAR
     "Character can't be encoded by character set",    // TEXT_INVALID_CHAR
     "Buffer too small",                               // TEXT_BUF_TOO_SMALL
-    "Character too wide"                              // TEXT_NO_SURROGATE
+    "Unsupported character encoding"                  // TEXT_INVALID_ENC
 };
 
 PUBLIC const char* TextError (int code)

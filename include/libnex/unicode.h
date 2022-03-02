@@ -35,22 +35,66 @@
 __DECL_START
 
 /**
+ * @brief The state of parsing a given UTF-8 character
+ * This data type is opaque
+ */
+typedef struct _utf8state
+{
+    uint8_t prevState;        ///< The previous state of the parser
+    uint8_t state;            ///< The current state of the parser
+    uint8_t bytesRequired;    ///< The number of bytes required for input
+    uint8_t bytesLeft;        ///< The remaining number of bytes needed to finish processing
+} Utf8State_t;
+
+#define UnicodeIsAccepted(state)  ((state).state == 6)     ///< Checks if state has been accepted
+#define UnicodeIsAcceptedP(state) ((state)->state == 6)    ///< Checks if state has been accepted
+
+/**
  * @brief Decodes a UTF-16 character to UTF-32
  * @param out the character to write out the decoded data to
  * @param in a pointer to UTF-16 data to decode
+ * @param sz the size of in
  * @param endian the endianess of the input buffer, either ENDIAN_LITTLE or ENDIAN_BIG
  * @return How many 16 bit values were decoded. If -1, then an invalid character was found
  */
-PUBLIC ssize_t UnicodeDecode16 (char32_t* out, const uint16_t* in, char endian);
+PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, char endian);
 
 /**
- * @brief Encodes s UTF-32 character as UTF-16
+ * @brief Encodes a UTF-32 character as UTF-16
  * @param out the buffer to write out the 16 bit values to
  * @param in UTF-32 character to encode
  * @param endian the endianess of out
  * @return the number of 16 bit values encoded
  */
 PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian);
+
+/**
+ * @brief Decodes a one octet section of a larger UTF-8 sequence.
+ * UnicodeDecodePart8 decodes one component of a sequence. It is useful
+ * when you only have one byte at call time, such as when reading from the keyboard.
+ * Before calling for the first time, ensure state is zeroed
+ * Keep running until UnicodeIsAccepted is true for state.
+ * @param out pointer to the resulting codepoint
+ * @param in the current byte in the sequence
+ * @param state pointer to structure maintaining the parser's state
+ */
+PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state);
+
+/**
+ * @brief Decodes a UTF-8 character to UTF-32
+ * @param out the buffer to write the character out to
+ * @param in pointer to buffer containing sequence to convert
+ * @param sz size of in
+ */
+PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz);
+
+/**
+ * @brief Encodes a UTF-32 character as UTF-8
+ * @param out the buffer to write the encoded UTF-8 out to
+ * @param in character to encode
+ * @param sz size of out
+ */
+PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz);
 
 __DECL_END
 

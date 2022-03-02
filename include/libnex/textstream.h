@@ -53,6 +53,7 @@
 #define TEXT_BAD_BOM           4    ///< A bad BOM was encountered
 #define TEXT_INVALID_CHAR      6    ///< Character doesn't fit in destination character set
 #define TEXT_BUF_TOO_SMALL     7    ///< Character won't fit in buffer
+#define TEXT_INVALID_ENC       8    ///< Encoding not supported
 
 __DECL_START
 
@@ -174,21 +175,30 @@ PUBLIC long TextSize (TextStream_t* stream);
 PUBLIC void TextSetBufSz (TextStream_t* stream, size_t sz);
 
 /**
- * @brief Returns t a textual representation of code
+ * @brief Returns a textual representation of a textstream error code
  * @param code the error code turn into a string
  * @return the string message
  */
 PUBLIC const char* TextError (int code);
 
+/**
+ * @brief Takes a libchardet charset name, and returns a textsream encoding and byte order
+ * @param encName the name of the encoding
+ * @param enc the numeric encoding ID to write to
+ * @param order the byte order to write to
+ */
+PUBLIC void TextGetEncId (const char* encName, char* enc, char* order);
+
 __DECL_END
 
 // Helper macros
-#define TextGetEncoding  (stream) ((stream)->encoding)              ///< Grabs the character encoding of stream
-#define TextGetOrder     (stream) ((stream)->order)                 ///< Grabs the byte order of stream
-#define TextGetBufSz     (stream) ((stream)->bufSize)               ///< Grabs the size of the staging buffer in stream
-#define TextRef(item)    ((TextStream_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
-#define TextLock(item)   (ObjLock (&(item)->obj))                   ///< Locks this stream
-#define TextUnlock(item) (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
-#define TextDeRef(item)  (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
+#define TextGetEncoding(stream) ((stream)->encoding)    ///< Grabs the character encoding of stream
+#define TextGetOrder(stream)    ((stream)->order)       ///< Grabs the byte order of stream
+#define TextGetBufSz(stream)    ((stream)->bufSize)     ///< Grabs the size of the staging buffer in stream
+#define TextRef(item)           ((TextStream_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
+#define TextLock(item)          (ObjLock (&(item)->obj))                   ///< Locks this stream
+#define TextUnlock(item)        (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
+#define TextDeRef(item)         (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
+#define TextGetFile(stream)     ((stream)->file)                           ///< Obtains the file handle of this stream
 
 #endif

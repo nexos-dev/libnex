@@ -19,16 +19,16 @@
 /// @file unicode.c
 
 #include "unicode/utf16stateTab.h"
+#include "unicode/utf8stateTab.h"
 #include <libnex/unicode.h>
+#include <string.h>
 
 // UTF-16 parser states
-#define UTF16_START          0
-#define UTF16_SCALAR         1
-#define UTF16_HIGH_SURROGATE 2
-#define UTF16_LOW_SURROGATE  3
-#define UTF16_ACCEPT         4
+#define UTF16_START         0
+#define UTF16_LOW_SURROGATE 3
+#define UTF16_ACCEPT        4
 
-PUBLIC ssize_t UnicodeDecode16 (char32_t* out, const uint16_t* in, char endian)
+PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, char endian)
 {
     // Setup the state
     unsigned char state = UTF16_START;
@@ -38,12 +38,14 @@ PUBLIC ssize_t UnicodeDecode16 (char32_t* out, const uint16_t* in, char endian)
     // Keep parsing until accepted
     while (state != UTF16_ACCEPT)
     {
+        if (in > (oin + sz))
+            return 0;
         if (state == UTF16_START)
             state = utf16stateTab[EndianRead16 (in, endian) >> 10];
         else
         {
             if (state != utf16stateTab[EndianRead16 (in, endian) >> 10])
-                return -1;
+                return 0;
         }
         uint16_t val = EndianRead16 (in, endian);
         codepoint |= ((val & utf16maskTab[state]) << utf16shiftTab[state]);
@@ -69,6 +71,7 @@ PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
         sur1 |= (in >> 10);
         EndianWrite16 (out, sur1, endian);
         ++out;
+        // Encode second surrogate
         uint16_t sur2 = 0xDC00;
         sur2 |= BitClearRange (in, 10, 10);
         EndianWrite16 (out, sur2, endian);
@@ -82,6 +85,123 @@ PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
     }
 }
 
-PUBLIC ssize_t UnicodeDecode8 (char32_t* out, uint8_t* in, char endian)
+// States
+#define UTF8_CONT   2
+#define UTF8_START  0
+#define UTF8_ACCEPT 6
+
+// Checks if this is a bad octet
+#define IsBadOctect(oct) ((oct) == 0xC0 || (oct) == 0xC1 || ((oct) >= 0xF5))
+
+PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
 {
+    // If this sequence has been accepted, return
+    if (state->state == UTF8_ACCEPT)
+        return 0;
+
+    // Check if we need to initialize the state
+    if (state->state == UTF8_START)
+    {
+        // Get the intial state
+        state->state = utf8stateTab[in >> 3];
+        // Ensure this isn't a continuation
+        if (state->state == UTF8_CONT)
+            return 0;
+        // Get the size of this character
+        state->bytesLeft = utf8sizeTab[state->state];
+        state->bytesRequired = state->bytesLeft;
+        *out = 0;
+    }
+    else
+    {
+        // Ensure this is the right state
+        if (state->state != utf8stateTab[in >> 3])
+            return 0;
+    }
+
+    // Ensure in isn't a bad octet
+    if (IsBadOctect (in))
+        return 0;
+
+    // Update the codepoint
+    *out = (in & utf8maskTab[state->state]) | ((*out) << utf8shiftTab[state->state]);
+
+    // Set the state
+    state->prevState = state->state;
+    state->state = utf8nextTab[state->prevState];
+
+    // Should we accept this sequence?
+    if ((--state->bytesLeft) == 0)
+        state->state = UTF8_ACCEPT;
+    return 1;
+}
+
+PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz)
+{
+    Utf8State_t state;
+    const uint8_t* oin = in;
+    memset (&state, 0, sizeof (Utf8State_t));
+    do
+    {
+        // Bounds check
+        if (in > (oin + sz))
+            return 0;
+        // Decode current octet
+        if (!UnicodeDecodePart8 (out, *in, &state))
+            return 0;
+        ++in;
+    } while (!UnicodeIsAccepted (state));
+    return state.bytesRequired;
+}
+
+PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz)
+{
+    // Figure out the size needed and create the leading byte
+    if (in <= 0x7F)
+    {
+        *out = (uint8_t) BitMask (in, 0x7F);
+        return 1;
+    }
+    else if (in <= 0x7FF)
+    {
+        if ((out + 2) > (out + sz))
+            return 0;
+        // Set up leading byte
+        *out = 0xC0 | (in >> 6);
+        ++out;
+        BitClearRange (in, 6, 5);
+        // Encode continuation
+        *out = (uint8_t) in | 0x80;
+        return 2;
+    }
+    else if (in <= 0xFFFF)
+    {
+        if ((out + 3) > (out + sz))
+            return 0;
+        *out = 0xE0 | (in >> 12);
+        ++out;
+        BitClearRange (in, 12, 4);
+        *out = (in >> 6) | 0x80;
+        ++out;
+        *out = (BitClearRangeNew (in, 6, 5)) | 0x80;
+        return 3;
+    }
+    else if (in <= 0x10FFFF)
+    {
+        if ((out + 4) > (out + sz))
+            return 0;
+        *out = 0xF0 | (in >> 0x12);
+        ++out;
+        BitClearRange (in, 18, 3);
+        *out = (in >> 12) | 0x80;
+        ++out;
+        BitClearRange (in, 12, 6);
+        *out = (in >> 6) | 0x80;
+        ++out;
+        BitClearRange (in, 6, 6);
+        *out = in | 0x80;
+        return 4;
+    }
+    else
+        return 0;
 }

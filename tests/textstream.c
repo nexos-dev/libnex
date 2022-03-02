@@ -162,5 +162,33 @@ int main()
         free (buf4);
         free (buf2);
     }
+    // Test UTF-8
+    {
+        TextStream_t* stream1 = NULL;
+        if (TextOpen ("testUtf8.testxt", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF8, 0, 0) != TEXT_SUCCESS)
+            return 1;
+        char32_t buf1[] = U"Test string € 𠀀\n";
+        char32_t* buf2 = (char32_t*) malloc_s (500);
+        if (TextRead (stream1, buf2, c32len (buf1) + 1, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!c32cmp (buf1, buf2), "reading UTF-8");
+        TextClose (stream1);
+        free (buf2);
+        if (TextOpen ("testUtf8.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF8, 0, 0) != TEXT_SUCCESS)
+            return 1;
+        char32_t buf3[] = U"Test document € 𠀀\n";
+        if (TextWrite (stream1, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)
+            return 1;
+        TextClose (stream1);
+        // Test that it is correct
+        if (TextOpen ("testUtf8.testout", &stream1, TEXT_MODE_READ, TEXT_ENC_UTF8, 0, 0) != TEXT_SUCCESS)
+            return 1;
+        char32_t* buf4 = (char32_t*) malloc_s (500 * sizeof (char32_t));
+        if (TextRead (stream1, buf4, c32len (buf3) + 1, NULL) != TEXT_SUCCESS)
+            return 1;
+        TEST_BOOL (!c32cmp (buf4, buf3), "writing UTF-8");
+        TextClose (stream1);
+        free (buf4);
+    }
     return 0;
 }
