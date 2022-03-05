@@ -1,0 +1,43 @@
+.TH mbstoc32s 3 2022-03-05
+.SH NAME
+\fBmbstoc32s\fP \- converts a multibyte string to a UTF-32 string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "ssize_t mbstoc32s (char32_t* u32str, const char* mbStr,"
+.br
+.B "                   size_t sz, size_t mbSz, mbstate_t* state);"
+.br
+
+.SH "DESCRIPTION"
+.B mbstoc32s
+converts a null terminated multibyte string
+.B mbStr
+to a null terminated UTF-32 string, in the buffer specified by
+.B u32str.
+.br
+It converts until a null terminator is reached, or until it reaches the end of
+.B u32str,
+as specifed by
+.B sz.
+It internally calls
+.B mbrtoc32
+to perform the conversion.
+.br
+.B state
+shall contain a pointer to the multibyte conversion state to use when converting.
+.br
+.B mbstoc32s
+may return prematurely if
+.B mbrtoc32
+reports that an error occured. Always check the return value to check for this.
+
+.SH "RETURN VALUE"
+The number of characters written to
+.B u32str.
+It can also return a negative number on error, as specifed by
+.B mbrtoc32.
+
+.SH "SEE ALSO"
+mbrtoc32(3), c32stombs(3)

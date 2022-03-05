@@ -58,6 +58,7 @@ check_symbol_exists(pthread_self "pthread.h" HAVE_PTHREAD)
 if(NOT HAVE_PTHREAD)
     check_symbol_exists(EnterCriticalSection "windows.h" HAVE_WIN32_THREADS)
 endif()
+# Check for stat
 check_symbol_exists(stat "sys/stat.h" HAVE_UNIX_STAT)
 if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)
     check_symbol_exists(_stat "sys/stat.h" HAVE_WIN32_STAT)
@@ -151,8 +152,9 @@ list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}
                             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
                             ${NEXNIXSDK_INCLUDE_DIRS})
 
-# Ensure CL treats files as UTF-8
 if(MSVC)
+    # Ensure CL treats files as UTF-8. We need this because some source files have Unicode text in them
+    # CL will erroneously treat them as Windows-1252 without passing /utf-8
     add_compile_options(/utf-8)
     # CL lets out annoying warning about fopen, getenv, strcpy, etc, etc, etc...
     # Tell it to be quiet

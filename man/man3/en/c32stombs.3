@@ -1,0 +1,42 @@
+.TH c32stombs 3 2022-03-02
+.SH NAME
+\fBc32stombs\fP \- converts a UTF-32 string to multibyte string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "ssize_t c32stombs (char* mbStr, const char32_t* u32str,"
+.br
+.B "                   size_t sz, mbstate_t* state);"
+.br
+
+.SH DESCRIPTION
+.B c32stombs
+converts a null terminated string in
+.B u32str
+to the host's format for multibyte strings. Said string is contained in
+.B mbStr.
+.sp
+Internally, it calls the function 
+.B c32rtomb
+to perform the conversion.
+.sp
+.B mbStr
+shall contain at least sz bytes. If it contains less, then there could potenially
+be a buffer overflow.
+.sp
+.B c32stombs
+may stop converting prematurely if and only if
+.B c32rtomb
+fails. Always check the return value, as described below, to ensure success.
+
+.SH "RETURN VALUE"
+.B c32stombs
+returns the number of bytes added to
+.B mbStr.
+On failure, it returns a negative number. These values correspond to
+.B c32rtomb's
+return values.
+
+.SH "SEE ALSO"
+mbstoc32s(3), c32rtomb(3)

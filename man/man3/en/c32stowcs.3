@@ -1,0 +1,24 @@
+.TH c32stowcs 3 2022-03-05
+.SH NAME
+\fBc32stowcs\fP \- converts a UTF-32 string to a wide character string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)"
+.br
+
+.SH DESCRIPTION
+.B c32stowcs
+converts a null terminated UTF-32 string specified by
+.B u32str
+to a wide character string, whose buffer is specified by
+.B u32str.
+It converts until a null terminator is encountered, or it reaches the end of wcStr
+as specified by
+.B sz.
+.SH "RETURN VALUE"
+.B c32stowcs
+returns the number of characters converted, or -1 if an error occurred
+.SH "SEE ALSO"
+wcstoc32s(3)

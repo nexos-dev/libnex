@@ -36,7 +36,7 @@
 #define TEXT_DECODE_TERMINATE_ON_NEWLINE 1       ///< Terminate decoding on newline discovery
 #define TEXT_DECODE_ALL                  0       ///< Decode whole buffer
 
-PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding, char hasBom, char order)
+PUBLIC short TextOpen (char* file, TextStream_t** out, char mode, char encoding, bool hasBom, char order)
 {
     // Allocate the new stream
     TextStream_t* stream = (TextStream_t*) malloc_s (sizeof (TextStream_t));

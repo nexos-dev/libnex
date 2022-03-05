@@ -91,7 +91,7 @@ typedef struct _TextStream
  * @param[out] stream result variable to put the stream in
  * @return TEXT_SUCCESS, otherwise, an error code
  */
-PUBLIC short TextOpen (char* file, TextStream_t** stream, char mode, char encoding, char hasBom, char order);
+PUBLIC short TextOpen (char* file, TextStream_t** stream, char mode, char encoding, bool hasBom, char order);
 
 /**
  * @brief Closes a text stream
