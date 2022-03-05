@@ -285,10 +285,10 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
     if (stream->encoding == TEXT_ENC_ASCII)
     {
         int i = 0;
-        // Loop through the whole staging buffer, casting to wchar_t
+        // Loop through the whole staging buffer, casting to char32_t
         for (; i < (count - 1); ++i)
         {
-            buf[i] = (wchar_t) stream->buf[i];
+            buf[i] = (char32_t) stream->buf[i];
             // Check if a terminator was reached
             if (terminator == 1)
             {
@@ -324,7 +324,7 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
             if (BitGet (stream->buf[i], 7) == 0 || stream->buf[i] >= 0xA0)
             {
                 // This character lies in the ASCII or ISO-8859-1 realm
-                buf[i] = (wchar_t) stream->buf[i];
+                buf[i] = (char32_t) stream->buf[i];
             }
             else
             {
@@ -360,7 +360,7 @@ static ssize_t _textDecode (TextStream_t* stream, char32_t* buf, size_t count, c
         for (; i < ((count / stream->maxEncSize) - 1); ++i)
         {
             // Make sure we decode to host's byte order
-            buf[i] = (wchar_t) EndianRead32 (&wideBuf[i], stream->order);
+            buf[i] = (char32_t) EndianRead32 (&wideBuf[i], stream->order);
             // Check for a terminator
             if (terminator == 1)
             {

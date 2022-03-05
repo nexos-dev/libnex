@@ -33,7 +33,7 @@ int main()
     memset (&state1, 0, sizeof (mbstate_t));
     c32stombs (mbStr, str, 500, &state1);
     // Convert to wchar_t for easy comparison
-    wchar_t* wcStr = malloc_s (500);
+    wchar_t* wcStr = (wchar_t*) malloc_s (500);
     mbsrtowcs (wcStr, (const char**) &mbStr, 500, &state1);
     TEST_BOOL (!wcscmp (wcStr, L"Test string"), "c32stombs");
     free (mbStr);
@@ -62,7 +62,7 @@ int main()
     TEST (c32len (str3), 11, "c32len");
 
     TEST_BOOL (!c32cmp (str3, str), "c32cmp");
-
+    printf ("got here\n");
     const char32_t src1[] = U"a test string";
     char32_t dest1[10];
     char32_t dest2[16];

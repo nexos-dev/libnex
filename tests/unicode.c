@@ -30,8 +30,9 @@ int main()
     UnicodeDecode16 (&out, val, 4, EndianHost());
     TEST (out, U't', "UnicodeDecode16");
     char16_t val2[] = u"𠀀";
+    char32_t refVal = U'𠀀';
     UnicodeDecode16 (&out, val2, 6, EndianHost());
-    TEST (out, U'𠀀', "UnicodeDecode16 surrogates");
+    TEST (out, refVal, "UnicodeDecode16 surrogates");
 
     // Test encoding UTF-16
     char32_t val3 = U'𠀀';
@@ -39,20 +40,22 @@ int main()
     UnicodeEncode16 (buf, val3, EndianHost());
     char32_t out2;
     UnicodeDecode16 (&out2, buf, 3, EndianHost());
-    TEST (out2, U'𠀀', "UnicodeEncode16 surrogates");
+    TEST (out2, refVal, "UnicodeEncode16 surrogates");
 
     // Test decoding UTF-8
     uint8_t val4[] = "𠀀";
     UnicodeDecode8 (&out, val4, 5);
-    TEST (out, U'𠀀', "UnicodeDecode8 with 4 bytes");
+    TEST (out, refVal, "UnicodeDecode8 with 4 bytes");
 
     uint8_t val5[] = "╤";
     UnicodeDecode8 (&out, val5, 4);
-    TEST (out, U'╤', "UnicodeDecode8 with 3 bytes");
+    refVal = U'╤';
+    TEST (out, refVal, "UnicodeDecode8 with 3 bytes");
 
     uint8_t val6[] = "Þ";
+    refVal = U'Þ';
     UnicodeDecode8 (&out, val6, 3);
-    TEST (out, U'Þ', "UnicodeDecode8 with 2 bytes");
+    TEST (out, refVal, "UnicodeDecode8 with 2 bytes");
 
     uint8_t val7 = 'a';
     UnicodeDecode8 (&out, &val7, 1);

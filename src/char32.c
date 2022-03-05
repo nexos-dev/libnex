@@ -28,14 +28,17 @@ PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstat
 {
     char* ombStr = mbStr;
     ssize_t res = 0;
-    while (*u32str && mbStr < (mbStr + sz))
+    do
     {
         res = (ssize_t) c32rtomb (mbStr, *u32str, state);
+        // A little hack. On Windows, c32rtomb doesn't return 0 when it enounters a null character
+        if (*u32str == 0)
+            return mbStr - ombStr;
         if (res < 0)
             return res;
         mbStr += res;
         ++u32str;
-    }
+    } while (res && mbStr < (mbStr + sz));
     return mbStr - ombStr;
 }
 
@@ -64,13 +67,13 @@ PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz)
     // FIXME: Uses too much memory
     size_t mbLen = wcLen * MB_CUR_MAX;
     // Do the conversion to multibyte form
-    char* mbStr = malloc_s (mbLen);
+    char* mbStr = malloc_s (mbLen + 1);
     mbstate_t state;
     memset (&state, 0, sizeof (mbstate_t));
-    if (wcsrtombs (mbStr, &wcStr, mbLen, &state) == -1)
+    if (wcsrtombs (mbStr, &wcStr, wcLen + 1, &state) == -1)
         return -1;
     // Convert to char32_t form
-    ssize_t res = mbstoc32s (u32str, mbStr, sz, mbLen, &state);
+    ssize_t res = mbstoc32s (u32str, mbStr, sz, mbLen + 1, &state);
     free (mbStr);
     return res;
 }
@@ -82,10 +85,10 @@ PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)
     // FIXME: Uses too much memory
     size_t mbLen = wideLen * MB_CUR_MAX;
     // Convert to multibyte
-    char* mbStr = malloc_s (mbLen);
+    char* mbStr = malloc_s (mbLen + 1);
     mbstate_t state;
     memset (&state, 0, sizeof (mbstate_t));
-    if (c32stombs (mbStr, u32str, mbLen, &state) < 0)
+    if (c32stombs (mbStr, u32str, wideLen + 1, &state) < 0)
         return -1;
     // Convert to wide
     ssize_t res = (ssize_t) mbsrtowcs (wcStr, (const char**) &mbStr, sz, &state);

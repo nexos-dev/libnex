@@ -27,12 +27,6 @@
 #cmakedefine HAVE_VISIBILITY
 #cmakedefine HAVE_DECLSPEC_EXPORT
 
-// Decide the size of wchar_t
-#include <wchar.h>
-#ifndef WCHAR_MAX
-#error Platform with wchar_t is required
-#endif
-
 // Get visibility stuff right
 #ifdef HAVE_VISIBILITY
 #define PUBLIC __attribute__ ((visibility ("default")))

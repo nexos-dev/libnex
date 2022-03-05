@@ -37,12 +37,13 @@ int main()
         char32_t* buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextRead (stream, buf, 500, NULL) != TEXT_SUCCESS)
             return 1;
+        // Windows fread normalizes line endings to LF. Account for that
+#ifndef WIN32
         char32_t buf2[] = U"Test string. This is an ASCII document.\r\n";
+#else
+        char32_t buf2[] = U"Test string. This is an ASCII document.\n";
+#endif
         TEST_BOOL (!c32cmp (buf, buf2), "reading ASCII");
-        // Test TextSize
-        TEST (TextSize (stream), c32len (buf2), "TextSize");
-        free (buf);
-        TextClose (stream);
         // Test TextReadLine
         if (TextOpen ("testAscii1.testxt", &stream, TEXT_MODE_READ, TEXT_ENC_ASCII, 0, 0) != TEXT_SUCCESS)
             return 1;
@@ -84,6 +85,7 @@ int main()
             return 1;
         char32_t buf2[] = U"Test windows 1252 document. Here is a non-ASCII character: ÿ Ž\n";
         TEST_BOOL (!c32cmp (buf, buf2), "reading Windows 1252");
+        TEST (TextSize (stream1), 64, "TextSize");
         free (buf);
         TextClose (stream1);
         // Test writing it

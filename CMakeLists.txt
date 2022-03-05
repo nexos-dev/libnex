@@ -151,6 +151,14 @@ list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}
                             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
                             ${NEXNIXSDK_INCLUDE_DIRS})
 
+# Ensure CL treats files as UTF-8
+if(MSVC)
+    add_compile_options(/utf-8)
+    # CL lets out annoying warning about fopen, getenv, strcpy, etc, etc, etc...
+    # Tell it to be quiet
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
+
 # Create the library
 add_library(nex ${LIBNEX_SOURCES})
 
@@ -163,12 +171,6 @@ target_include_directories(nex PRIVATE ${LIBNEX_INCLUDE_DIRS})
 # but in ${CMAKE_INSTALL_INCLUDEDIR}/include/libnex for consumers. Ensure the headers differentiate
 # between them. This also is needed for deciding between dllexport and dllimport
 target_compile_definitions(nex PRIVATE "IN_LIBNEX")
-
-# CL lets out annoying warning about fopen, getenv, strcpy, etc, etc, etc...
-# Tell it to be quiet
-if("${CMAKE_C_COMPILER_ID}" STREQUAL "MSVC")
-    target_compile_definitions(nex PRIVATE "_CRT_SECURE_NO_WARNINGS")
-endif()
 
 # Ensure symbols are hidden by default
 if(BUILD_SHARED_LIBS)
