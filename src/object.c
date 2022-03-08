@@ -44,7 +44,7 @@ PUBLIC void ObjCreate (const char* type, Object_t* obj)
     obj->id = nextId++;
     obj->refCount = 1;
     obj->type = type;
-    _libnex_lock_init (&obj->lock);
+    __Libnex_lock_init (&obj->lock);
 }
 
 /**
@@ -61,7 +61,7 @@ PUBLIC int ObjDestroy (Object_t* obj)
     {
         // Destroy the lock, as the object is done
         ObjUnlock (obj);
-        _libnex_lock_destroy (&obj->lock);
+        __Libnex_lock_destroy (&obj->lock);
     }
     else
         ObjUnlock (obj);
@@ -115,7 +115,7 @@ PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2)
  */
 PUBLIC void ObjLock (Object_t* obj)
 {
-    _libnex_lock_lock (&obj->lock);
+    __Libnex_lock_lock (&obj->lock);
 }
 
 /**
@@ -124,5 +124,5 @@ PUBLIC void ObjLock (Object_t* obj)
  */
 PUBLIC void ObjUnlock (Object_t* obj)
 {
-    _libnex_lock_unlock (&obj->lock);
+    __Libnex_lock_unlock (&obj->lock);
 }

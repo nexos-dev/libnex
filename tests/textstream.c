@@ -19,6 +19,7 @@
 /// @file textstream.c
 
 #include <libnex.h>
+#include <locale.h>
 #define NEXTEST_NAME "textstream"
 #include <nextest.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 
 int main()
 {
+    setlocale (LC_ALL, "");
     // Test TextError
     TEST_BOOL (!strcmp (TextError (TEXT_INVALID_CHAR), "Character can't be encoded by character set"), "TextError");
     {

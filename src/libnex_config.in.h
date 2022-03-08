@@ -26,6 +26,10 @@
 #cmakedefine HAVE_WIN32_THREADS
 #cmakedefine HAVE_VISIBILITY
 #cmakedefine HAVE_DECLSPEC_EXPORT
+#cmakedefine LIBNEX_ENABLE_NLS
+#ifdef LIBNEX_ENABLE_NLS
+#define LIBNEX_LOCALE_BASE "@LIBNEX_LOCALE_BASE@"
+#endif
 
 // Get visibility stuff right
 #ifdef HAVE_VISIBILITY
@@ -54,6 +58,11 @@ typedef SSIZE_T ssize_t;
 #define stat_t struct _stat
 #else
 #define stat_t struct stat
+#endif
+
+// Make internal.h visivle if we are in libnex
+#ifdef IN_LIBNEX
+#include "internal.h"
 #endif
 
 #endif

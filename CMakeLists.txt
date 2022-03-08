@@ -26,6 +26,7 @@ set(CMAKE_C_STANDARD 11)
 option(BUILD_SHARED_LIBS "Specifies if shared libraries should be built" OFF)
 option(LIBNEX_ENABLE_TESTS "Specifies if the test suite should be built" OFF)
 option(LIBNEX_BAREMETAL "Specifies if the build should be tailored to baremetal platforms" OFF)
+option(LIBNEX_ENABLE_NLS "Specifies if NLS support should be compiled into libnex" ON)
 
 if(${LIBNEX_ENABLE_TESTS} AND NOT ${CMAKE_CROSSCOMPILING})
     enable_testing()
@@ -35,8 +36,8 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "NexNix")
     find_package(NexNixSdk REQUIRED)
 else()
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/nextest")
-    include_directories(nextest)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+    include_directories(cmake)
 endif()
 
 # Include modules
@@ -45,6 +46,46 @@ include(NexTest)
 include(CheckSymbolExists)
 include(CMakePackageConfigHelpers)
 include(SdkCompilerTest)
+include(GettextHelp)
+
+# Find libintl
+find_package(Intl)
+if(NOT Intl_FOUND)
+    message(WARNING "libintl not found, compiling without NLS (multilingual) support")
+    set(LIBNEX_ENABLE_NLS OFF)
+endif()
+
+# Find GNU gettext
+gettext_check(GETTEXT_FOUND)
+if(NOT GETTEXT_FOUND)
+    message(WARNING "GNU gettext not found, compiling without NLS")
+    set(LIBNEX_ENABLE_NLS OFF)
+else()
+    message(STATUS "Found GNU gettext")
+endif()
+
+if(LIBNEX_ENABLE_NLS)
+    # Find the locale directory base
+    set(LIBNEX_LOCALE_BASE "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/locale/")
+
+    # Check which locales should be enabled
+    set(LIBNEX_SUPPORTED_LOCALES "en;es" CACHE STRING "Languages supported by libnex")
+    if(NOT LIBNEX_ENABLED_LOCALES)
+        set(LIBNEX_ENABLED_LOCALES "${LIBNEX_SUPPORTED_LOCALES}" CACHE STRING "Languages to use in libnex")
+    endif()
+    # Validate locales
+    foreach(locale ${LIBNEX_ENABLED_LOCALES})
+        # Strip en from list. en_US is the locale that the message IDs are in, meaning that we
+        # don't need a l12n for that
+        if("${locale}" STREQUAL "en")
+            list(REMOVE_ITEM LIBNEX_ENABLED_LOCALES "en")
+        endif()
+        list(FIND LIBNEX_SUPPORTED_LOCALES ${locale} locale_supported)
+        if("${locale_supported}" STREQUAL "-1")
+            message(FATAL_ERROR "Locale ${locale} not supported")
+        endif()
+    endforeach()
+endif()
 
 # See if tests should be enabled
 if(${LIBNEX_ENABLE_TESTS})
@@ -89,7 +130,8 @@ list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
     src/getopt.c
     src/error.c
-    src/safemalloc.c)
+    src/safemalloc.c
+    src/internal.c)
 
 # If the host lacks some functions, add them
 if(NOT HAVE_PROGNAME)
@@ -107,6 +149,14 @@ endif()
 list(APPEND LIBNEX_SOURCES ${LIBNEX_SOURCES_ALWAYS})
 if(NOT LIBNEX_BAREMETAL)
     list(APPEND LIBNEX_SOURCES ${LIBNEX_HOSTED_SOURCES})
+endif()
+
+# Create the PO file lists
+if(LIBNEX_ENABLE_NLS)
+    gettext_files(DOMAIN libnex 
+                  OUTPUT "${CMAKE_SOURCE_DIR}/src/po" 
+                  LANGS "${LIBNEX_ENABLED_LOCALES}"
+                  SOURCES "${LIBNEX_SOURCES}")
 endif()
 
 # Create the include files list
@@ -150,8 +200,15 @@ endif()
 # Setup include directories
 list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR} 
                             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
+                            ${CMAKE_SOURCE_DIR}/src ${Intl_INCLUDE_DIRS}
                             ${NEXNIXSDK_INCLUDE_DIRS})
 
+# Setup libraries to link with
+if(Intl_LIB)
+    list(APPEND LIBNEX_LIBRARIES ${Intl_LIB})
+endif()
+
+# MSVC specific options
 if(MSVC)
     # Ensure CL treats files as UTF-8. We need this because some source files have Unicode text in them
     # CL will erroneously treat them as Windows-1252 without passing /utf-8
@@ -163,6 +220,9 @@ endif()
 
 # Create the library
 add_library(nex ${LIBNEX_SOURCES})
+
+# Ensure libnex is linked against required libraries
+target_link_libraries(nex PUBLIC ${LIBNEX_LIBRARIES})
 
 # Set SOName
 set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION})

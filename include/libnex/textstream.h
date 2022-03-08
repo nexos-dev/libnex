@@ -51,9 +51,9 @@
 #define TEXT_SYS_ERROR         2    ///< errno contains the error
 #define TEXT_INVALID_PARAMETER 3    ///< User passed an invalid parameter
 #define TEXT_BAD_BOM           4    ///< A bad BOM was encountered
-#define TEXT_INVALID_CHAR      6    ///< Character doesn't fit in destination character set
-#define TEXT_BUF_TOO_SMALL     7    ///< Character won't fit in buffer
-#define TEXT_INVALID_ENC       8    ///< Encoding not supported
+#define TEXT_INVALID_CHAR      5    ///< Character doesn't fit in destination character set
+#define TEXT_BUF_TOO_SMALL     6    ///< Character won't fit in buffer
+#define TEXT_INVALID_ENC       7    ///< Encoding not supported
 
 __DECL_START
 

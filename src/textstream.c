@@ -673,24 +673,26 @@ PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
 // FIXME: this should be i18n
 // I am not going to do this until I do i18n
 static const char* errorStrings[] = {
-    "",                      // 0 doesn't represent anything
-    "No error",              // TEXT_SUCCESS
-    NULL,                    // TEXT_SYS_ERROR. This is NULL so TextError knows to call strerror(3) instead
-    "Invalid parameter",     // TEXT_INVALID_PARAMETER
-    "Invalid BOM",           // TEXT_BAD_BOM
-    "Character too wide",    // TEXT_NARROW_WCHAR
-    "Character can't be encoded by character set",    // TEXT_INVALID_CHAR
-    "Buffer too small",                               // TEXT_BUF_TOO_SMALL
-    "Unsupported character encoding"                  // TEXT_INVALID_ENC
+    "",                                // 0 doesn't represent anything
+    N_ ("No error"),                   // TEXT_SUCCESS
+    NULL,                              // TEXT_SYS_ERROR. This is NULL so TextError knows to call strerror(3) instead
+    N_ ("Invalid parameter"),          // TEXT_INVALID_PARAMETER
+    N_ ("Invalid byte order mark"),    // TEXT_BAD_BOM
+    N_ ("Character can't be encoded by character set"),    // TEXT_INVALID_CHAR
+    N_ ("Result buffer too small"),                        // TEXT_BUF_TOO_SMALL
+    N_ ("Unsupported character encoding")                  // TEXT_INVALID_ENC
 };
 
 PUBLIC const char* TextError (int code)
 {
+    // Initialize text domain if needed
+    __Libnex_i18n_init();
+    // Bounds check
     if (code > ARRAY_SIZE (errorStrings))
-        return errorStrings[3];
-    const char* msg = errorStrings[code];
-    // Check if we should get the message using strerror
-    if (!msg)
-        return strerror (errno);
-    return msg;
+        return _ (errorStrings[code]);
+
+    // Check if this corresponds to a system error
+    if (!errorStrings[code])
+        return _ (errorStrings[code]);
+    return _ (errorStrings[code]);
 }

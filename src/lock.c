@@ -32,12 +32,12 @@
  *
  * @param lock the lock to be initialized
  */
-void _libnex_lock_init (lock_t* lock)
+void __Libnex_lock_init (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutexattr_t attr;
     // FIXME: attr is leaked. I currently can't think of an easy way to structure this so that
-    // _libnex_lock_destroy can destroy the mutex and mutexattr. TBD.
+    // _lock_destroy can destroy the mutex and mutexattr. TBD.
     pthread_mutexattr_init (&attr);
     pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
     pthread_mutex_init (lock, &attr);
@@ -54,7 +54,7 @@ void _libnex_lock_init (lock_t* lock)
  * Wraps over whatever is needed to lock a lock
  * @param lock the lock to lock
  */
-void _libnex_lock_lock (lock_t* lock)
+void __Libnex_lock_lock (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutex_lock (lock);
@@ -71,7 +71,7 @@ void _libnex_lock_lock (lock_t* lock)
  * Wraps over whatever is needed to unlock a lock
  * @param lock the lock to unlock
  */
-void _libnex_lock_unlock (lock_t* lock)
+void __Libnex_lock_unlock (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutex_unlock (lock);
@@ -88,7 +88,7 @@ void _libnex_lock_unlock (lock_t* lock)
  * Wraps over whatever is needed to destroy a lock
  * @param lock the lock to destroy
  */
-void _libnex_lock_destroy (lock_t* lock)
+void __Libnex_lock_destroy (lock_t* lock)
 {
 #ifdef HAVE_PTHREAD
     pthread_mutex_destroy (lock);

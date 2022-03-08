@@ -28,7 +28,10 @@ set_and_check(LIBNEX_INCLUDE_DIRS "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 set(LIBNEX_LIBRARY "@LIBNEX_LIBRARY_FILE@")
 
 # Create the imported target
-add_library(nex @LIBNEX_LIBTYPE@ IMPORTED)
-set_target_properties(nex PROPERTIES IMPORTED_SONAME "@LIBNEX_LIBRARY@")
+add_library(LibNex::nex @LIBNEX_LIBTYPE@ IMPORTED)
+set_target_properties(LibNex::nex PROPERTIES IMPORTED_SONAME "@LIBNEX_LIBRARY@")
+if(NOT "@LIBNEX_LIBRARIES@" STREQUAL "")
+    target_link_libraries(LibNex::nex INTERFACE "@LIBNEX_LIBRARIES@")
+endif()
 
 check_required_components(LibNex)

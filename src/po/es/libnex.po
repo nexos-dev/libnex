@@ -1,0 +1,41 @@
+# Language  es translations for PACKAGE package.
+# Copyright (C) 2022 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# nexos <wej22007@outlook.com>, 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-03-08 12:39-0500\n"
+"PO-Revision-Date: 2022-03-07 22:29-0500\n"
+"Last-Translator: nexos <wej22007@outlook.com>\n"
+"Language-Team: Language  es\n"
+"Language:  es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/textstream.c:677
+msgid "No error"
+msgstr "No error"
+
+#: src/textstream.c:679
+msgid "Invalid parameter"
+msgstr "Parametro invalido"
+
+#: src/textstream.c:680
+msgid "Invalid byte order mark"
+msgstr "Marca de orden de bytes no válida"
+
+#: src/textstream.c:681
+msgid "Character can't be encoded by character set"
+msgstr "El carácter no se puede codificar por el conjunto de caracteres"
+
+#: src/textstream.c:682
+msgid "Result buffer too small"
+msgstr "El búfer de resultados es demasiado pequeño"
+
+#: src/textstream.c:683
+msgid "Unsupported character encoding"
+msgstr "Conjunto de caracteres no soportado"
