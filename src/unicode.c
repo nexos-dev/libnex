@@ -104,6 +104,7 @@ PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
     {
         // Get the intial state
         state->state = utf8stateTab[in >> 3];
+        state->prevState = 0;
         // Ensure this isn't a continuation
         if (state->state == UTF8_CONT)
             return 0;

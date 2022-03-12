@@ -48,6 +48,8 @@ typedef struct _utf8state
 
 #define UnicodeIsAccepted(state)  ((state).state == 6)     ///< Checks if state has been accepted
 #define UnicodeIsAcceptedP(state) ((state)->state == 6)    ///< Checks if state has been accepted
+#define UnicodeStateInit(state)   ((state).state = 0)      ///< Initializes state structure
+#define UnicodeStateInitP(state)  ((state)->state = 0)     ///< Initializes state structure
 
 /**
  * @brief Decodes a UTF-16 character to UTF-32
@@ -77,6 +79,7 @@ PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian);
  * @param out pointer to the resulting codepoint
  * @param in the current byte in the sequence
  * @param state pointer to structure maintaining the parser's state
+ * @return The number of byte decoded from in. 0 on error
  */
 PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state);
 
@@ -85,6 +88,7 @@ PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
  * @param out the buffer to write the character out to
  * @param in pointer to buffer containing sequence to convert
  * @param sz size of in
+ * @return the number of bytes decoded from in. 0 on error
  */
 PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz);
 
@@ -93,6 +97,7 @@ PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz);
  * @param out the buffer to write the encoded UTF-8 out to
  * @param in character to encode
  * @param sz size of out
+ * @return the number of bytes encoded. 0 on error
  */
 PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz);
 

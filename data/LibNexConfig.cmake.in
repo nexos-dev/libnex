@@ -29,9 +29,15 @@ set(LIBNEX_LIBRARY "@LIBNEX_LIBRARY_FILE@")
 
 # Create the imported target
 add_library(LibNex::nex @LIBNEX_LIBTYPE@ IMPORTED)
-set_target_properties(LibNex::nex PROPERTIES IMPORTED_SONAME "@LIBNEX_LIBRARY@")
+set_target_properties(LibNex::nex PROPERTIES IMPORTED_LOCATION "@LIBNEX_LIBRARY_FILE@")
 if(NOT "@LIBNEX_LIBRARIES@" STREQUAL "")
     target_link_libraries(LibNex::nex INTERFACE "@LIBNEX_LIBRARIES@")
+endif()
+target_include_directories(LibNex::nex INTERFACE "@LIBNEX_PUBLIC_INCLUDE_DIRS@")
+
+# Set SOName
+if(@LIBNEX_HAVE_SONAME@)
+    set_target_properties(LibNex::nex PROPERTIES IMPORTED_SONAME "@LIBNEX_SONAME@")
 endif()
 
 check_required_components(LibNex)

@@ -29,7 +29,8 @@ int main()
 {
     setlocale (LC_ALL, "");
     // Test TextError
-    TEST_BOOL (!strcmp (TextError (TEXT_INVALID_CHAR), "Character can't be encoded by character set"), "TextError");
+    TEST_BOOL (!strcmp (TextError (TEXT_INVALID_CHAR), "Character can't be encoded by character set"),
+               "TextError");
     {
         // Test opening a text stream
         TextStream_t* stream;
@@ -39,6 +40,7 @@ int main()
         char32_t* buf = (char32_t*) malloc_s (500 * sizeof (char32_t));
         if (TextRead (stream, buf, 500, NULL) != TEXT_SUCCESS)
             return 1;
+
             // Windows fread normalizes line endings to LF. Account for that
 #ifndef WIN32
         char32_t buf2[] = U"Test string. This is an ASCII document.\r\n";
@@ -119,7 +121,8 @@ int main()
         TEST_BOOL (!c32cmp (buf, buf2), "reading UTF-32");
         TextClose (stream1);
         // Write UTF-32
-        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF32, 1, TEXT_ORDER_BE) != TEXT_SUCCESS)
+        if (TextOpen ("testUtf32.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF32, 1, TEXT_ORDER_BE) !=
+            TEXT_SUCCESS)
             return 1;
         char32_t buf3[] = U"Test document € 𮀀\n";
         if (TextWrite (stream1, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)
@@ -148,7 +151,8 @@ int main()
             return 1;
         TEST_BOOL (!c32cmp (buf1, buf2), "reading UTF-16");
         TextClose (stream1);
-        if (TextOpen ("testUtf16.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF16, 1, TEXT_ORDER_BE) != TEXT_SUCCESS)
+        if (TextOpen ("testUtf16.testout", &stream1, TEXT_MODE_WRITE, TEXT_ENC_UTF16, 1, TEXT_ORDER_BE) !=
+            TEXT_SUCCESS)
             return 1;
         char32_t buf3[] = U"Test document € 𠀀\n";
         if (TextWrite (stream1, buf3, c32len (buf3), NULL) != TEXT_SUCCESS)

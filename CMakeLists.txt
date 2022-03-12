@@ -76,7 +76,7 @@ if(LIBNEX_ENABLE_NLS)
     # Validate locales
     foreach(locale ${LIBNEX_ENABLED_LOCALES})
         # Strip en from list. en_US is the locale that the message IDs are in, meaning that we
-        # don't need a l12n for that
+        # don't need a l10n for that
         if("${locale}" STREQUAL "en")
             list(REMOVE_ITEM LIBNEX_ENABLED_LOCALES "en")
         endif()
@@ -169,7 +169,8 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
      ${CMAKE_SOURCE_DIR}/include/libnex/object.h
      ${CMAKE_SOURCE_DIR}/include/libnex/lock.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h
+     ${CMAKE_SOURCE_DIR}/include/libnex/char32.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -203,6 +204,9 @@ list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR}
                             ${CMAKE_SOURCE_DIR}/src ${Intl_INCLUDE_DIRS}
                             ${NEXNIXSDK_INCLUDE_DIRS})
 
+# Public include directories
+list(APPEND LIBNEX_PUBLIC_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+
 # Setup libraries to link with
 if(Intl_LIB)
     list(APPEND LIBNEX_LIBRARIES ${Intl_LIB})
@@ -225,7 +229,7 @@ add_library(nex ${LIBNEX_SOURCES})
 target_link_libraries(nex PUBLIC ${LIBNEX_LIBRARIES})
 
 # Set SOName
-set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION})
+set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 # Include the directories
 target_include_directories(nex PRIVATE ${LIBNEX_INCLUDE_DIRS})
 
@@ -252,11 +256,14 @@ install(TARGETS nex)
 if(BUILD_SHARED_LIBS)
     set(LIBNEX_LIBTYPE "SHARED")
     set(LIBNEX_LIBRARY_FILE 
-        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}nex.${CMAKE_SHARED_LIBRARY_SUFFIX}")
+        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}nex${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    set(LIBNEX_HAVE_SONAME TRUE)
+    set(LIBNEX_SONAME "${CMAKE_SHARED_LIBRARY_PREFIX}nex${CMAKE_SHARED_LIBRARY_SUFFIX}.${PROJECT_VERSION_MAJOR}")
 else()
     set(LIBNEX_LIBTYPE "STATIC")
+    set(LIBNEX_HAVE_SONAME FALSE)
     set(LIBNEX_LIBRARY_FILE 
-        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}nex.${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}nex${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
 
 # Install header files

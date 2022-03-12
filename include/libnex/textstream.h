@@ -24,6 +24,7 @@
 #include <libnex/char32.h>
 #include <libnex/decls.h>
 #include <libnex/object.h>
+#include <libnex/unicode.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -66,15 +67,15 @@ __DECL_START
  */
 typedef struct _TextStream
 {
-    Object_t obj;       ///< The object for this stream
-    FILE* file;         ///< Pointer to underlying file object
-    char* fileName;     ///< The original file name
-    uint8_t* buf;       ///< Buffer to use for staging
-    size_t bufSize;     ///< Size of above buffer (defaults to 512 bytes)
-    char encoding;      ///< Underlying encoding of the stream
-    char order;         ///< Order of bytes for multi byte character sets
-    char maxEncSize;    ///< Max size of one char in the encoding
-    char minEncSize;    ///< Minimum size of one char in the encoding
+    Object_t obj;            // The object for this stream
+    FILE* file;              // Pointer to underlying file object
+    const char* fileName;    // The original file name
+    uint8_t* buf;            // Buffer to use for staging
+    size_t bufSize;          // Size of above buffer
+    size_t bufPos;           // Read position within buffer. Used only for reading
+    char encoding;           // Underlying encoding of the stream
+    char order;              // Order of bytes for multi byte character sets
+    char mode;               // Mode used to open text stream
 } TextStream_t;
 
 /**
@@ -91,7 +92,7 @@ typedef struct _TextStream
  * @param[out] stream result variable to put the stream in
  * @return TEXT_SUCCESS, otherwise, an error code
  */
-PUBLIC short TextOpen (char* file, TextStream_t** stream, char mode, char encoding, bool hasBom, char order);
+PUBLIC short TextOpen (const char* file, TextStream_t** stream, char mode, char encoding, bool hasBom, char order);
 
 /**
  * @brief Closes a text stream
@@ -101,7 +102,7 @@ PUBLIC short TextOpen (char* file, TextStream_t** stream, char mode, char encodi
  *
  * @param[in] stream the stream to close
  */
-PUBLIC void TextClose (TextStream_t* stream);
+PUBLIC short TextClose (TextStream_t* stream);
 
 /**
  * @brief Reads data from a text stream
@@ -161,20 +162,6 @@ PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t 
 PUBLIC long TextSize (TextStream_t* stream);
 
 /**
- * @brief Sets the size of the staging buffer
- *
- * TextSetBufSz resizes the staging buffer to the size specified by sz
- * This could used to help optimize performance by selecting a large buffer
- * size, or optimizing memory usage by selecting a small buffer size This
- * function has a potential exit point. It may call exit(3) in an error
- * condition
- *
- * @param[in] stream the stream to operate on
- * @param[in] sz the new buffer size
- */
-PUBLIC void TextSetBufSz (TextStream_t* stream, size_t sz);
-
-/**
  * @brief Returns a textual representation of a textstream error code
  * @param code the error code turn into a string
  * @return the string message
@@ -184,21 +171,26 @@ PUBLIC const char* TextError (int code);
 /**
  * @brief Takes a libchardet charset name, and returns a textsream encoding and byte order
  * @param encName the name of the encoding
- * @param enc the numeric encoding ID to write to
- * @param order the byte order to write to
+ * @param enc the numeric encoding ID pointer to write to
+ * @param order the byte order pointer to write to
  */
 PUBLIC void TextGetEncId (const char* encName, char* enc, char* order);
+
+/**
+ * @brief Flushes the contents of a text stream when the stream in a writing mode
+ * @param stream the stream to flush
+ * @return an error code, or TEXT_SUCCESS
+ */
+PUBLIC short TextFlush (TextStream_t* stream);
 
 __DECL_END
 
 // Helper macros
 #define TextGetEncoding(stream) ((stream)->encoding)    ///< Grabs the character encoding of stream
 #define TextGetOrder(stream)    ((stream)->order)       ///< Grabs the byte order of stream
-#define TextGetBufSz(stream)    ((stream)->bufSize)     ///< Grabs the size of the staging buffer in stream
 #define TextRef(item)           ((TextStream_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
 #define TextLock(item)          (ObjLock (&(item)->obj))                   ///< Locks this stream
 #define TextUnlock(item)        (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
 #define TextDeRef(item)         (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
-#define TextGetFile(stream)     ((stream)->file)                           ///< Obtains the file handle of this stream
 
 #endif

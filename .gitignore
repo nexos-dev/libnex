@@ -1,3 +1,4 @@
 *.testout
 *.code-workspace
 *.mo
+*.po~
