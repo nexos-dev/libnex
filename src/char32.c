@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state)
+LIBNEX_PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state)
 {
     char* ombStr = mbStr;
     ssize_t res = 0;
@@ -42,7 +42,7 @@ PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstat
     return mbStr - ombStr;
 }
 
-PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state)
+LIBNEX_PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state)
 {
     char32_t* ou32str = u32str;
     ssize_t res = 0;
@@ -60,7 +60,7 @@ PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t
     return u32str - ou32str;
 }
 
-PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz)
+LIBNEX_PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz)
 {
     // Get lengths of buffers
     size_t wcLen = wcslen (wcStr);
@@ -78,7 +78,7 @@ PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz)
     return res;
 }
 
-PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)
+LIBNEX_PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)
 {
     // Get lengths of buffer
     size_t wideLen = c32len (u32str);
@@ -96,7 +96,7 @@ PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz)
     return res;
 }
 
-PUBLIC size_t c32len (const char32_t* s)
+LIBNEX_PUBLIC size_t c32len (const char32_t* s)
 {
     const char32_t* os = s;
     while (*s)
@@ -104,7 +104,7 @@ PUBLIC size_t c32len (const char32_t* s)
     return s - os;
 }
 
-PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2)
+LIBNEX_PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2)
 {
     while (*s1 && *s2)
     {
@@ -116,7 +116,7 @@ PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2)
     return (int) *s1 - (int) *s2;
 }
 
-PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n)
+LIBNEX_PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n)
 {
     while (n-- > 0 && *s1 && *s2)
     {
@@ -128,7 +128,7 @@ PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n)
     return (int) *s1 - (int) *s2;
 }
 
-PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size)
+LIBNEX_PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size)
 {
     const char32_t* osrc = src;
     // Advance dest to null terminator
@@ -158,7 +158,7 @@ PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size)
     return destSz + (src - osrc);
 }
 
-PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size)
+LIBNEX_PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size)
 {
     const char32_t* osrc = src;
     size_t sz = size;
@@ -183,7 +183,7 @@ PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size)
     return src - osrc - 1;
 }
 
-PUBLIC char32_t* c32chr (const char32_t* str, char32_t c)
+LIBNEX_PUBLIC char32_t* c32chr (const char32_t* str, char32_t c)
 {
     while (*str)
     {
@@ -194,7 +194,7 @@ PUBLIC char32_t* c32chr (const char32_t* str, char32_t c)
     return NULL;
 }
 
-PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c)
+LIBNEX_PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c)
 {
     // There are possibly more effecient ways of doing this...
     const char32_t* rs = str + c32len (str);
@@ -207,7 +207,7 @@ PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c)
     return NULL;
 }
 
-PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
+LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
 {
     const char32_t* p1 = s1;
     const char32_t* p2 = NULL;
@@ -225,7 +225,7 @@ PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
     return NULL;
 }
 
-PUBLIC char32_t* c32dup (char32_t* str)
+LIBNEX_PUBLIC char32_t* c32dup (char32_t* str)
 {
     size_t len = c32len (str);
     char32_t* s = (char32_t*) malloc_s (len * sizeof (char32_t));

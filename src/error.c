@@ -23,16 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/**
- * @brief Reports an error to stderr.
- *
- * This function prints a message to the stderr, with the program name and an arbitrary amount of arguments,
- * followed by a newline
- * It then exits, running atexit() handlers
- * @param[in] msg the message to report
- * @param[in] ... the list of variable arguments
- */
-void error (char* msg, ...)
+LIBNEX_PUBLIC void error (char* msg, ...)
 {
     // Declare the argument list
     va_list ap;
@@ -48,15 +39,20 @@ void error (char* msg, ...)
     exit (EXIT_FAILURE);
 }
 
-/**
- * @brief Reports a warning to stderr.
- *
- * This function prints a message to the stderr, with the program name and an arbitrary amount of arguments,
- * followed by a newline
- * @param[in] msg the message to report
- * @param[in] ... the list of variable arguments
- */
-void warn (char* msg, ...)
+LIBNEX_PUBLIC void error_noexit (char* msg, ...)
+{
+    // Declare the argument list
+    va_list ap;
+    va_start (ap, msg);
+
+    // Print it out
+    fprintf (stderr, "%s: ", getprogname());
+    vfprintf (stderr, msg, ap);
+    fprintf (stderr, "\n");
+    va_end (ap);
+}
+
+LIBNEX_PUBLIC void warn (char* msg, ...)
 {
     // Declare the argument list
     va_list ap;

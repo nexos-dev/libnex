@@ -20,7 +20,7 @@
 
 #include <libnex/endian.h>
 
-PUBLIC char EndianHost()
+LIBNEX_PUBLIC char EndianHost()
 {
     // Declare a 16 bit value
     uint16_t val = 0x9867;
@@ -34,7 +34,7 @@ PUBLIC char EndianHost()
     return 0;
 }
 
-PUBLIC int EndianWrite16 (uint16_t* buf, uint16_t val, const char endian)
+LIBNEX_PUBLIC int EndianWrite16 (uint16_t* buf, uint16_t val, const char endian)
 {
     if (!buf)
         return 0;
@@ -46,7 +46,7 @@ PUBLIC int EndianWrite16 (uint16_t* buf, uint16_t val, const char endian)
     return 1;
 }
 
-PUBLIC int EndianWrite32 (uint32_t* buf, uint32_t val, const char endian)
+LIBNEX_PUBLIC int EndianWrite32 (uint32_t* buf, uint32_t val, const char endian)
 {
     if (!buf)
         return 0;
@@ -58,7 +58,7 @@ PUBLIC int EndianWrite32 (uint32_t* buf, uint32_t val, const char endian)
     return 1;
 }
 
-PUBLIC int EndianWrite64 (uint64_t* buf, uint64_t val, const char endian)
+LIBNEX_PUBLIC int EndianWrite64 (uint64_t* buf, uint64_t val, const char endian)
 {
     if (!buf)
         return 0;
@@ -70,7 +70,7 @@ PUBLIC int EndianWrite64 (uint64_t* buf, uint64_t val, const char endian)
     return 1;
 }
 
-PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian)
+LIBNEX_PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian)
 {
     if (!buf)
         return 0;
@@ -80,7 +80,7 @@ PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian)
         return *buf;
 }
 
-PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian)
+LIBNEX_PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian)
 {
     if (!buf)
         return 0;
@@ -90,7 +90,7 @@ PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian)
         return *buf;
 }
 
-PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian)
+LIBNEX_PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian)
 {
     if (!buf)
         return 0;

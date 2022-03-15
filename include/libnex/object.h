@@ -69,7 +69,7 @@ __DECL_START
  * @param[in] type the type to use for this object
  * @param[out] obj the object to initialize
  */
-PUBLIC void ObjCreate (const char* type, Object_t* obj);
+LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj);
 
 /**
  * @brief Destroys an object instance
@@ -78,7 +78,7 @@ PUBLIC void ObjCreate (const char* type, Object_t* obj);
  * ObjDestroy() will delete the core object data as well. It returns the new reference count.
  * @param[in] obj the object to destroy
  */
-PUBLIC int ObjDestroy (Object_t* obj);
+LIBNEX_PUBLIC int ObjDestroy (Object_t* obj);
 
 /**
  * @brief References an object
@@ -88,7 +88,7 @@ PUBLIC int ObjDestroy (Object_t* obj);
  * @param[in] obj the object to reference
  * @return the object
  */
-PUBLIC Object_t* ObjRef (Object_t* obj);
+LIBNEX_PUBLIC Object_t* ObjRef (Object_t* obj);
 
 /**
  * @brief Compares two objects
@@ -99,7 +99,7 @@ PUBLIC Object_t* ObjRef (Object_t* obj);
  * @param[in] obj2 the second object to compare
  * @return 1 if they are equal, 0 other wise
  */
-PUBLIC int ObjCompare (const Object_t* obj1, const Object_t* obj2);
+LIBNEX_PUBLIC int ObjCompare (const Object_t* obj1, const Object_t* obj2);
 
 /**
  * @brief Compares two object's types
@@ -107,19 +107,19 @@ PUBLIC int ObjCompare (const Object_t* obj1, const Object_t* obj2);
  * @param[in] obj2 the second object to compare
  * @return 1 if equal, 0 otherwise
  */
-PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2);
+LIBNEX_PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2);
 
 /**
  * @brief Locks this object
  * @param[in] obj the object to lock
  */
-PUBLIC void ObjLock (Object_t* obj);
+LIBNEX_PUBLIC void ObjLock (Object_t* obj);
 
 /**
  * @brief Unlocks this object
  * @param[in] obj the object to unlock
  */
-PUBLIC void ObjUnlock (Object_t* obj);
+LIBNEX_PUBLIC void ObjUnlock (Object_t* obj);
 
 /**
  * @brief Gets the type of an object

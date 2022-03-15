@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 // Endian macro declarations
+#define ENDIAN_NONE   0    ///< No endian was detected
 #define ENDIAN_LITTLE 1    ///< Result is little endian
 #define ENDIAN_BIG    2    ///< Result is big endian
 
@@ -39,7 +40,7 @@
  * EndianHost() gets the endianess of the host, returning ENDIAN_BIG or ENDIAN_LITTLE
  * @return ENDIAN_BIG if host is big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC char EndianHost();
+LIBNEX_PUBLIC char EndianHost();
 
 /**
  * @brief Writes a 16 bit value with specified endianess
@@ -47,7 +48,7 @@ PUBLIC char EndianHost();
  * @param val 16 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite16 (uint16_t* buf, const uint16_t val, const char endian);
+LIBNEX_PUBLIC int EndianWrite16 (uint16_t* buf, const uint16_t val, const char endian);
 
 /**
  * @brief Writes a 32 bit value with specified endianess
@@ -55,7 +56,7 @@ PUBLIC int EndianWrite16 (uint16_t* buf, const uint16_t val, const char endian);
  * @param val 32 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite32 (uint32_t* buf, const uint32_t val, const char endian);
+LIBNEX_PUBLIC int EndianWrite32 (uint32_t* buf, const uint32_t val, const char endian);
 
 /**
  * @brief Writes a 64 bit value with specified endianess
@@ -63,7 +64,7 @@ PUBLIC int EndianWrite32 (uint32_t* buf, const uint32_t val, const char endian);
  * @param val 64 bit value, in host's order
  * @param endian ENDIAN_BIG if writing big endian, ENDIAN_LITTLE if little endian
  */
-PUBLIC int EndianWrite64 (uint64_t* buf, const uint64_t val, const char endian);
+LIBNEX_PUBLIC int EndianWrite64 (uint64_t* buf, const uint64_t val, const char endian);
 
 /**
  * @brief Reads a 16 bit value with specified endianess
@@ -71,7 +72,7 @@ PUBLIC int EndianWrite64 (uint64_t* buf, const uint64_t val, const char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian);
+LIBNEX_PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian);
 
 /**
  * @brief Reads a 32 bit value with specified endianess
@@ -79,7 +80,7 @@ PUBLIC uint16_t EndianRead16 (const uint16_t* buf, const char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian);
+LIBNEX_PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian);
 
 /**
  * @brief Reads a 64 bit value with specified endianess
@@ -87,7 +88,7 @@ PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian);
  * @param endian ENDIAN_BIG if reading big endian, ENDIAN_LITTLE if little endian
  * @return the value in the host's order
  */
-PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian);
+LIBNEX_PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian);
 
 /**
  * @brief Swaps the endianess of a 16 bit value

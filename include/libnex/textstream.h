@@ -67,15 +67,15 @@ __DECL_START
  */
 typedef struct _TextStream
 {
-    Object_t obj;            // The object for this stream
-    FILE* file;              // Pointer to underlying file object
-    const char* fileName;    // The original file name
-    uint8_t* buf;            // Buffer to use for staging
-    size_t bufSize;          // Size of above buffer
-    size_t bufPos;           // Read position within buffer. Used only for reading
-    char encoding;           // Underlying encoding of the stream
-    char order;              // Order of bytes for multi byte character sets
-    char mode;               // Mode used to open text stream
+    Object_t obj;      // The object for this stream
+    FILE* file;        // Pointer to underlying file object
+    uint8_t* buf;      // Buffer to use for staging
+    size_t bufSize;    // Size of above buffer
+    size_t bufPos;     // Read position within buffer. Used only for reading
+    char encoding;     // Underlying encoding of the stream
+    char order;        // Order of bytes for multi byte character sets
+    char mode;         // Mode used to open text stream
+    bool isEof;        // Contains if EOF was reached
 } TextStream_t;
 
 /**
@@ -92,7 +92,12 @@ typedef struct _TextStream
  * @param[out] stream result variable to put the stream in
  * @return TEXT_SUCCESS, otherwise, an error code
  */
-PUBLIC short TextOpen (const char* file, TextStream_t** stream, char mode, char encoding, bool hasBom, char order);
+LIBNEX_PUBLIC short TextOpen (const char* file,
+                              TextStream_t** stream,
+                              char mode,
+                              char encoding,
+                              bool hasBom,
+                              char order);
 
 /**
  * @brief Closes a text stream
@@ -102,7 +107,7 @@ PUBLIC short TextOpen (const char* file, TextStream_t** stream, char mode, char 
  *
  * @param[in] stream the stream to close
  */
-PUBLIC short TextClose (TextStream_t* stream);
+LIBNEX_PUBLIC short TextClose (TextStream_t* stream);
 
 /**
  * @brief Reads data from a text stream
@@ -114,11 +119,20 @@ PUBLIC short TextClose (TextStream_t* stream);
  *
  * @param[in] stream the stream to read from
  * @param[out] buf a buffer of char32_t's to decode into
- * @param[in] count the number of char32_t's to decode
+ * @param[in] count the number of char32_t's to decode plus a null terminator
  * @param[out] charsRead the number or characters read
  * @return a result code
  */
-PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+
+/**
+ * @brief Reads a character from a text stream
+ * It internally uses TextRead, meaning that similar points apply to both functions
+ * @param stream the stream to read from
+ * @param c pointer to character to write out to
+ * @return a result code
+ */
+LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c);
 
 /**
  * @brief Reads data from a text stream
@@ -135,7 +149,7 @@ PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, 
  * @param[out] charsRead the number or characters read
  * @return a status code
  */
-PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
@@ -149,24 +163,17 @@ PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t cou
  * @param[out] charsWritten the number or characters written
  * @return a status code
  */
-PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten);
-
-/**
- * @brief Gets size of text stream
- *
- * TextSize obtains the size of the text stream specified by stream
- *
- * @param[in] stream the stream to get the size from
- * @return The size. -1 on error
- */
-PUBLIC long TextSize (TextStream_t* stream);
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream,
+                               const char32_t* buf,
+                               const size_t count,
+                               size_t* charsWritten);
 
 /**
  * @brief Returns a textual representation of a textstream error code
  * @param code the error code turn into a string
  * @return the string message
  */
-PUBLIC const char* TextError (int code);
+LIBNEX_PUBLIC const char* TextError (int code);
 
 /**
  * @brief Takes a libchardet charset name, and returns a textsream encoding and byte order
@@ -174,14 +181,14 @@ PUBLIC const char* TextError (int code);
  * @param enc the numeric encoding ID pointer to write to
  * @param order the byte order pointer to write to
  */
-PUBLIC void TextGetEncId (const char* encName, char* enc, char* order);
+LIBNEX_PUBLIC void TextGetEncId (const char* encName, char* enc, char* order);
 
 /**
  * @brief Flushes the contents of a text stream when the stream in a writing mode
  * @param stream the stream to flush
  * @return an error code, or TEXT_SUCCESS
  */
-PUBLIC short TextFlush (TextStream_t* stream);
+LIBNEX_PUBLIC short TextFlush (TextStream_t* stream);
 
 __DECL_END
 
@@ -192,5 +199,6 @@ __DECL_END
 #define TextLock(item)          (ObjLock (&(item)->obj))                   ///< Locks this stream
 #define TextUnlock(item)        (ObjUnlock (&(item)->obj))                 ///< Unlocks the stream
 #define TextDeRef(item)         (ObjDestroy (&(item)->obj))                ///< Dereferences this stream
+#define TextIsEof(stream)       ((stream)->isEof)    ///< Checks if we have reached the end of stream
 
 #endif

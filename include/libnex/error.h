@@ -39,7 +39,17 @@ __DECL_START
  * @param[in] msg the message to report
  * @param[in] ... the list of variable arguments
  */
-PUBLIC void error (char* msg, ...);
+LIBNEX_PUBLIC void error (char* msg, ...);
+
+/**
+ * @brief Reports an error to stderr, but doesn't exit.
+ *
+ * This function prints a message to the stderr, with the program name and an arbitrary amount of arguments,
+ * followed by a newline
+ * @param[in] msg the message to report
+ * @param[in] ... the list of variable arguments
+ */
+LIBNEX_PUBLIC void error_noexit (char* msg, ...);
 
 /**
  * @brief Reports a warning to stderr.
@@ -49,7 +59,7 @@ PUBLIC void error (char* msg, ...);
  * @param[in] msg the message to report
  * @param[in] ... the list of variable arguments
  */
-PUBLIC void warn (char* msg, ...);
+LIBNEX_PUBLIC void warn (char* msg, ...);
 
 __DECL_END
 

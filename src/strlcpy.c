@@ -31,7 +31,7 @@
  * @param[in] size the size of dest
  * @return the length of src
  */
-PUBLIC size_t strlcpy (char* dest, const char* src, size_t size)
+LIBNEX_PUBLIC size_t strlcpy (char* dest, const char* src, size_t size)
 {
     const char* osrc = src;
     size_t sz = size;

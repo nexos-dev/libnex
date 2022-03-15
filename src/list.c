@@ -23,7 +23,7 @@
 #include <libnex/safemalloc.h>
 #include <stdlib.h>
 
-PUBLIC ListHead_t* ListCreate (const char* type)
+LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type)
 {
     ListHead_t* head = malloc_s (sizeof (ListHead_t));
     // Initialize the object associated with this list
@@ -34,7 +34,7 @@ PUBLIC ListHead_t* ListCreate (const char* type)
     return head;
 }
 
-PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
     ListLock (head);
@@ -55,7 +55,7 @@ PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
     return entry;
 }
 
-PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
 {
     ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
     ObjCreate (ObjGetType (head), &entry->obj);
@@ -76,7 +76,7 @@ PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
     return entry;
 }
 
-PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
 {
     ListLock (list);
     ListEntry_t* search = list->front;
@@ -97,7 +97,7 @@ PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
     return NULL;
 }
 
-PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
     ListLock (list);
@@ -119,7 +119,7 @@ PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, 
     return entry;
 }
 
-PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter)
 {
     ListEntry_t* entryAfter = ListFind (list, keyAfter);
     if (!entryAfter)
@@ -127,7 +127,7 @@ PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int ke
     return ListAddBefore (list, data, key, entryAfter);
 }
 
-PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
     ListLock (list);
@@ -149,7 +149,7 @@ PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, L
     return entry;
 }
 
-PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, const int keyBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, const int keyBefore)
 {
     ListEntry_t* entryBefore = ListFind (list, keyBefore);
     if (!entryBefore)
@@ -157,7 +157,7 @@ PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key
     return ListAddAfter (list, data, key, entryBefore);
 }
 
-PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
+LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
 {
     ListLock (list);
     ListEntry_t* entry = ListRef (list->front);
@@ -171,7 +171,7 @@ PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
     return entry;
 }
 
-PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key)
 {
     ListEntry_t* entry = ListFind (list, key);
     if (!entry)
@@ -201,7 +201,7 @@ ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, const int doRef)
     return entry;
 }
 
-PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
+LIBNEX_PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
 {
     if (!ListDeRef (entry))
         return _listRemove (list, entry, 0);
@@ -209,7 +209,7 @@ PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
         return entry;
 }
 
-PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
+LIBNEX_PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
 {
     void* data = entry->data;
     // De-reference the entry and remove it
@@ -220,7 +220,7 @@ PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
     return data;
 }
 
-PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
+LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
 {
     // De-reference the entry and remove it
     if (!ListDeRef (entry))
@@ -230,7 +230,7 @@ PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
     free (entry);
 }
 
-PUBLIC void ListDestroy (ListHead_t* list)
+LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
 {
     ListLock (list);
     if (!ListDeRef (list))

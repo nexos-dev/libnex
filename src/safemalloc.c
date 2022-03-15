@@ -32,7 +32,7 @@
  * @param[in] sz specifies the allocation size
  * @return The allocated block of memory
  */
-PUBLIC void* malloc_s (size_t sz)
+LIBNEX_PUBLIC void* malloc_s (size_t sz)
 {
     // Allocate the memory
     void* data = malloc (sz);
@@ -51,7 +51,7 @@ PUBLIC void* malloc_s (size_t sz)
  * @param[inout] ptr specifies the pointer to resize
  * @return The allocated block of memory
  */
-PUBLIC void* realloc_s (void* ptr, size_t sz)
+LIBNEX_PUBLIC void* realloc_s (void* ptr, size_t sz)
 {
     // Allocate the memory
     void* data = realloc (ptr, sz);
@@ -69,7 +69,7 @@ PUBLIC void* realloc_s (void* ptr, size_t sz)
  * @param[in] sz specifies the allocation size
  * @return The allocated block of memory
  */
-PUBLIC void* calloc_s (size_t sz)
+LIBNEX_PUBLIC void* calloc_s (size_t sz)
 {
     // Allocate the memory
     void* data = calloc (1, sz);

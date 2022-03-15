@@ -33,15 +33,15 @@
 
 // Get visibility stuff right
 #ifdef HAVE_VISIBILITY
-#define PUBLIC __attribute__ ((visibility ("default")))
+#define LIBNEX_PUBLIC __attribute__ ((visibility ("default")))
 #elif defined HAVE_DECLSPEC_EXPORT
 #ifdef IN_LIBNEX
-#define PUBLIC __declspec(dllexport)
+#define LIBNEX_PUBLIC __declspec(dllexport)
 #else
-#define PUBLIC __declspec(dllimport)
+#define LIBNEX_PUBLIC __declspec(dllimport)
 #endif
 #else
-#define PUBLIC
+#define LIBNEX_PUBLIC
 #endif
 
 // Ensure that ssize_t is defined

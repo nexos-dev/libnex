@@ -44,19 +44,19 @@ extern int optopt;
 
 /* function prototypes */
 #ifndef _AIX
-PUBLIC int _libnex_getopt (int argc, char** argv, char* optstring);
+LIBNEX_PUBLIC int _libnex_getopt (int argc, char** argv, char* optstring);
 #endif
-PUBLIC int _libnex_getopt_long (int argc,
-                                char** argv,
-                                const char* shortopts,
-                                const GETOPT_LONG_OPTION_T* longopts,
-                                int* longind);
+LIBNEX_PUBLIC int _libnex_getopt_long (int argc,
+                                       char** argv,
+                                       const char* shortopts,
+                                       const GETOPT_LONG_OPTION_T* longopts,
+                                       int* longind);
 
-PUBLIC int _libnex_getopt_long_only (int argc,
-                                     char** argv,
-                                     const char* shortopts,
-                                     const GETOPT_LONG_OPTION_T* longopts,
-                                     int* longind);
+LIBNEX_PUBLIC int _libnex_getopt_long_only (int argc,
+                                            char** argv,
+                                            const char* shortopts,
+                                            const GETOPT_LONG_OPTION_T* longopts,
+                                            int* longind);
 
 __DECL_END
 

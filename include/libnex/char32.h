@@ -44,7 +44,7 @@ __DECL_START
  * @param state the multibyte state
  * @return The number of bytes used in mbStr
  */
-PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state);
+LIBNEX_PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state);
 
 /**
  * @brief Converts a null terminated multibyte string to a UTF-32 string
@@ -59,7 +59,7 @@ PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstat
  * @param state the multibyte state
  * @return The number of characters copied
  */
-PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state);
+LIBNEX_PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t mbSz, mbstate_t* state);
 
 /**
  * @brief Converts a wide character string to a char32_t
@@ -72,7 +72,7 @@ PUBLIC ssize_t mbstoc32s (char32_t* u32str, const char* mbStr, size_t sz, size_t
  * @param sz the size of the buffer pointed to by u32str
  * @return The number of characters copied
  */
-PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz);
+LIBNEX_PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz);
 
 /**
  * @brief Converts a null terminated UTF-32 string to the host's wide format.
@@ -85,14 +85,14 @@ PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t sz);
  * @param sz the size of the buffer pointed to by wcStr
  * @return The number of bytes used in wcStr
  */
-PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz);
+LIBNEX_PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t sz);
 
 /**
  * @brief Gets the length of a
  * @param s the string to get the length of
  * @return The length of s. If c32len ran off the end of the string, SIZE_MAX
  */
-PUBLIC size_t c32len (const char32_t* s);
+LIBNEX_PUBLIC size_t c32len (const char32_t* s);
 
 /**
  * @brief Compares s1 and s2
@@ -100,7 +100,7 @@ PUBLIC size_t c32len (const char32_t* s);
  * @param s2 the second string
  * @return If < 0 s1 has a lower value then s2; 0 means equal; If > 0 s1 has a greater then s2
  */
-PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2);
+LIBNEX_PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2);
 
 /**
  * @brief Compares n characters of s1 and s2
@@ -109,7 +109,7 @@ PUBLIC int c32cmp (const char32_t* s1, const char32_t* s2);
  * @param n the number of characters to compare
  * @return If < 0 s1 has a lower value then s2; 0 means equal; If > 0 s1 has a greater then s2
  */
-PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n);
+LIBNEX_PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n);
 
 /**
  * @brief Concatenates strings
@@ -122,7 +122,7 @@ PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n);
  * @param[in] size the size of the buffer dest points to
  * @return the lenght of dest plus the length of source
  */
-PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size);
+LIBNEX_PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size);
 
 /**
  * @brief Copies strings
@@ -135,7 +135,7 @@ PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size);
  * @param[in] size the size of dest
  * @return the length of src
  */
-PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size);
+LIBNEX_PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size);
 
 /**
  * @brief Finds the first occurence of c in str, returning a pointer to it
@@ -143,7 +143,7 @@ PUBLIC size_t c32lcpy (char32_t* dest, const char32_t* src, size_t size);
  * @param c the character to look for
  * @return Pointer to first occurence
  */
-PUBLIC char32_t* c32chr (const char32_t* str, char32_t c);
+LIBNEX_PUBLIC char32_t* c32chr (const char32_t* str, char32_t c);
 
 /**
  * @brief Finds the last occurence of c in str, returning a pointer to it
@@ -151,7 +151,7 @@ PUBLIC char32_t* c32chr (const char32_t* str, char32_t c);
  * @param c the character to look for
  * @return Pointer to last occurence
  */
-PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c);
+LIBNEX_PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c);
 
 /**
  * @brief Finds the first occurence of any character in s2 in s1
@@ -159,14 +159,14 @@ PUBLIC char32_t* c32rchr (const char32_t* str, char32_t c);
  * @param s2 the characters to look for
  * @return Pointer to first occurence
  */
-PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2);
+LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2);
 
 /**
  * @brief Duplicates a string
  * @param str the string to duplicate
  * @return the duplicated string
  */
-PUBLIC char32_t* c32dup (char32_t* str);
+LIBNEX_PUBLIC char32_t* c32dup (char32_t* str);
 
 __DECL_END
 

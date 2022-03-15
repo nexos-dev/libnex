@@ -34,15 +34,15 @@
 #include <sys/stat.h>
 
 // Helper macros
-#define TEXT_DEFAULT_BUFSZ 4096    // Staging buffer has a default size of 4 KiB
+#define TEXT_DEFAULT_BUFSZ 1024    // Staging buffer has a default size of 4 KiB
 
 // Reads in a new frame if needed. Returns error code or TEXT_SUCCESS
-static short _textReadFrameMaybe (TextStream_t* stream, bool* isEof)
+static short _textReadFrameMaybe (TextStream_t* stream)
 {
-    assert (stream && isEof);
+    assert (stream);
     assert (stream->mode == TEXT_MODE_READ);
     // Check if we need to read in a new frame
-    if (stream->bufPos == stream->bufSize)
+    if (stream->bufPos >= stream->bufSize)
     {
         // Read it in
         size_t bytesRead = fread (stream->buf, 1, stream->bufSize, stream->file);
@@ -51,7 +51,7 @@ static short _textReadFrameMaybe (TextStream_t* stream, bool* isEof)
         {
             // Report EOF. Note that EOF may come when we aren't finished parsing yet.
             // For this reason, onlt report EOF when bytesRead == 0, and we truly are finished
-            *isEof = true;
+            stream->isEof = true;
             return TEXT_SUCCESS;
         }
         // Check for failure
@@ -95,13 +95,12 @@ static short _textWriteFrameMaybe (TextStream_t* stream, bool force)
     }
 
 // Macro to help reading in a buffer
-#define READ_BUFFER                             \
-    res = _textReadFrameMaybe (stream, &isEof); \
-    if (res != TEXT_SUCCESS)                    \
-        return res;                             \
-    if (isEof)                                  \
-        goto end;                               \
-    assert (foundCr ? stopOnLine : true);
+#define READ_BUFFER                     \
+    res = _textReadFrameMaybe (stream); \
+    if (res != TEXT_SUCCESS)            \
+        return res;                     \
+    if (stream->isEof)                  \
+        goto end;
 
 // Macro to help writing a buffer
 #define WRITE_BUFFER                            \
@@ -118,7 +117,6 @@ static short _textDecode (TextStream_t* stream,
 {
     assert (stream && buf);
 
-    bool isEof = false;
     bool foundCr = false;
     size_t charsParsed = 0;
     short res = TEXT_SUCCESS;
@@ -131,6 +129,7 @@ static short _textDecode (TextStream_t* stream,
         {
             // Maybe read the buffer
             READ_BUFFER
+            assert (foundCr ? stopOnLine : true);
             // If we are simply skipping an LF, don't copy out a character
             if (!foundCr)
                 buf[i] = (char32_t) stream->buf[stream->bufPos];
@@ -150,6 +149,7 @@ static short _textDecode (TextStream_t* stream,
         for (; i < (count - 1); ++i)
         {
             READ_BUFFER
+            assert (foundCr ? stopOnLine : true);
             // If we are simply skipping an LF, don't copy out a character
             if (!foundCr)
             {
@@ -183,6 +183,7 @@ static short _textDecode (TextStream_t* stream,
         {
             // Maybe read the buffer
             READ_BUFFER
+            assert (foundCr ? stopOnLine : true);
             // If we are simply skipping an LF, don't copy out a character
             if (!foundCr)
                 buf[i] = EndianRead32 ((char32_t*) (stream->buf + stream->bufPos), stream->order);
@@ -202,6 +203,7 @@ static short _textDecode (TextStream_t* stream,
         for (; i < (count - 1); ++i)
         {
             READ_BUFFER
+            assert (foundCr ? stopOnLine : true);
             if (!foundCr)
             {
                 // FIXME: If stream->buf's last 16 bit element is a surrogate pair,
@@ -210,7 +212,7 @@ static short _textDecode (TextStream_t* stream,
                                                                 ((uint16_t*) (stream->buf + stream->bufPos)),
                                                                 stream->bufSize - stream->bufPos,
                                                                 stream->order);
-                if (u16sParsed < 0)
+                if (u16sParsed == 0)
                     return TEXT_INVALID_CHAR;
                 stream->bufPos += (u16sParsed * 2);
                 ++charsParsed;
@@ -227,6 +229,7 @@ static short _textDecode (TextStream_t* stream,
     {
         for (; i < (count - 1); ++i)
         {
+            assert (foundCr ? stopOnLine : true);
             if (!foundCr)
             {
                 // Decode part by part
@@ -238,7 +241,11 @@ static short _textDecode (TextStream_t* stream,
                     READ_BUFFER
                     size_t u8sparsed = UnicodeDecodePart8 (&buf[i], stream->buf[stream->bufPos], &state);
                     if (u8sparsed == 0)
-                        return TEXT_INVALID_CHAR;
+                    {
+                        buf[i] = 0xFFFD;
+                        stream->bufPos += 1;
+                        break;
+                    }
                     stream->bufPos += u8sparsed;
                 }
                 ++charsParsed;
@@ -362,7 +369,7 @@ static short _textEncode (TextStream_t* stream, const char32_t* buf, const size_
     return res;
 }
 
-PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -373,7 +380,19 @@ PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, 
     return res;
 }
 
-PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c)
+{
+    if (!stream || !c)
+        return TEXT_INVALID_PARAMETER;
+    char32_t buf[2];
+    short res = TextRead (stream, buf, 2, NULL);
+    if (res != TEXT_SUCCESS)
+        return res;
+    *c = buf[0];
+    return TEXT_SUCCESS;
+}
+
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -384,7 +403,7 @@ PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t cou
     return res;
 }
 
-PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten)
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -395,7 +414,12 @@ PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t 
     return res;
 }
 
-PUBLIC short TextOpen (const char* file, TextStream_t** out, char mode, char encoding, bool hasBom, char order)
+LIBNEX_PUBLIC short TextOpen (const char* file,
+                              TextStream_t** out,
+                              char mode,
+                              char encoding,
+                              bool hasBom,
+                              char order)
 {
     // Allocate the new stream
     TextStream_t* stream = (TextStream_t*) malloc_s (sizeof (TextStream_t));
@@ -433,23 +457,15 @@ PUBLIC short TextOpen (const char* file, TextStream_t** out, char mode, char enc
             // Read in the BOM
             uint8_t bom[2];
             fread (bom, 2, 1, stream->file);
-            // Check for a UTF-16 BOM in big endian order
-            if (bom[0] == 0xFE && bom[1] == 0xFF)
-                stream->order = TEXT_ORDER_BE;
-            // Check in little endian order
-            else if (bom[0] == 0xFF && bom[1] == 0xFE)
-                stream->order = TEXT_ORDER_LE;
-            else
+            stream->order = UnicodeReadBom16 (bom);
+            if (stream->order == TEXT_ORDER_NONE)
                 return TEXT_BAD_BOM;
         }
         else if (encoding == TEXT_ENC_UTF8)
         {
             uint8_t bom[3];
             fread (bom, 3, 1, stream->file);
-            // Check for its validity
-            if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF)
-                ;
-            else
+            if (!UnicodeReadBom8 (bom))
                 return TEXT_BAD_BOM;
         }
         else if (encoding == TEXT_ENC_UTF32)
@@ -457,12 +473,8 @@ PUBLIC short TextOpen (const char* file, TextStream_t** out, char mode, char enc
             // Read in the BOM
             uint8_t bom[4];
             fread (bom, 4, 1, stream->file);
-            // Check if UTF-32 BOM in big endian order
-            if (bom[0] == 0x00 && bom[1] == 0x00 && bom[2] == 0xFE && bom[3] == 0xFF)
-                stream->order = TEXT_ORDER_BE;
-            else if (bom[0] == 0xFF && bom[1] == 0xFE && bom[2] == 0x00 && bom[3] == 0x00)
-                stream->order = TEXT_ORDER_LE;
-            else
+            stream->order = UnicodeReadBom32 (bom);
+            if (stream->order == TEXT_ORDER_NONE)
                 return TEXT_BAD_BOM;
         }
     }
@@ -490,52 +502,29 @@ PUBLIC short TextOpen (const char* file, TextStream_t** out, char mode, char enc
         return TEXT_INVALID_PARAMETER;
 
     // Finally, create the object
-    ObjCreate (file, &stream->obj);
+    ObjCreate ("TextStream", &stream->obj);
     // Check if we need to write out a BOM
     if (mode == TEXT_MODE_WRITE)
     {
+        if (order != TEXT_ORDER_BE && order != TEXT_ORDER_LE && order != TEXT_ORDER_NONE)
+            return TEXT_INVALID_PARAMETER;
         if (encoding == TEXT_ENC_UTF16)
         {
-            uint8_t bom[2];
-            // Write a little endian BOM
-            if (order == TEXT_ORDER_LE)
-            {
-                bom[0] = 0xFF;
-                bom[1] = 0xFE;
-            }
-            // Write a big endian BOM
-            else if (order == TEXT_ORDER_BE)
-            {
-                bom[0] = 0xFE;
-                bom[1] = 0xFF;
-            }
-            else
-                return TEXT_INVALID_PARAMETER;
+            if (order == TEXT_ORDER_NONE)
+                order = EndianHost();
+            uint16_t bom;
+            UnicodeWriteBom16 (&bom, order);
             // Write it out
-            fwrite (bom, 1, 2, stream->file);
+            fwrite (&bom, 1, 2, stream->file);
         }
         else if (encoding == TEXT_ENC_UTF32)
         {
-            uint8_t bom[4];
-            // Check what order the BOM should be
-            if (order == TEXT_ORDER_LE)
-            {
-                bom[0] = 0xFF;
-                bom[1] = 0xFE;
-                bom[2] = 0x00;
-                bom[3] = 0x00;
-            }
-            else if (order == TEXT_ORDER_BE)
-            {
-                bom[0] = 0x00;
-                bom[1] = 0x00;
-                bom[2] = 0xFE;
-                bom[3] = 0xFF;
-            }
-            else
-                return TEXT_INVALID_PARAMETER;
+            if (order == TEXT_ORDER_NONE)
+                order = EndianHost();
+            uint32_t bom;
+            UnicodeWriteBom32 (&bom, order);
             // Write it out
-            fwrite (bom, 1, 4, stream->file);
+            fwrite (&bom, 1, 4, stream->file);
         }
         stream->bufPos = 0;
     }
@@ -545,14 +534,14 @@ PUBLIC short TextOpen (const char* file, TextStream_t** out, char mode, char enc
         // to read in a buffer
         stream->bufPos = stream->bufSize;
     }
+    stream->isEof = false;
     if (!out)
         return TEXT_INVALID_PARAMETER;
     *out = stream;
-    stream->fileName = file;
     return TEXT_SUCCESS;
 }
 
-PUBLIC short TextFlush (TextStream_t* stream)
+LIBNEX_PUBLIC short TextFlush (TextStream_t* stream)
 {
     TextLock (stream);
     short res = _textWriteFrameMaybe (stream, true);
@@ -560,7 +549,7 @@ PUBLIC short TextFlush (TextStream_t* stream)
     return res;
 }
 
-PUBLIC short TextClose (TextStream_t* stream)
+LIBNEX_PUBLIC short TextClose (TextStream_t* stream)
 {
     short res = TEXT_SUCCESS;
     // Ensure we can do this
@@ -587,18 +576,7 @@ PUBLIC short TextClose (TextStream_t* stream)
     return res;
 }
 
-PUBLIC long TextSize (TextStream_t* stream)
-{
-    // Lock it
-    TextLock (stream);
-    stat_t st;
-    if (stat (stream->fileName, &st) == -1)
-        return -1;
-    TextUnlock (stream);
-    return st.st_size;
-}
-
-PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
+LIBNEX_PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
 {
     if (!strcmp (encName, "ASCII") || !strcmp (encName, "UTF-8"))
     {
@@ -637,7 +615,7 @@ PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
     }
 }
 
-// Error condition string
+// Error condition strings
 static const char* errorStrings[] = {
     "",                          // 0 doesn't represent anything
     N_ ("No error"),             // TEXT_SUCCESS
@@ -649,7 +627,7 @@ static const char* errorStrings[] = {
     N_ ("Unsupported character encoding")                  // TEXT_INVALID_ENC
 };
 
-PUBLIC const char* TextError (int code)
+LIBNEX_PUBLIC const char* TextError (int code)
 {
     // Initialize text domain if needed
     __Libnex_i18n_init();

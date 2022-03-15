@@ -32,7 +32,7 @@
  * @param[in] size the size of the buffer dest points to
  * @return the length of dest plus the length of source
  */
-PUBLIC size_t strlcat (char* dest, const char* src, size_t size)
+LIBNEX_PUBLIC size_t strlcat (char* dest, const char* src, size_t size)
 {
     const char* osrc = src;
     // Advance dest to null terminator

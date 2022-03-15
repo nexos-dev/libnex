@@ -28,8 +28,10 @@
 #define UTF16_LOW_SURROGATE 3
 #define UTF16_ACCEPT        4
 
-PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, char endian)
+LIBNEX_PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, char endian)
 {
+    if (!endian)
+        endian = EndianHost();
     // Setup the state
     unsigned char state = UTF16_START;
     unsigned char prevState = UTF16_START;
@@ -45,7 +47,10 @@ PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, cha
         else
         {
             if (state != utf16stateTab[EndianRead16 (in, endian) >> 10])
-                return 0;
+            {
+                *out = 0xFFFD;
+                return in - oin;
+            }
         }
         uint16_t val = EndianRead16 (in, endian);
         codepoint |= ((val & utf16maskTab[state]) << utf16shiftTab[state]);
@@ -59,8 +64,10 @@ PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, cha
     return in - oin;
 }
 
-PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
+LIBNEX_PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
 {
+    if (!endian)
+        endian = EndianHost();
     // Check if this should be a surrogate pair
     if (in >= 0x10000)
     {
@@ -93,7 +100,7 @@ PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
 // Checks if this is a bad octet
 #define IsBadOctect(oct) ((oct) == 0xC0 || (oct) == 0xC1 || ((oct) >= 0xF5))
 
-PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
+LIBNEX_PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
 {
     // If this sequence has been accepted, return
     if (state->state == UTF8_ACCEPT)
@@ -137,7 +144,7 @@ PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
     return 1;
 }
 
-PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz)
+LIBNEX_PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz)
 {
     Utf8State_t state;
     const uint8_t* oin = in;
@@ -149,13 +156,16 @@ PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz)
             return 0;
         // Decode current octet
         if (!UnicodeDecodePart8 (out, *in, &state))
-            return 0;
+        {
+            *out = 0xFFFD;
+            return in - oin;
+        }
         ++in;
     } while (!UnicodeIsAccepted (state));
-    return state.bytesRequired;
+    return in - oin;
 }
 
-PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz)
+LIBNEX_PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz)
 {
     // Figure out the size needed and create the leading byte
     if (in <= 0x7F)
@@ -203,6 +213,58 @@ PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz)
         *out = in | 0x80;
         return 4;
     }
+    else
+        return 0;
+}
+
+LIBNEX_PUBLIC void UnicodeWriteBom8 (uint8_t* buf)
+{
+    buf[0] = 0xEF;
+    buf[1] = 0xBB;
+    buf[2] = 0xBF;
+}
+
+LIBNEX_PUBLIC void UnicodeWriteBom16 (uint16_t* out, char order)
+{
+    if (!order)
+        order = EndianHost();
+    EndianWrite16 (out, 0xFEFF, order);
+}
+
+LIBNEX_PUBLIC void UnicodeWriteBom32 (uint32_t* out, char order)
+{
+    if (!order)
+        order = EndianHost();
+    EndianWrite32 (out, 0xFEFF, order);
+}
+
+LIBNEX_PUBLIC bool UnicodeReadBom8 (const uint8_t* bom)
+{
+    // Check its validity
+    if (!(bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF))
+        return false;
+    else
+        return true;
+}
+
+LIBNEX_PUBLIC char UnicodeReadBom16 (const uint8_t* bom)
+{
+    // Check the BOM's order
+    if (bom[0] == 0xFF && bom[1] == 0xFE)
+        return ENDIAN_LITTLE;
+    else if (bom[0] == 0xFE && bom[1] == 0xFF)
+        return ENDIAN_BIG;
+    else
+        return 0;
+}
+
+LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom)
+{
+    // Check the BOM's order
+    if (bom[0] == 0xFF && bom[1] == 0xFE && bom[2] == 0x00 && bom[3] == 0x00)
+        return ENDIAN_LITTLE;
+    else if (bom[0] == 0x00 && bom[1] == 0x00 && bom[2] == 0xFE && bom[3] == 0xFF)
+        return ENDIAN_BIG;
     else
         return 0;
 }
