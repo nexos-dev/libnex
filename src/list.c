@@ -160,6 +160,11 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const 
 LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
 {
     ListLock (list);
+    if (!list->front)
+    {
+        ListUnlock (list);
+        return NULL;
+    }
     ListEntry_t* entry = ListRef (list->front);
     ListLock (entry);
     if (entry->next)

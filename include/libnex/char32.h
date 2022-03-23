@@ -115,7 +115,7 @@ LIBNEX_PUBLIC int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n);
  * @brief Concatenates strings
  *
  * c32lcat takes the size of the valid buffer dest points to. It copies
- * src - c32len(src) - 1 bytes, null terminating the result
+ * src - c32len(src) - 1 char32_t's, null terminating the result
  *
  * @param[out] dest the string to write to
  * @param[in] src the string to read from
@@ -127,7 +127,7 @@ LIBNEX_PUBLIC size_t c32lcat (char32_t* dest, const char32_t* src, size_t size);
 /**
  * @brief Copies strings
  *
- * c32lcpy takes a buffer size, and copies at most size - 1 bytes, padding with null character.
+ * c32lcpy takes a buffer size, and copies at most size - 1 char32_t's, padding with null character.
  * It returns the length of the buffer they tried to create.
  *
  * @param[out] dest the string to write out to

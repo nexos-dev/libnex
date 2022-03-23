@@ -571,7 +571,7 @@ LIBNEX_PUBLIC short TextClose (TextStream_t* stream)
         // Close the file
         if (fclose (stream->file))
             res = TEXT_SYS_ERROR;
-        TextUnlock (stream);
+        ObjDestroy (&stream->obj);
     }
     return res;
 }
