@@ -165,7 +165,8 @@ LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
         ListUnlock (list);
         return NULL;
     }
-    ListEntry_t* entry = ListRef (list->front);
+    ListRef (list->front);
+    ListEntry_t* entry = list->front;
     ListLock (entry);
     if (entry->next)
         entry->next->prev = NULL;
@@ -251,4 +252,9 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
         }
     }
     ListUnlock (list);
+}
+
+LIBNEX_PUBLIC ListEntry_t* ListIterate (ListEntry_t* iter)
+{
+    return iter->next;
 }

@@ -212,14 +212,23 @@ LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry);
  */
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list);
 
+/**
+ * @brief Iterates to the next list entry
+ * @param iter the current entry
+ * @return The next entry
+ */
+LIBNEX_PUBLIC ListEntry_t* ListIterate (ListEntry_t* iter);
+
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry) ((entry)->data)                           ///< Helper to access list entry data
-#define ListPushFront        ListAddFront                              ///< Useful when using as a queue
-#define ListRef(item)        ((ListEntry_t*) ObjRef (&(item)->obj))    ///< References the underlying the object
-#define ListLock(item)       (ObjLock (&(item)->obj))                  ///< Locks this entry (or list)
-#define ListUnlock(item)     (ObjUnlock (&(item)->obj))                ///< Unlocks the entry
-#define ListDeRef(item)      (ObjDestroy (&(item)->obj))               ///< Dereferences this entry
+#define ListEntryData(entry) ((entry)->data)                ///< Helper to access list entry data
+#define ListPushFront        ListAddFront                   ///< Useful when using as a queue
+#define ListRef(item)        (ObjRef (&(item)->obj))        ///< References the underlying the object
+#define ListLock(item)       (ObjLock (&(item)->obj))       ///< Locks this entry (or list)
+#define ListUnlock(item)     (ObjUnlock (&(item)->obj))     ///< Unlocks the entry
+#define ListDeRef(item)      (ObjDestroy (&(item)->obj))    ///< Dereferences this entry
+#define ListFront(list)      ((list)->front)                ///< Gets front of list
+#define ListIsEmpty(list)    ((list)->front == NULL)        ///< Checks if the list is empty or not
 
 #endif
