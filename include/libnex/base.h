@@ -27,4 +27,11 @@
 /// To find the size of an array
 #define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))
 
+/// Specifies that a function will not return
+#ifdef __GNUC__
+#define NORETURN __attribute__ ((noreturn))
+#else
+#define NORETURN
+#endif
+
 #endif

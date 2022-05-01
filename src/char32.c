@@ -67,11 +67,16 @@ LIBNEX_PUBLIC ssize_t wcstoc32s (char32_t* u32str, const wchar_t* wcStr, size_t 
     // FIXME: Uses too much memory
     size_t mbLen = wcLen * MB_CUR_MAX;
     // Do the conversion to multibyte form
-    char* mbStr = malloc_s (mbLen + 1);
+    char* mbStr = malloc (mbLen + 1);
+    if (!mbStr)
+        return -1;
     mbstate_t state;
     memset (&state, 0, sizeof (mbstate_t));
     if (wcsrtombs (mbStr, &wcStr, wcLen + 1, &state) == -1)
+    {
+        free (mbStr);
         return -1;
+    }
     // Convert to char32_t form
     ssize_t res = mbstoc32s (u32str, mbStr, sz, mbLen + 1, &state);
     free (mbStr);
@@ -85,11 +90,16 @@ LIBNEX_PUBLIC ssize_t c32stowcs (wchar_t* wcStr, const char32_t* u32str, size_t 
     // FIXME: Uses too much memory
     size_t mbLen = wideLen * MB_CUR_MAX;
     // Convert to multibyte
-    char* mbStr = malloc_s (mbLen + 1);
+    char* mbStr = malloc (mbLen + 1);
+    if (!mbStr)
+        return -1;
     mbstate_t state;
     memset (&state, 0, sizeof (mbstate_t));
     if (c32stombs (mbStr, u32str, wideLen + 1, &state) < 0)
+    {
+        free (mbStr);
         return -1;
+    }
     // Convert to wide
     ssize_t res = (ssize_t) mbsrtowcs (wcStr, (const char**) &mbStr, sz, &state);
     free (mbStr);
@@ -228,7 +238,11 @@ LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
 LIBNEX_PUBLIC char32_t* c32dup (char32_t* str)
 {
     size_t len = c32len (str);
-    char32_t* s = (char32_t*) malloc_s (len * sizeof (char32_t));
+    if (!len)
+        return NULL;
+    char32_t* s = (char32_t*) malloc (len * sizeof (char32_t));
+    if (!s)
+        return NULL;
     c32lcpy (s, str, len);
     return s;
 }

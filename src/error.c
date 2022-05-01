@@ -18,28 +18,13 @@
 
 /// @file error.c
 
+#include <libnex/error.h>
 #include <libnex/progname.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 LIBNEX_PUBLIC void error (char* msg, ...)
-{
-    // Declare the argument list
-    va_list ap;
-    va_start (ap, msg);
-
-    // Print it out
-    fprintf (stderr, "%s: ", getprogname());
-    vfprintf (stderr, msg, ap);
-    fprintf (stderr, "\n");
-
-    // Exit
-    va_end (ap);
-    exit (EXIT_FAILURE);
-}
-
-LIBNEX_PUBLIC void error_noexit (char* msg, ...)
 {
     // Declare the argument list
     va_list ap;

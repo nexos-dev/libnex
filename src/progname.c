@@ -23,13 +23,11 @@
 static char* progName;    ///< The name of this program. It is used when printing out error primarily
 
 /**
- * @brief Sets the name of this program. If null, then throws an error
+ * @brief Sets the name of this program
  * @param[in] name the name of the program
  */
 void setprogname (char* name)
 {
-    if (!name)
-        error ("program name is null");
     progName = name;
 }
 

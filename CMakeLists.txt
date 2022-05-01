@@ -162,6 +162,7 @@ endif()
 # Create the include files list
 list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/container.h
+     ${CMAKE_SOURCE_DIR}/include/libnex/base.h
      ${CMAKE_SOURCE_DIR}/include/libnex/decls.h
      ${CMAKE_SOURCE_DIR}/include/libnex/endian.h
      ${CMAKE_SOURCE_DIR}/include/libnex/list.h

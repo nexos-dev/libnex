@@ -30,6 +30,8 @@
 #include <uchar.h>
 #include <wchar.h>
 
+#define CHAR32_INVALID 0xFFFFFFFF    ///< An invalid character
+
 __DECL_START
 
 /**

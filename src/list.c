@@ -25,7 +25,9 @@
 
 LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type)
 {
-    ListHead_t* head = malloc_s (sizeof (ListHead_t));
+    ListHead_t* head = malloc (sizeof (ListHead_t));
+    if (!head)
+        return NULL;
     // Initialize the object associated with this list
     ObjCreate (type, &head->obj);
     // Initialize the other stuff
@@ -36,7 +38,9 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type)
 
 LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
 {
-    ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
+    ListEntry_t* entry = malloc (sizeof (ListEntry_t));
+    if (!entry)
+        return NULL;
     ListLock (head);
     // Set all the links
     if (head->front)
@@ -57,7 +61,9 @@ LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int
 
 LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
 {
-    ListEntry_t* entry = malloc_s (sizeof (ListEntry_t));
+    ListEntry_t* entry = malloc (sizeof (ListEntry_t));
+    if (!entry)
+        return NULL;
     ObjCreate (ObjGetType (head), &entry->obj);
     ListLock (head);
     // Set all the links
@@ -99,7 +105,9 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
 
 LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter)
 {
-    ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
+    ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
+    if (!entry)
+        return NULL;
     ListLock (list);
     ListRef (entryAfter);
     ListLock (entryAfter);
@@ -129,7 +137,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const
 
 LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore)
 {
-    ListEntry_t* entry = (ListEntry_t*) malloc_s (sizeof (ListEntry_t));
+    ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
     ListLock (list);
     ListRef (entryBefore);
     ListLock (entryBefore);
@@ -252,9 +260,4 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
         }
     }
     ListUnlock (list);
-}
-
-LIBNEX_PUBLIC ListEntry_t* ListIterate (ListEntry_t* iter)
-{
-    return iter->next;
 }

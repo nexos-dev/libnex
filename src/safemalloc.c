@@ -27,8 +27,7 @@
  * @brief Allocates memory, checking for failure of malloc.
  *
  * Allocates memory.
- * If malloc fails, it exits. To free allocated memory,
- * create an atexit() handler.
+ * If malloc fails, it prints an error
  * @param[in] sz specifies the allocation size
  * @return The allocated block of memory
  */
@@ -45,8 +44,7 @@ LIBNEX_PUBLIC void* malloc_s (size_t sz)
  * @brief Reallocates memory, checking for failure of realloc.
  *
  * Resizes memory.
- * If realloc fails, it exits. To free allocated memory,
- * create an atexit() handler.
+ * If realloc fails, it prints an error
  * @param[in] sz specifies the allocation size
  * @param[inout] ptr specifies the pointer to resize
  * @return The allocated block of memory
@@ -64,8 +62,7 @@ LIBNEX_PUBLIC void* realloc_s (void* ptr, size_t sz)
  * @brief Allocates and intializes memory, checking for failure of calloc.
  *
  * Initializes allocated memory.
- * If calloc fails, it exits. To free allocated memory,
- * create an atexit() handler.
+ * If calloc fails, it prints an error
  * @param[in] sz specifies the allocation size
  * @return The allocated block of memory
  */

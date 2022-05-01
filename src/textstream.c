@@ -422,9 +422,16 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
                               char order)
 {
     // Allocate the new stream
-    TextStream_t* stream = (TextStream_t*) malloc_s (sizeof (TextStream_t));
+    TextStream_t* stream = (TextStream_t*) malloc (sizeof (TextStream_t));
+    if (!stream)
+        return TEXT_SYS_ERROR;
     // Allocate the staging buffer
-    stream->buf = (uint8_t*) malloc_s (TEXT_DEFAULT_BUFSZ);
+    stream->buf = (uint8_t*) malloc (TEXT_DEFAULT_BUFSZ);
+    if (!stream->buf)
+    {
+        free (stream);
+        return TEXT_SYS_ERROR;
+    }
     stream->bufSize = TEXT_DEFAULT_BUFSZ;
     // Figure out the mode
     char* fopenMode = NULL;
@@ -435,18 +442,28 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     else if (mode == TEXT_MODE_APPEND)
         fopenMode = "a";
     else
+    {
+        free (stream);
         return TEXT_INVALID_PARAMETER;
+    }
     stream->mode = mode;
     // Open the file
     stream->file = fopen (file, fopenMode);
     if (!stream->file)
+    {
+        free (stream);
         return TEXT_SYS_ERROR;
+    }
     // If encoding is 0, then chances are, file is in an unsupported format.
     // The reason for this is because if we use libchardet, and TextGetEncId sees that
     // libchardet found an encoding that we don't support, it will return 0. Then, when the user passes
     // that ID, we will see that here
     if (!encoding)
+    {
+        fclose (stream->file);
+        free (stream);
         return TEXT_INVALID_ENC;
+    }
     // Set the encoding
     stream->encoding = encoding;
     // Check if there is a BOM, and if there is, set the byte order based on that
@@ -456,26 +473,53 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
         {
             // Read in the BOM
             uint8_t bom[2];
-            fread (bom, 2, 1, stream->file);
+            if (fread (bom, 2, 1, stream->file) != 1)
+            {
+                fclose (stream->file);
+                free (stream);
+                return TEXT_SYS_ERROR;
+            }
             stream->order = UnicodeReadBom16 (bom);
             if (stream->order == TEXT_ORDER_NONE)
+            {
+                fclose (stream->file);
+                free (stream);
                 return TEXT_BAD_BOM;
+            }
         }
         else if (encoding == TEXT_ENC_UTF8)
         {
             uint8_t bom[3];
-            fread (bom, 3, 1, stream->file);
+            if (fread (bom, 3, 1, stream->file) != 1)
+            {
+                fclose (stream->file);
+                free (stream);
+                return TEXT_SYS_ERROR;
+            }
             if (!UnicodeReadBom8 (bom))
+            {
+                fclose (stream->file);
+                free (stream);
                 return TEXT_BAD_BOM;
+            }
         }
         else if (encoding == TEXT_ENC_UTF32)
         {
             // Read in the BOM
             uint8_t bom[4];
-            fread (bom, 4, 1, stream->file);
+            if (fread (bom, 4, 1, stream->file) != 1)
+            {
+                fclose (stream->file);
+                free (stream);
+                return TEXT_SYS_ERROR;
+            }
             stream->order = UnicodeReadBom32 (bom);
             if (stream->order == TEXT_ORDER_NONE)
+            {
+                fclose (stream->file);
+                free (stream);
                 return TEXT_BAD_BOM;
+            }
         }
     }
     else
@@ -499,7 +543,11 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     // Set size of encoding
     if (!(encoding == TEXT_ENC_ASCII || encoding == TEXT_ENC_WIN1252 || encoding == TEXT_ENC_UTF32 ||
           encoding == TEXT_ENC_UTF16 || encoding == TEXT_ENC_UTF8))
+    {
+        fclose (stream->file);
+        free (stream);
         return TEXT_INVALID_PARAMETER;
+    }
 
     // Finally, create the object
     ObjCreate ("TextStream", &stream->obj);
@@ -515,7 +563,12 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             uint16_t bom;
             UnicodeWriteBom16 (&bom, order);
             // Write it out
-            fwrite (&bom, 1, 2, stream->file);
+            if (fwrite (&bom, 1, 2, stream->file) != 2)
+            {
+                fclose (stream->file);
+                free (stream);
+                return TEXT_SYS_ERROR;
+            }
         }
         else if (encoding == TEXT_ENC_UTF32)
         {
@@ -524,7 +577,12 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             uint32_t bom;
             UnicodeWriteBom32 (&bom, order);
             // Write it out
-            fwrite (&bom, 1, 4, stream->file);
+            if (fwrite (&bom, 1, 4, stream->file) != 4)
+            {
+                fclose (stream->file);
+                free (stream);
+                return TEXT_SYS_ERROR;
+            }
         }
         stream->bufPos = 0;
     }
@@ -536,7 +594,11 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     }
     stream->isEof = false;
     if (!out)
+    {
+        fclose (stream->file);
+        free (stream);
         return TEXT_INVALID_PARAMETER;
+    }
     *out = stream;
     return TEXT_SUCCESS;
 }

@@ -26,6 +26,7 @@
 #else
 #include <libnex/libnex_config.h>
 #endif
+#include <libnex/base.h>
 #include <libnex/decls.h>
 
 __DECL_START
@@ -35,21 +36,10 @@ __DECL_START
  *
  * This function prints a message to the stderr, with the program name and an arbitrary amount of arguments,
  * followed by a newline
- * It then exits, running atexit() handlers
  * @param[in] msg the message to report
  * @param[in] ... the list of variable arguments
  */
 LIBNEX_PUBLIC void error (char* msg, ...);
-
-/**
- * @brief Reports an error to stderr, but doesn't exit.
- *
- * This function prints a message to the stderr, with the program name and an arbitrary amount of arguments,
- * followed by a newline
- * @param[in] msg the message to report
- * @param[in] ... the list of variable arguments
- */
-LIBNEX_PUBLIC void error_noexit (char* msg, ...);
 
 /**
  * @brief Reports a warning to stderr.

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-19 19:32-0400\n"
+"POT-Creation-Date: 2022-04-30 10:48-0400\n"
 "PO-Revision-Date: 2022-03-07 22:29-0500\n"
 "Last-Translator: nexos <wej22007@outlook.com>\n"
 "Language-Team: Language  es\n"
@@ -16,26 +16,26 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/textstream.c:621
+#: src/textstream.c:683
 msgid "No error"
 msgstr "No hay error"
 
-#: src/textstream.c:623
+#: src/textstream.c:685
 msgid "Invalid parameter"
 msgstr "Un parametro es invalido"
 
-#: src/textstream.c:624
+#: src/textstream.c:686
 msgid "Invalid byte order mark"
 msgstr "La marca de orden de bytes no válida"
 
-#: src/textstream.c:625
+#: src/textstream.c:687
 msgid "Character can't be encoded by character set"
 msgstr "El carácter no puede ser codificado por el conjunto de caracteres"
 
-#: src/textstream.c:626
+#: src/textstream.c:688
 msgid "Result buffer too small"
 msgstr "El búfer de resultados es demasiado pequeño"
 
-#: src/textstream.c:627
+#: src/textstream.c:689
 msgid "Unsupported character encoding"
 msgstr "El conjunto de caracteres es no soportado"
