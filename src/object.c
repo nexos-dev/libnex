@@ -58,7 +58,8 @@ LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj)
 LIBNEX_PUBLIC int ObjDestroy (Object_t* obj)
 {
     ObjLock (obj);
-    if ((obj->refCount--) < 1)
+    --obj->refCount;
+    if (obj->refCount == 0)
     {
         // Destroy the lock, as the object is done
         ObjUnlock (obj);

@@ -1,0 +1,24 @@
+.TH c32len 3 2022-05-04
+.SH NAME
+\fBc32len\fB \- returns length of a given char32_t string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "size_t c32len (const char32_t* s);"
+.br
+
+.SH DESCRIPTION
+.B c32len
+returns the length in char32_t's of a given string, excluding the terminating null character
+.B s.
+Said string must point to a valid sequence of char32_t's. If an invalid sequence is given,
+.br
+then the results are unspecified
+
+.SH "RETURN VALUE"
+.B c32len
+returns the number of characters in a given string, excluding the null terminator
+
+.SH "SEE ALSO"
+libnex(3)

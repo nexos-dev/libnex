@@ -1,0 +1,35 @@
+.TH libnex_base 3 2022-05-04
+.SH NAME
+\fBlibnex_base\fB \- contains basic helper definitions
+
+.SH SYNOPSIS
+.B "#include <libnex/base.h>"
+.sp
+.B "#define UNUSED(param) (void) (param);"
+.sp
+.B "#define ARRAY_SIZE(a) (sizeof (a) / sizeof ((a)[0]))"
+.sp
+.B "#define NORETURN"
+.br
+
+.SH DESCRIPTION
+.B libnex_base
+contains several basic helper macros to assist program developers.
+.sp
+.B UNUSED
+prevents compiler or linter warnings when one doesn't use a function parameter specified by
+.B param.
+.B ARRAY_SIZE
+returns the number elements in array
+.B a.
+.B NORETURN
+should be used in a function declaration before the return type is declared to specify that said function
+.br
+will not return
+
+.SH "RETURN VALUE"
+.B ARRAY_SIZE
+returns the number of elements in the specified array
+
+.SH "SEE ALSO"
+libnex(3)

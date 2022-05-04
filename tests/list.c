@@ -26,7 +26,7 @@
 int main()
 {
     // Test list creation
-    ListHead_t* head = ListCreate ("Test");
+    ListHead_t* head = ListCreate ("Test", false, 0);
     TEST_BOOL_ANON (head->back == NULL && head->front == NULL);
     // Test adding to the front of a list
     ListEntry_t* entry1 = ListAddFront (head, NULL, 1);

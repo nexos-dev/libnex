@@ -23,7 +23,7 @@
 
 #include <libnex/decls.h>
 #include <libnex/object.h>
-
+#include <stdbool.h>
 #include <stddef.h>
 
 __DECL_START
@@ -43,6 +43,12 @@ typedef struct _ListEntry
     struct _ListEntry* prev;    ///< Pointer to previous entry in linked list. NULL means beginning
 } ListEntry_t;
 
+/// Predicate to compare two entries for equality
+typedef bool (*ListEntryCmp) (ListEntry_t* entry1, ListEntry_t* entry2);
+
+/// Predicate to check if a piece of data identifies this entry
+typedef bool (*ListEntryFindBy) (ListEntry_t* entry, void* data);
+
 /**
  * @brief Describes the head of a list
  *
@@ -50,17 +56,23 @@ typedef struct _ListEntry
  */
 typedef struct _ListHead
 {
-    Object_t obj;                ///< The underlying object
-    struct _ListEntry* front;    ///< The first item on the list
-    struct _ListEntry* back;     ///< The last item on the list
+    Object_t obj;                  ///< The underlying object
+    ListEntryCmp cmpFunc;          ///< Function to compare to entries
+    ListEntryFindBy findByFunc;    ///< Function to implement find by functionality
+    bool usesObj;                  ///< If the data that this list wraps is an object
+    size_t objOffset;              ///< Offest to object in list entry data
+    struct _ListEntry* front;      ///< The first item on the list
+    struct _ListEntry* back;       ///< The last item on the list
 } ListHead_t;
 
 /**
  * @brief Creates a new linked list
  * @param type the data type of this entry. Used in the underlying object
+ * @param usesObj if the data the list wraps uses an object
+ * @param offToObj offset to object in data wrapped by list
  * @return The allocated list entry
  */
-LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type);
+LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t offToObj);
 
 /**
  * @brief Adds an item to the front of the list
@@ -211,6 +223,28 @@ LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry);
  * @return The data associated with this entry
  */
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list);
+
+/**
+ * @brief Finds a particular list entry by a piece of data
+ * @param list the list that the entry is in
+ * @param data the data to find the entry by
+ * @return The found entry
+ */
+LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (ListHead_t* list, void* data);
+
+/**
+ * @brief Sets the comparing predicate for a list
+ * @param list the list to set the predicate on
+ * @param func function to compare with
+ */
+LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func);
+
+/**
+ * @brief Sets the find by predicate for a list
+ * @param list the list to set the predicate on
+ * @param func the predicate
+ */
+LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func);
 
 __DECL_END
 

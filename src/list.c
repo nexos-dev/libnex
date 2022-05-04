@@ -23,9 +23,9 @@
 #include <libnex/safemalloc.h>
 #include <stdlib.h>
 
-LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type)
+LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t offToObj)
 {
-    ListHead_t* head = malloc (sizeof (ListHead_t));
+    ListHead_t* head = calloc (sizeof (ListHead_t), 1);
     if (!head)
         return NULL;
     // Initialize the object associated with this list
@@ -33,7 +33,20 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type)
     // Initialize the other stuff
     head->front = NULL;
     head->back = NULL;
+    head->cmpFunc = NULL;
+    head->usesObj = usesObj;
+    head->objOffset = offToObj;
     return head;
+}
+
+LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func)
+{
+    list->cmpFunc = func;
+}
+
+LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func)
+{
+    list->findByFunc = func;
 }
 
 LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
@@ -90,6 +103,28 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
     {
         ListLock (search);
         if (search->key == key)
+        {
+            ListUnlock (search);
+            ListUnlock (list);
+            return search;
+        }
+        ListEntry_t* old = search;
+        search = search->next;
+        ListUnlock (old);
+    }
+    ListUnlock (list);
+    return NULL;
+}
+
+LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (ListHead_t* list, void* data)
+{
+    ListLock (list);
+    ListUnlock (list);
+    ListEntry_t* search = list->front;
+    while (search)
+    {
+        ListLock (search);
+        if (list->findByFunc (search, data))
         {
             ListUnlock (search);
             ListUnlock (list);
@@ -228,9 +263,11 @@ LIBNEX_PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
     void* data = entry->data;
     // De-reference the entry and remove it
     if (!ListDeRef (entry))
+    {
         _listRemove (list, entry, 0);
-    // Destroy it
-    free (entry);
+        // Destroy it
+        free (entry);
+    }
     return data;
 }
 
@@ -238,10 +275,22 @@ LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
 {
     // De-reference the entry and remove it
     if (!ListDeRef (entry))
+    {
         _listRemove (list, entry, 0);
-    // Destroy it
-    free (entry->data);
-    free (entry);
+        // Destroy it
+        if (!list->usesObj)
+            free (entry->data);
+        else
+        {
+            printf ("got here\n");
+            if (!ObjDestroy ((Object_t*) (entry->data + list->objOffset)))
+            {
+                printf ("got here 2\n");
+                free (entry->data);
+            }
+        }
+        free (entry);
+    }
 }
 
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)

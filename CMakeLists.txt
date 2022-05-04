@@ -287,6 +287,9 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfig.cmake
 install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake 
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
 
+# Install man pages
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/man DESTINATION ${CMAKE_INSTALL_DATADIR})
+
 # Figure out which tests to run
 list(APPEND LIBNEX_TESTS
      endian list

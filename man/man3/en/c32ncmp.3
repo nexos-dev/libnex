@@ -1,0 +1,30 @@
+.TH c32ncmp 3 2022-05-04
+.SH NAME
+\fBc32ncmp\fB \- compares two char32_t strings
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "int c32cmp (const char32_t* s1, const char32_t* s2);"
+.br
+.B "int c32ncmp (const char32_t* s1, const char32_t* s2, size_t n);"
+.br
+
+.SH DESCRIPTION
+.B c32cmp
+compares two string specified by
+.B s1
+and
+.B s2.
+It returns 0 if the strings are equal to each other, a negative value
+.br
+if the first unequal character of s1 and is less than the correspondent character in s2,
+.br
+and a positive value if the first unequal character of s1 is greater than the correspondent character in s2.
+.B c32ncmp
+does the same thing, accept it only looks at the first n characters, while
+.B c32cmp
+looks until the null terminator is found
+
+.SH "SEE ALSO"
+libnex(3)
