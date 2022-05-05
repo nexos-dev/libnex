@@ -31,9 +31,6 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t off
     // Initialize the object associated with this list
     ObjCreate (type, &head->obj);
     // Initialize the other stuff
-    head->front = NULL;
-    head->back = NULL;
-    head->cmpFunc = NULL;
     head->usesObj = usesObj;
     head->objOffset = offToObj;
     return head;
@@ -47,6 +44,11 @@ LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func)
 LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func)
 {
     list->findByFunc = func;
+}
+
+LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func)
+{
+    list->destroyFunc = func;
 }
 
 LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
@@ -258,55 +260,44 @@ LIBNEX_PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
         return entry;
 }
 
-LIBNEX_PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
-{
-    void* data = entry->data;
-    // De-reference the entry and remove it
-    if (!ListDeRef (entry))
-    {
-        _listRemove (list, entry, 0);
-        // Destroy it
-        free (entry);
-    }
-    return data;
-}
-
-LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry)
+LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
 {
     // De-reference the entry and remove it
     if (!ListDeRef (entry))
     {
         _listRemove (list, entry, 0);
         // Destroy it
-        if (!list->usesObj)
-            free (entry->data);
+        if (!list->destroyFunc)
+        {
+            // Destroy it
+            if (!list->usesObj)
+                free (entry->data);
+            else
+            {
+                if (!ObjDestroy ((Object_t*) (entry->data + list->objOffset)))
+                    free (entry->data);
+            }
+            free (entry);
+        }
         else
         {
-            printf ("got here\n");
-            if (!ObjDestroy ((Object_t*) (entry->data + list->objOffset)))
-            {
-                printf ("got here 2\n");
-                free (entry->data);
-            }
+            list->destroyFunc (entry->data);
         }
-        free (entry);
     }
 }
 
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
 {
     ListLock (list);
-    if (!ListDeRef (list))
+    // Go through every entry, destroying it
+    ListEntry_t* curEntry = list->front;
+    while (curEntry)
     {
-        // Go through every entry, destroying it
-        ListEntry_t* curEntry = list->front;
-        while (curEntry)
-        {
-            ListEntry_t* next = curEntry->next;
-            // We want to free the memory as well
-            ListDestroyEntryAll (list, curEntry);
-            curEntry = next;
-        }
+        ListEntry_t* next = curEntry->next;
+        ListDestroyEntry (list, curEntry);
+        curEntry = next;
     }
+    if (!ListDeRef (list))
+        free (list);
     ListUnlock (list);
 }

@@ -49,6 +49,9 @@ typedef bool (*ListEntryCmp) (ListEntry_t* entry1, ListEntry_t* entry2);
 /// Predicate to check if a piece of data identifies this entry
 typedef bool (*ListEntryFindBy) (ListEntry_t* entry, void* data);
 
+/// Callback type that destroys a list entry
+typedef void (*ListEntryDestroy) (void* data);
+
 /**
  * @brief Describes the head of a list
  *
@@ -56,13 +59,14 @@ typedef bool (*ListEntryFindBy) (ListEntry_t* entry, void* data);
  */
 typedef struct _ListHead
 {
-    Object_t obj;                  ///< The underlying object
-    ListEntryCmp cmpFunc;          ///< Function to compare to entries
-    ListEntryFindBy findByFunc;    ///< Function to implement find by functionality
-    bool usesObj;                  ///< If the data that this list wraps is an object
-    size_t objOffset;              ///< Offest to object in list entry data
-    struct _ListEntry* front;      ///< The first item on the list
-    struct _ListEntry* back;       ///< The last item on the list
+    Object_t obj;                    ///< The underlying object
+    ListEntryCmp cmpFunc;            ///< Function to compare to entries
+    ListEntryFindBy findByFunc;      ///< Function to implement find by functionality
+    ListEntryDestroy destroyFunc;    ///< Function to destroy list entry
+    bool usesObj;                    ///< If the data that this list wraps is an object
+    size_t objOffset;                ///< Offest to object in list entry data
+    struct _ListEntry* front;        ///< The first item on the list
+    struct _ListEntry* back;         ///< The last item on the list
 } ListHead_t;
 
 /**
@@ -195,25 +199,12 @@ LIBNEX_PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry);
 
 /**
  * @brief Destroys an entry
- *
- * Destroys a list entry, returning the data associated with it.
  * Note that if other consumers are referencing this entry still, it is not destroyed
  * @param list the list to destroy from
  * @param entry the entry to destroy
  * @return The data associated with this entry
  */
-LIBNEX_PUBLIC void* ListDestroyEntry (ListHead_t* list, ListEntry_t* entry);
-
-/**
- * @brief Destroys an entry and its data
- *
- * Destroys a list entry and the data associated with it
- * Note that if other consumers are referencing this entry still, it is not destroyed
- * @param list the list to destroy from
- * @param entry the entry to destroy
- * @return The data associated with this entry
- */
-LIBNEX_PUBLIC void ListDestroyEntryAll (ListHead_t* list, ListEntry_t* entry);
+LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry);
 
 /**
  * @brief Destroys a list
@@ -245,6 +236,13 @@ LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func);
  * @param func the predicate
  */
 LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func);
+
+/**
+ * @brief Sets callback that destroys a list entry
+ * @param list the list to set callback on
+ * @param func function to use to destroy
+ */
+LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func);
 
 __DECL_END
 

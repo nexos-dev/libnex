@@ -23,11 +23,17 @@
 #define NEXTEST_NAME "list"
 #include <nextest.h>
 
+void destroyEntry (void* data)
+{
+    UNUSED (data);
+}
+
 int main()
 {
     // Test list creation
     ListHead_t* head = ListCreate ("Test", false, 0);
     TEST_BOOL_ANON (head->back == NULL && head->front == NULL);
+    ListSetDestroy (head, destroyEntry);
     // Test adding to the front of a list
     ListEntry_t* entry1 = ListAddFront (head, NULL, 1);
     TEST_BOOL_ANON (entry1->next == NULL && entry1->prev == NULL);
