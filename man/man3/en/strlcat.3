@@ -1,0 +1,50 @@
+.TH strlcat 3 2022-05-11
+.SH NAME
+.B strlcat
+\- concatenates one string to another in a safe manner
+
+.SH SYNOPSIS
+.B "#include <libnex/safestring.h>"
+.sp
+.B "size_t strlcat (char* dest, const char* src, size_t size);"
+.br
+
+.SH DESCRIPTION
+.B strlcat
+appends the string specified in
+.B src
+to the end of the
+string specified in
+.B dest.
+.B size
+is the size of the buffer pointed to
+by
+.B dest
+, minus one character which represents the null terminator, as
+strlcat always null terminates dest (unless there is not enough space in dest,
+or
+.B size
+is 0.
+.sp
+.B strlcat
+will append at most size - strlen(src) - 1 characters. If it exceeds
+.B size
+while doing this, it will return.
+
+.SH RETURN VALUES
+.B strlcat
+returns the number length of the string it attempted to create.
+This is strlen(dest) + strlen(src). If this number is greater then or equal to
+.B size
+, then
+.B src
+would not fit at the end of
+.B dest
+. Hence,
+.B src
+was truncated to fit in the buffer. If such truncation is detected,
+it is an error; it may indicate a security breach. Application must always
+check the return value.
+
+.SH SEE ALSO
+strlcpy(3), c32lcat(3)

@@ -1,0 +1,50 @@
+.TH c32lcat 3 2022-05-11
+.SH NAME
+.B c32lcat
+\- concatenates one char32_t string to another in a safe manner
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "size_t c32lcat (char32_t* dest, const char32_t* src, size_t size);"
+.br
+
+.SH DESCRIPTION
+.B c32lcat
+appends the string specified in
+.B src
+to the end of the
+string specified in
+.B dest.
+.B size
+is the size of the buffer pointed to
+by
+.B dest
+(in char32_t's), minus one character which represents the null terminator, as
+c32lcat always null terminates dest (unless there is not enough space in dest,
+or
+.B size
+is 0.
+.sp
+.B c32lcat
+will append at most size - c32len(src) - 1 characters. If it exceeds
+.B size
+while doing this, it will return.
+
+.SH RETURN VALUES
+.B c32lcat
+returns the number length of the string it attempted to create.
+This is c32len(dest) + c32len(src). If this number is greater then or equal to
+.B size
+, then
+.B src
+would not fit at the end of
+.B dest
+. Hence,
+.B src
+was truncated to fit in the buffer. If such truncation is detected,
+it is an error; it may indicate a security breach. Application must always
+check the return value.
+
+.SH SEE ALSO
+c32lcpy(3), strlcat(3)

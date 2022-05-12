@@ -31,6 +31,7 @@
 
 #include <libnex/decls.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 __DECL_START
 

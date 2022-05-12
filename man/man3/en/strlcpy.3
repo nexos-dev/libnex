@@ -1,0 +1,45 @@
+.TH strlcpy 3 2022-05-11
+.SH NAME
+.B strlcpy
+\- safely copies a string
+
+.SH SYNOPSIS
+.B "#include <libnex/safestring.h>"
+.sp
+.B "size_t strlcpy (char* dest, const char* src, size_t size);"
+.br
+
+.SH DESCRIPTION
+.B strlcpy
+copies the string specified in
+.B src
+to the buffer specified in
+.B dest,
+whose size is contained in
+.B size.
+.sp
+.B strlcpy
+will only copy up to
+.B size - 1
+bytes from
+.B src.
+It will always null terminate dest, unless
+.B size
+is equal to 0.
+.B src
+should be null terminated by the caller.
+
+.SH RETURN VALUE
+.B strlcpy
+returns the length of the string it tried to create. This is the length of
+.B src.
+If this value is greater then or equal to the length of
+.B dest,
+(which is
+.B size
+), then the string was truncated, and this indicates an error.
+The calling application must treat this an error, as otherwise, it will see
+a truncated string.
+
+.SH SEE ALSO
+strlcat(3), c32lcpy(3)
