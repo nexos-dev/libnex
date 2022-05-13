@@ -23,6 +23,7 @@
 
 #include <libnex/bits.h>
 #include <libnex/container.h>
+#include <libnex/crc32.h>
 #include <libnex/endian.h>
 #include <libnex/error.h>
 #include <libnex/getopt.h>

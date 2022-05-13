@@ -60,7 +60,7 @@ typedef SSIZE_T ssize_t;
 #define stat_t struct stat
 #endif
 
-// Make internal.h visivle if we are in libnex
+// Make internal.h visible if we are in libnex
 #ifdef IN_LIBNEX
 #include "internal.h"
 #endif

@@ -124,7 +124,8 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/endian.c
      src/object.c
      src/char32.c
-     src/unicode.c)
+     src/unicode.c
+     src/crc32.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
@@ -171,7 +172,8 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_SOURCE_DIR}/include/libnex/object.h
      ${CMAKE_SOURCE_DIR}/include/libnex/lock.h
      ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/char32.h)
+     ${CMAKE_SOURCE_DIR}/include/libnex/char32.h
+     ${CMAKE_SOURCE_DIR}/include/libnex/crc32.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
