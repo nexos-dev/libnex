@@ -91,6 +91,30 @@ LIBNEX_PUBLIC uint32_t EndianRead32 (const uint32_t* buf, const char endian);
 LIBNEX_PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian);
 
 /**
+ * @brief Changes a 16 bit value to specified endian
+ * @param val value to change
+ * @param endian ENDIAN_BIG if returning big endian, ENDIAN_LITTLE if little endian
+ * @return the changed value
+ */
+LIBNEX_PUBLIC uint16_t EndianChange16 (uint16_t val, const char endian);
+
+/**
+ * @brief Changes a 32 bit value to specified endian
+ * @param val value to change
+ * @param endian ENDIAN_BIG if returning big endian, ENDIAN_LITTLE if little endian
+ * @return the changed value
+ */
+LIBNEX_PUBLIC uint32_t EndianChange32 (uint32_t val, const char endian);
+
+/**
+ * @brief Changes a 64 bit value to specified endian
+ * @param val value to change
+ * @param endian ENDIAN_BIG if returning big endian, ENDIAN_LITTLE if little endian
+ * @return the changed value
+ */
+LIBNEX_PUBLIC uint64_t EndianChange64 (uint64_t val, const char endian);
+
+/**
  * @brief Swaps the endianess of a 16 bit value
  * @param val the value to swap
  * @return The swapped value

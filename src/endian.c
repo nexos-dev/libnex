@@ -99,3 +99,27 @@ LIBNEX_PUBLIC uint64_t EndianRead64 (const uint64_t* buf, const char endian)
     else
         return *buf;
 }
+
+LIBNEX_PUBLIC uint16_t EndianChange16 (uint16_t val, const char endian)
+{
+    if (endian != EndianHost())
+        return EndianSwap16 (val);
+    else
+        return val;
+}
+
+LIBNEX_PUBLIC uint32_t EndianChange32 (uint32_t val, const char endian)
+{
+    if (endian != EndianHost())
+        return EndianSwap32 (val);
+    else
+        return val;
+}
+
+LIBNEX_PUBLIC uint64_t EndianChange64 (uint64_t val, const char endian)
+{
+    if (endian != EndianHost())
+        return EndianSwap64 (val);
+    else
+        return val;
+}

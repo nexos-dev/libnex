@@ -6,7 +6,7 @@
 
 #include <libnex/crc32.h>
 
-uint32_t poly8_lookup[256] = {
+uint32_t poly8Lookup[256] = {
     0,          0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3, 0x0EDB8832,
     0x79DCB8A4, 0xE0D5E91E, 0x97D2D988, 0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2,
     0xF3B97148, 0x84BE41DE, 0x1ADAD47D, 0x6DDDE4EB, 0xF4D4B551, 0x83D385C7, 0x136C9856, 0x646BA8C0, 0xFD62F97A,
@@ -43,6 +43,6 @@ uint32_t Crc32Calc (uint8_t* p, uint32_t bytelength)
 {
     uint32_t crc = 0xFFFFFFFF;
     while (bytelength-- != 0)
-        crc = poly8_lookup[((uint8_t) crc ^ *(p++))] ^ (crc >> 8);
+        crc = poly8Lookup[((uint8_t) crc ^ *(p++))] ^ (crc >> 8);
     return ~crc;
 }

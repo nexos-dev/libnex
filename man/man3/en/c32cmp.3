@@ -26,5 +26,15 @@ does the same thing, accept it only looks at the first n characters, while
 .B c32cmp
 looks until the null terminator is found
 
-.SH "SEE ALSO"
+.SH RETURN VALUE
+.B c32cmp
+returns 0 it the two strings are equal. If the first unequal character of s1 is less
+.br
+than the correspondent character in s2 it returns a negative value.
+.br
+It returns a positive value if the first unequal character of
+.br
+s1 is greater than the correspondent character in s2.
+
+.SH SEE ALSO
 libnex(3)

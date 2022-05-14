@@ -1,0 +1,45 @@
+.TH c32chr 3 2022-05-14
+.SH NAME
+.B c32chr, c32rchr
+\- looks for occurence of character a in a char32_t string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "char32_t* c32chr (const char32_t* str, char32_t c);"
+.br
+.B "char32_t* c32rchr (const char32_t* str, char32_t c);"
+.br
+
+.SH DESCRIPTION
+.B c32chr
+searches for the first occurrence of character
+.I c
+in the string
+.I str,
+which must be null terminated. It returns a pointer to the first found occurrence of
+.I c,
+or it returns NULL if no such occurence was found
+
+.B c32rchr
+searchs for the last occurrence of character
+.I c
+in the string
+.I str,
+which also must be null terminated. It returns a pointer to the last occurrence of
+.I c,
+or NULL if no occurrence was found.
+
+.SH RETURN VALUE
+.B c32chr
+and
+.B c32rchr
+return a pointer to occurrence of
+.I c
+found, or they return NULL if no occurrence was found. If the caller
+passes '\0' as 
+.I c
+, then a pointer to the null terminator is returned
+
+.SH SEE ALSO
+strchr(3), strrchr(3), c32cmp(3), libnex(3)
