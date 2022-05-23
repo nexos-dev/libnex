@@ -156,10 +156,7 @@ LIBNEX_PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz
             return 0;
         // Decode current octet
         if (!UnicodeDecodePart8 (out, *in, &state))
-        {
             *out = 0xFFFD;
-            return in - oin;
-        }
         ++in;
     } while (!UnicodeIsAccepted (state));
     return in - oin;
