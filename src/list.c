@@ -277,12 +277,12 @@ LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
                 if (!ObjDestroy ((Object_t*) (entry->data + list->objOffset)))
                     free (entry->data);
             }
-            free (entry);
         }
         else
         {
             list->destroyFunc (entry->data);
         }
+        free (entry);
     }
 }
 
@@ -298,6 +298,10 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
         curEntry = next;
     }
     if (!ListDeRef (list))
+    {
+        ListUnlock (list);
         free (list);
-    ListUnlock (list);
+    }
+    else
+        ListUnlock (list);
 }

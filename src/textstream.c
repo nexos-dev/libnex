@@ -460,7 +460,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     // that ID, we will see that here
     if (!encoding)
     {
-        fclose (stream->file);
+        (void) fclose (stream->file);
         free (stream);
         return TEXT_INVALID_ENC;
     }
@@ -475,7 +475,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             uint8_t bom[2];
             if (fread (bom, 2, 1, stream->file) != 1)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_SYS_ERROR;
             }
@@ -492,13 +492,13 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             uint8_t bom[3];
             if (fread (bom, 3, 1, stream->file) != 1)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_SYS_ERROR;
             }
             if (!UnicodeReadBom8 (bom))
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_BAD_BOM;
             }
@@ -509,14 +509,14 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             uint8_t bom[4];
             if (fread (bom, 4, 1, stream->file) != 1)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_SYS_ERROR;
             }
             stream->order = UnicodeReadBom32 (bom);
             if (stream->order == TEXT_ORDER_NONE)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_BAD_BOM;
             }
@@ -544,7 +544,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     if (!(encoding == TEXT_ENC_ASCII || encoding == TEXT_ENC_WIN1252 || encoding == TEXT_ENC_UTF32 ||
           encoding == TEXT_ENC_UTF16 || encoding == TEXT_ENC_UTF8))
     {
-        fclose (stream->file);
+        (void) fclose (stream->file);
         free (stream);
         return TEXT_INVALID_PARAMETER;
     }
@@ -565,7 +565,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             // Write it out
             if (fwrite (&bom, 1, 2, stream->file) != 2)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_SYS_ERROR;
             }
@@ -579,7 +579,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
             // Write it out
             if (fwrite (&bom, 1, 4, stream->file) != 4)
             {
-                fclose (stream->file);
+                (void) fclose (stream->file);
                 free (stream);
                 return TEXT_SYS_ERROR;
             }
@@ -595,7 +595,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     stream->isEof = false;
     if (!out)
     {
-        fclose (stream->file);
+        (void) fclose (stream->file);
         free (stream);
         return TEXT_INVALID_PARAMETER;
     }
@@ -635,6 +635,7 @@ LIBNEX_PUBLIC short TextClose (TextStream_t* stream)
             res = TEXT_SYS_ERROR;
         ObjDestroy (&stream->obj);
     }
+    free (stream);
     return res;
 }
 
