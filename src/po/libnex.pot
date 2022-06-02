@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-18 17:41-0400\n"
+"POT-Creation-Date: 2022-05-27 17:31-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,26 +17,26 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/textstream.c:683
+#: src/textstream.c:684
 msgid "No error"
 msgstr ""
 
-#: src/textstream.c:685
+#: src/textstream.c:686
 msgid "Invalid parameter"
 msgstr ""
 
-#: src/textstream.c:686
+#: src/textstream.c:687
 msgid "Invalid byte order mark"
 msgstr ""
 
-#: src/textstream.c:687
+#: src/textstream.c:688
 msgid "Character can't be encoded by character set"
 msgstr ""
 
-#: src/textstream.c:688
+#: src/textstream.c:689
 msgid "Result buffer too small"
 msgstr ""
 
-#: src/textstream.c:689
+#: src/textstream.c:690
 msgid "Unsupported character encoding"
 msgstr ""

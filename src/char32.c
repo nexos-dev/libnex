@@ -27,15 +27,15 @@
 LIBNEX_PUBLIC ssize_t c32stombs (char* mbStr, const char32_t* u32str, size_t sz, mbstate_t* state)
 {
     char* ombStr = mbStr;
-    ssize_t res = 0;
+    size_t res = 0;
     do
     {
-        res = (ssize_t) c32rtomb (mbStr, *u32str, state);
+        res = c32rtomb (mbStr, *u32str, state);
         // A little hack. On Windows, c32rtomb doesn't return 0 when it enounters a null character
         if (*u32str == 0)
             return mbStr - ombStr;
-        if (res < 0)
-            return res;
+        if (res == -1)
+            return -1;
         mbStr += res;
         ++u32str;
     } while (res && mbStr < (mbStr + sz));
