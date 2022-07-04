@@ -1,0 +1,25 @@
+.TH c32pbrk 3 2022-06-16
+.SH NAME
+\fBc32pbrk\fB \- searchs a string for any in a set of characters
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "char32_t* c32pbrk (const char32_t* s, const char32_t* chars);"
+.br
+
+.SH DESCRIPTION
+.B c32pbrk
+looks for the first occurence of any character in 
+.I chars
+in the string
+.I s.
+
+.SH RETURN VALUE
+.B c32pbrk
+returns a pointer to the first occurence of character found as described above.
+.br
+It returns NULL if no such character is found.
+
+.SH SEE ALSO
+c32chr(3), strpbrk(3), c32rchr(3)
