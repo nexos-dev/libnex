@@ -43,7 +43,7 @@ LIBNEX_PUBLIC void setprogname (char* name);
  * @brief Gets the name of this program
  * @return The name of the program
  */
-LIBNEX_PUBLIC char* getprogname();
+LIBNEX_PUBLIC const char* getprogname();
 
 __DECL_END
 

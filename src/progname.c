@@ -35,7 +35,7 @@ void setprogname (char* name)
  * @brief Gets the name of this program
  * @return The name of the program
  */
-char* getprogname()
+const char* getprogname()
 {
     return progName;
 }
