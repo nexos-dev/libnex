@@ -235,9 +235,8 @@ LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2)
     return NULL;
 }
 
-LIBNEX_PUBLIC char32_t* c32dup (char32_t* str)
+LIBNEX_PUBLIC char32_t* c32ndup (char32_t* str, size_t len)
 {
-    size_t len = c32len (str);
     if (!len)
         return NULL;
     char32_t* s = (char32_t*) malloc (len * sizeof (char32_t));
@@ -245,4 +244,12 @@ LIBNEX_PUBLIC char32_t* c32dup (char32_t* str)
         return NULL;
     c32lcpy (s, str, len);
     return s;
+}
+
+LIBNEX_PUBLIC char32_t* c32dup (char32_t* str)
+{
+    size_t len = c32len (str);
+    if (!len)
+        return NULL;
+    return c32ndup (str, len);
 }

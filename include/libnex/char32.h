@@ -170,6 +170,14 @@ LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2);
  */
 LIBNEX_PUBLIC char32_t* c32dup (char32_t* str);
 
+/**
+ * @brief Duplicates a string
+ * @param str the string to duplicate
+ * @param len the number of characters to duplicate
+ * @return the duplicated string
+ */
+LIBNEX_PUBLIC char32_t* c32ndup (char32_t* str, size_t len);
+
 __DECL_END
 
 #endif

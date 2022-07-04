@@ -1,0 +1,42 @@
+.TH c32ndup 3 2022-06-16
+.SH NAME
+\fBc32dup, c32ndup\fB \- duplicates a string
+
+.SH SYNOPSIS
+.B "#include <libnex/char32.h>"
+.sp
+.B "char32_t* c32dup (char32_t* str);"
+.br
+.B "char32_t* c32ndup (char32_t* str, size_t len);"
+.sp
+
+.SH DESCRIPTION
+.B c32dup
+allocates memory as large as the size of 
+.I str,
+and copies the contents of
+.I str
+into the allocated memory.
+.sp
+.B c32ndup
+performs a similar function, but allocates and copies up to
+.I len
+characters only.
+.br
+The allocated string is speified to be null terminated, and be freed with
+.B free(3).
+
+.SH RETURN VALUE
+.B c32dup
+and
+.B c32ndup
+both return the allocated string. If
+.I len
+is 0 or the memory cannot be allocated, it returns NULL.
+
+.SH ERRORS
+.B ENOMEM
+the memory for the string could not be allocated.
+
+.SH SEE ALSO
+malloc(3), free(3), strdup(3)
