@@ -44,8 +44,8 @@ LIBNEX_PUBLIC void warn (char* msg, ...)
     va_start (ap, msg);
 
     // Print it out
-    printf ("%s: ", getprogname());
+    fprintf (stderr, "%s: ", getprogname());
     vfprintf (stderr, msg, ap);
-    printf ("\n");
+    fprintf (stderr, "\n");
     va_end (ap);
 }

@@ -24,7 +24,8 @@
 /**
  * @brief Sets a given bit in a bitset
  *
- * BitSetNew() sets a given bit in a bitset. It takes the literal number of the bit, and uses an OR operation to set it
+ * BitSetNew() sets a given bit in a bitset. It takes the literal number of the bit, and uses an OR operation to
+ * set it
  * @param set the value to set the bit in
  * @param bit the bit to set
  * @return The bitset with the set value
@@ -34,7 +35,8 @@
 /**
  * @brief Sets a given bit in a bitset in place
  *
- * BitSet() sets a given bit in a bitset. It takes the literal number of the bit, and uses an OR operation to set it
+ * BitSet() sets a given bit in a bitset. It takes the literal number of the bit, and uses an OR operation to set
+ * it
  * @param set the value to set the bit in
  * @param bit the bit to set
  */

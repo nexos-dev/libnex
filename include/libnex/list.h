@@ -72,8 +72,8 @@ typedef struct _ListHead
 /**
  * @brief Creates a new linked list
  * @param type the data type of this entry. Used in the underlying object
- * @param usesObj if the data the list wraps uses an object
- * @param offToObj offset to object in data wrapped by list
+ * @param usesObj if the data the list wraps uses libnex objects
+ * @param offToObj offset to object in data structure to be wrapped by list
  * @return The allocated list entry
  */
 LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t offToObj);
