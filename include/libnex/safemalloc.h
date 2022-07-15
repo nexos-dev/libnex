@@ -21,11 +21,7 @@
 #ifndef _SAFE_MALLOC_H
 #define _SAFE_MALLOC_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 
 #ifndef LIBNEX_BAREMETAL
 

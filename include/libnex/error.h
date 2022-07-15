@@ -21,11 +21,7 @@
 #ifndef _ERROR_H
 #define _ERROR_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 #include <libnex/base.h>
 #include <libnex/decls.h>
 

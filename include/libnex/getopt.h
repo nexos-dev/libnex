@@ -1,11 +1,7 @@
 #ifndef GETOPT_LIBNEX_H
 #define GETOPT_LIBNEX_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 #include <libnex/decls.h>
 
 /* include files needed by this include file */

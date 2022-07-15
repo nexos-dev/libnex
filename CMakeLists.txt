@@ -36,7 +36,7 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "NexNix")
     find_package(NexNixSdk REQUIRED)
 else()
-    list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
     include_directories(cmake)
 endif()
 
@@ -109,13 +109,13 @@ if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)
 endif()
 
 # Configure the header
-configure_file(${CMAKE_SOURCE_DIR}/src/libnex_config.in.h ${CMAKE_BINARY_DIR}/libnex_config.h)
-configure_file(${CMAKE_SOURCE_DIR}/data/nex.pc.in ${CMAKE_BINARY_DIR}/nex.pc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_config.in.h ${CMAKE_BINARY_DIR}/libnex/libnex_config.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/data/nex.pc.in ${CMAKE_BINARY_DIR}/nex.pc @ONLY)
 
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
-                 ${CMAKE_SOURCE_DIR}/data/nex.pc.in
-                 ${CMAKE_SOURCE_DIR}/src/libnex_config.in.h
-                 ${CMAKE_SOURCE_DIR}/data/LibNexConfig.cmake.in)
+                 ${CMAKE_CURRENT_SOURCE_DIR}/data/nex.pc.in
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_config.in.h
+                 ${CMAKE_CURRENT_SOURCE_DIR}/data/LibNexConfig.cmake.in)
 
 # Setup different source code types
 list(APPEND LIBNEX_SOURCES_ALWAYS
@@ -155,45 +155,45 @@ endif()
 # Create the PO file lists
 if(LIBNEX_ENABLE_NLS)
     gettext_files(DOMAIN libnex 
-                  OUTPUT "${CMAKE_SOURCE_DIR}/src/po" 
+                  OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/src/po" 
                   LANGS "${LIBNEX_ENABLED_LOCALES}"
                   SOURCES "${LIBNEX_SOURCES}")
 endif()
 
 # Create the include files list
 list(APPEND LIBNEX_HEADERS_ALWAYS
-     ${CMAKE_SOURCE_DIR}/include/libnex/container.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/base.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/decls.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/endian.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/list.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/safestring.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/bits.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/object.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/lock.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/unicode.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/char32.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/crc32.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/container.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/base.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/decls.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/endian.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/list.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/safestring.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/bits.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/object.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/lock.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/unicode.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/char32.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/crc32.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
-    configure_file(${CMAKE_SOURCE_DIR}/src/libnex_baremetal.h ${CMAKE_BINARY_DIR}/libnex.h)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_baremetal.h ${CMAKE_BINARY_DIR}/libnex.h)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS 
-                 ${CMAKE_SOURCE_DIR}/src/libnex_baremetal.h)
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_baremetal.h)
 else()
-    configure_file(${CMAKE_SOURCE_DIR}/src/libnex_hosted.h ${CMAKE_BINARY_DIR}/libnex.h)
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_hosted.h ${CMAKE_BINARY_DIR}/libnex.h)
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS 
-                 ${CMAKE_SOURCE_DIR}/src/libnex_hosted.h)
+                 ${CMAKE_CURRENT_SOURCE_DIR}/src/libnex_hosted.h)
 endif()
 set(LIBNEX_HEADER ${CMAKE_BINARY_DIR}/libnex.h)
 
 # Add hosted headers
 list(APPEND LIBNEX_HEADERS_HOSTED
-     ${CMAKE_SOURCE_DIR}/include/libnex/getopt.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/textstream.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/progname.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/error.h
-     ${CMAKE_SOURCE_DIR}/include/libnex/safemalloc.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/getopt.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/textstream.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/progname.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/error.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/safemalloc.h)
 
 # Set the headers
 list(APPEND LIBNEX_HEADERS ${LIBNEX_HEADERS_ALWAYS})
@@ -202,13 +202,12 @@ if(NOT LIBNEX_BAREMETAL)
 endif()
 
 # Setup include directories
-list(APPEND LIBNEX_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/include ${CMAKE_BINARY_DIR} 
+list(APPEND LIBNEX_PRIVATE_INCLUDE_DIRS ${CMAKE_BINARY_DIR} 
                             ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
-                            ${CMAKE_SOURCE_DIR}/src ${Intl_INCLUDE_DIRS}
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src ${Intl_INCLUDE_DIRS}
                             ${NEXNIXSDK_INCLUDE_DIRS})
-
-# Public include directories
-list(APPEND LIBNEX_PUBLIC_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
+list(APPEND LIBNEX_PUBLIC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+list(APPEND LIBNEX_INSTALL_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 
 # Setup libraries to link with
 if(Intl_LIB)
@@ -234,7 +233,8 @@ target_link_libraries(nex PUBLIC ${LIBNEX_LIBRARIES})
 # Set SOName
 set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 # Include the directories
-target_include_directories(nex PRIVATE ${LIBNEX_INCLUDE_DIRS})
+target_include_directories(nex PRIVATE ${LIBNEX_PRIVATE_INCLUDE_DIRS})
+target_include_directories(nex PUBLIC ${LIBNEX_PUBLIC_INCLUDE_DIRS})
 
 # libnex_config.h is in the binary directory for the libnex build, 
 # but in ${CMAKE_INSTALL_INCLUDEDIR}/include/libnex for consumers. Ensure the headers differentiate
@@ -275,7 +275,7 @@ install(FILES ${LIBNEX_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 install(FILES ${CMAKE_BINARY_DIR}/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 
 # Configure package configuration file
-configure_package_config_file(${CMAKE_SOURCE_DIR}/data/LibNexConfig.cmake.in 
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/data/LibNexConfig.cmake.in 
                               ${CMAKE_BINARY_DIR}/LibNexConfig.cmake
                               INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake
                               PATH_VARS CMAKE_INSTALL_INCLUDEDIR)
@@ -290,7 +290,7 @@ install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
         DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
 
 # Install man pages
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/man DESTINATION ${CMAKE_INSTALL_DATADIR})
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/man DESTINATION ${CMAKE_INSTALL_DATADIR})
 
 # Figure out which tests to run
 list(APPEND LIBNEX_TESTS
@@ -313,5 +313,5 @@ foreach(test ${LIBNEX_TESTS})
                              LIBS nex
                              INCLUDES ${LIBNEX_INCLUDE_DIRS}
                              DEFINES IN_LIBNEX
-                             WORKDIR ${CMAKE_SOURCE_DIR}/tests)
+                             WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endforeach()

@@ -21,11 +21,7 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 #include <libnex/char32.h>
 #include <libnex/decls.h>
 #include <libnex/endian.h>

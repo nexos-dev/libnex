@@ -19,6 +19,7 @@
 /// @file progname.c
 
 #include <libnex/error.h>
+#include <libnex/libnex_config.h>
 
 static char* progName;    ///< The name of this program. It is used when printing out error primarily
 
@@ -26,7 +27,7 @@ static char* progName;    ///< The name of this program. It is used when printin
  * @brief Sets the name of this program
  * @param[in] name the name of the program
  */
-void setprogname (char* name)
+LIBNEX_PUBLIC void setprogname (char* name)
 {
     progName = name;
 }
@@ -35,7 +36,7 @@ void setprogname (char* name)
  * @brief Gets the name of this program
  * @return The name of the program
  */
-const char* getprogname()
+LIBNEX_PUBLIC const char* getprogname()
 {
     return progName;
 }

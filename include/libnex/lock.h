@@ -21,11 +21,7 @@
 #ifndef _LOCK_H
 #define _LOCK_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 
 #ifdef HAVE_PTHREAD
 #include <pthread.h>

@@ -21,11 +21,7 @@
 #ifndef _LIBNEX_ENDIAN_H
 #define _LIBNEX_ENDIAN_H
 
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
 #include <libnex/bits.h>
 #include <stdint.h>
 

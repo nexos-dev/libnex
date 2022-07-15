@@ -33,7 +33,7 @@ set_target_properties(LibNex::nex PROPERTIES IMPORTED_LOCATION "@LIBNEX_LIBRARY_
 if(NOT "@LIBNEX_LIBRARIES@" STREQUAL "")
     target_link_libraries(LibNex::nex INTERFACE "@LIBNEX_LIBRARIES@")
 endif()
-target_include_directories(LibNex::nex INTERFACE "@LIBNEX_PUBLIC_INCLUDE_DIRS@")
+target_include_directories(LibNex::nex INTERFACE "@LIBNEX_INSTALL_INCLUDE_DIRS@")
 
 # Set SOName
 if(@LIBNEX_HAVE_SONAME@)

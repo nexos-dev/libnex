@@ -30,13 +30,7 @@
 #define _OBJECT_H
 
 #include <libnex/decls.h>
-
-#ifdef IN_LIBNEX
-#include <libnex_config.h>
-#else
 #include <libnex/libnex_config.h>
-#endif
-
 #include <libnex/lock.h>
 
 /**
