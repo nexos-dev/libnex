@@ -17,6 +17,6 @@
  * @param len length of buf
  * @return the CRC32 checksum
  */
-LIBNEX_PUBLIC uint32_t Crc32Calc (uint8_t* buf, uint32_t len);
+LIBNEX_PUBLIC uint32_t Crc32Calc (uint8_t* buf, size_t len);
 
 #endif

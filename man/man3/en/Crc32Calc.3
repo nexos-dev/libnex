@@ -1,0 +1,23 @@
+.TH Crc32Calc 3 2022-07-18
+.SH NAME
+\fBCrc32Calc \- calculates the Crc32 checksum of a buffer
+
+.SH SYNOPSIS
+.B "#include <libnex/crc32.h>"
+.sp
+.B "uint32_t Crc32Calc (uint8_t* buf, size_t len);"
+.br
+
+.SH DESCRIPTION
+.B Crc32Calc
+calculates the CRC32 checksum of a buffer named
+.I buf.
+It will only compute the checksum of
+.I len
+bytes.
+
+.SH "RETURN VALUE"
+.B Crc32Calc
+will return the computed CRC32 checksum.
+.SH "SEE ALSO"
+libnex(3)

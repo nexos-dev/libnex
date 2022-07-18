@@ -39,7 +39,7 @@ uint32_t poly8Lookup[256] = {
 
 // Calculate CRC32 checksum of buffer
 // Adapted from https://wiki.osdev.org/Crc32
-uint32_t Crc32Calc (uint8_t* p, uint32_t bytelength)
+uint32_t Crc32Calc (uint8_t* p, size_t bytelength)
 {
     uint32_t crc = 0xFFFFFFFF;
     while (bytelength-- != 0)
