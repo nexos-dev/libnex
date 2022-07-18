@@ -21,10 +21,10 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 
-#include <libnex/libnex_config.h>
 #include <libnex/char32.h>
 #include <libnex/decls.h>
 #include <libnex/endian.h>
+#include <libnex/libnex_config.h>
 #include <stdbool.h>
 #include <uchar.h>
 

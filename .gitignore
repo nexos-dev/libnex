@@ -2,3 +2,5 @@
 *.code-workspace
 *.mo
 *.po~
+build
+prefix

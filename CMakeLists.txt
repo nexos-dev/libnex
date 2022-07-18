@@ -125,7 +125,8 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/object.c
      src/char32.c
      src/unicode.c
-     src/crc32.c)
+     src/crc32.c
+     src/array.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
@@ -173,7 +174,8 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/lock.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/unicode.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/char32.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/crc32.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/crc32.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/array.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -311,7 +313,7 @@ foreach(test ${LIBNEX_TESTS})
     nextest_add_library_test(NAME ${test}
                              SOURCE tests/${test}.c
                              LIBS nex
-                             INCLUDES ${LIBNEX_INCLUDE_DIRS}
+                             INCLUDES ${LIBNEX_PRIVATE_INCLUDE_DIRS} ${LIBNEX_PUBLIC_INCLUDE_DIRS}
                              DEFINES IN_LIBNEX
                              WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 endforeach()
