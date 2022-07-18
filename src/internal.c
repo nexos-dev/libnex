@@ -17,7 +17,7 @@
 */
 
 #include "internal.h"
-#include <libnex_config.h>
+#include <libnex/libnex_config.h>
 #include <stdbool.h>
 
 #ifdef LIBNEX_ENABLE_NLS

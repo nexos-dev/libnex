@@ -20,7 +20,7 @@
 #define _LIBNEX_INTERNAL_H
 
 #include <libintl.h>
-#include <libnex_config.h>
+#include <libnex/libnex_config.h>
 #include <locale.h>
 
 // Initializes internationalization for libnex
