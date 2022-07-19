@@ -1,5 +1,5 @@
 /*
-    array.h - contains dynamic / bounded array definitions
+    hash.h - contains hash table interface
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,9 +16,26 @@
     limitations under the License.
 */
 
-#ifndef _ARRAY_H
-#define _ARRAY_H
+#ifndef _HASH_H
+#define _HASH_H
 
 #include <libnex/libnex_config.h>
+#include <stdint.h>
+
+/**
+ * @brief Produces an FNV-1a hash for a buffer
+ * HashCreateHash computes the FNV-1a hash for sz bytes of buf
+ * @param buf buffer to compute hash of
+ * @param sz number of bytes to compute hash of
+ * @return The 32-bit FNV-1a hash
+ */
+uint32_t HashCreateHash (void* buf, size_t sz);
+
+/**
+ * @brief Produces an FNV-1a hash for a string
+ * @param buf bstring to compute hash of
+ * @return The 32-bit FNV-1a hash
+ */
+uint32_t HashCreateHashStr (char* str);
 
 #endif

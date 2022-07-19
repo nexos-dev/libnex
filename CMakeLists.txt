@@ -299,6 +299,7 @@ list(APPEND LIBNEX_TESTS
      endian list
      bits object
      char32 unicode
+     hash
      )
 
 if(NOT HAVE_BSD_STRING)

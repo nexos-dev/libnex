@@ -1,5 +1,5 @@
 /*
-    array.c - contains dynamic / bounded array implementation
+    hash.c - contains test suite for hash table functions
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,4 +16,14 @@
     limitations under the License.
 */
 
-#include <libnex/array.h>
+/// @file hash.c
+
+#include <libnex.h>
+
+#define NEXTEST_NAME "hash"
+#include <nextest.h>
+
+int main()
+{
+    return 0;
+}
