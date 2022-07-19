@@ -274,7 +274,7 @@ endif()
 # Install header files
 install(FILES ${LIBNEX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 install(FILES ${LIBNEX_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(FILES ${CMAKE_BINARY_DIR}/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
+install(FILES ${CMAKE_BINARY_DIR}/libnex/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 
 # Configure package configuration file
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/data/LibNexConfig.cmake.in 
