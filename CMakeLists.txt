@@ -126,7 +126,7 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/char32.c
      src/unicode.c
      src/crc32.c
-     src/array.c)
+     src/hash.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
@@ -175,7 +175,7 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/unicode.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/char32.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/crc32.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/array.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/hash.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
