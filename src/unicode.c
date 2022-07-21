@@ -275,17 +275,16 @@ LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s)
 {
     // Allocate buffer for encoding buffer if needed
     // FIXME: hostEncBuf currently leaks. Need to figure out a way to fix that
-    size_t chars = c32len (s);
     if (!hostEncBuf)
     {
         // We allocate enough memory for the worst case scenario here
-        hostEncBuf = malloc_s ((chars + 1) * sizeof (char32_t));
+        hostEncBuf = malloc_s ((UNICODE_HOST_MAX_BUF + 1) * sizeof (char32_t));
         if (!hostEncBuf)
             return NULL;
     }
     // Convert
     mbstate_t state = {0};
-    if (c32stombs (hostEncBuf, s, (chars + 1) * sizeof (char32_t), &state) < 0)
+    if (c32stombs (hostEncBuf, s, (c32len (s) + 1) * sizeof (char32_t), &state) < 0)
         return NULL;
     return hostEncBuf;
 }

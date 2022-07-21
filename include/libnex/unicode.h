@@ -147,6 +147,10 @@ LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom);
  */
 LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s);
 
+/// Unicode to host max buffer size
+/// Ensure strings passed to UnicodeToHost DO NOT surpass this
+#define UNICODE_HOST_MAX_BUF (512 * sizeof (char32_t))
+
 __DECL_END
 
 #endif
