@@ -30,15 +30,8 @@
  */
 void __Libnex_lock_init (lock_t* lock)
 {
-#ifdef HAVE_PTHREAD
-    pthread_mutexattr_t attr;
-    // FIXME: attr is leaked. I currently can't think of an easy way to structure this so that
-    // _lock_destroy can destroy the mutex and mutexattr. TBD.
-    pthread_mutexattr_init (&attr);
-    pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-    pthread_mutex_init (lock, &attr);
-#elif defined HAVE_WIN32_THREADS
-    InitializeCriticalSection (lock);
+#ifdef HAVE_C11_THREADS
+    mtx_init (lock, mtx_recursive);
 #else
     UNUSED (lock);
 #endif
@@ -52,10 +45,8 @@ void __Libnex_lock_init (lock_t* lock)
  */
 void __Libnex_lock_lock (lock_t* lock)
 {
-#ifdef HAVE_PTHREAD
-    pthread_mutex_lock (lock);
-#elif defined HAVE_WIN32_THREADS
-    EnterCriticalSection (lock);
+#ifdef HAVE_C11_THREADS
+    mtx_lock (lock);
 #else
     UNUSED (lock);
 #endif
@@ -69,10 +60,8 @@ void __Libnex_lock_lock (lock_t* lock)
  */
 void __Libnex_lock_unlock (lock_t* lock)
 {
-#ifdef HAVE_PTHREAD
-    pthread_mutex_unlock (lock);
-#elif defined HAVE_WIN32_THREADS
-    LeaveCriticalSection (lock);
+#ifdef HAVE_C11_THREADS
+    mtx_unlock (lock);
 #else
     UNUSED (lock);
 #endif
@@ -86,10 +75,8 @@ void __Libnex_lock_unlock (lock_t* lock)
  */
 void __Libnex_lock_destroy (lock_t* lock)
 {
-#ifdef HAVE_PTHREAD
-    pthread_mutex_destroy (lock);
-#elif defined HAVE_WIN32_THREADS
-    DeleteCriticalSection (lock);
+#ifdef HAVE_C11_THREADS
+    mtx_destroy (lock);
 #else
     UNUSED (lock);
 #endif

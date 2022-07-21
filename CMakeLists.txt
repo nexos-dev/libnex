@@ -95,10 +95,7 @@ endif()
 # Check for different functions
 check_symbol_exists(strlcpy "string.h" HAVE_BSD_STRING)
 check_symbol_exists(setprogname "stdlib.h" HAVE_PROGNAME)
-check_symbol_exists(pthread_self "pthread.h" HAVE_PTHREAD)
-if(NOT HAVE_PTHREAD)
-    check_symbol_exists(EnterCriticalSection "windows.h" HAVE_WIN32_THREADS)
-endif()
+check_symbol_exists(mtx_init "threads.h" HAVE_C11_THREADS)
 # Check for stat
 check_symbol_exists(stat "sys/stat.h" HAVE_UNIX_STAT)
 if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)

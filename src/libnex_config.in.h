@@ -22,8 +22,7 @@
 #cmakedefine LIBNEX_BAREMETAL
 #cmakedefine HAVE_BSD_STRING
 #cmakedefine HAVE_PROGNAME
-#cmakedefine HAVE_PTHREAD
-#cmakedefine HAVE_WIN32_THREADS
+#cmakedefine HAVE_C11_THREADS
 #cmakedefine HAVE_VISIBILITY
 #cmakedefine HAVE_DECLSPEC_EXPORT
 #cmakedefine LIBNEX_ENABLE_NLS

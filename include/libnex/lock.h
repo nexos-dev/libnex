@@ -23,12 +23,9 @@
 
 #include <libnex/libnex_config.h>
 
-#ifdef HAVE_PTHREAD
-#include <pthread.h>
-typedef pthread_mutex_t lock_t;
-#elif defined HAVE_WIN32_THREADS
-#include <windows.h>
-typedef CRITICAL_SECTION lock_t;
+#ifdef HAVE_C11_THREADS
+#include <threads.h>
+typedef mtx_t lock_t;
 #else
 #ifndef LIBNEX_BAREMETAL
 #error Target platform has no supported supported threading library
