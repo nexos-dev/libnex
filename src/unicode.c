@@ -20,8 +20,10 @@
 
 #include "unicode/utf16stateTab.h"
 #include "unicode/utf8stateTab.h"
+#include <libnex/safemalloc.h>
 #include <libnex/unicode.h>
 #include <string.h>
+#include <threads.h>
 
 // UTF-16 parser states
 #define UTF16_START         0
@@ -264,4 +266,26 @@ LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom)
         return ENDIAN_BIG;
     else
         return 0;
+}
+
+// Buffers used by UnicodeToHost
+thread_local char* hostEncBuf = NULL;
+
+LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s)
+{
+    // Allocate buffer for encoding buffer if needed
+    // FIXME: hostEncBuf currently leaks. Need to figure out a way to fix that
+    size_t chars = c32len (s);
+    if (!hostEncBuf)
+    {
+        // We allocate enough memory for the worst case scenario here
+        hostEncBuf = malloc_s ((chars + 1) * sizeof (char32_t));
+        if (!hostEncBuf)
+            return NULL;
+    }
+    // Convert
+    mbstate_t state = {0};
+    if (c32stombs (hostEncBuf, s, (chars + 1) * sizeof (char32_t), &state) < 0)
+        return NULL;
+    return hostEncBuf;
 }

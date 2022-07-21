@@ -139,6 +139,14 @@ LIBNEX_PUBLIC char UnicodeReadBom16 (const uint8_t* bom);
  */
 LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom);
 
+/**
+ * @brief Converts UTF-32 string to host's multibyte format
+ * NOTE: DO NOT pass returned string to free!
+ * @param s string to convert
+ * @return multibyte string. DO NOT pass to free. Returns NULL on error
+ */
+LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s);
+
 __DECL_END
 
 #endif
