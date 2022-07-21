@@ -38,17 +38,23 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t off
 
 LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func)
 {
+    ListLock (list);
     list->cmpFunc = func;
+    ListUnlock (list);
 }
 
 LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func)
 {
+    ListLock (list);
     list->findByFunc = func;
+    ListUnlock (list);
 }
 
 LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func)
 {
+    ListLock (list);
     list->destroyFunc = func;
+    ListUnlock (list);
 }
 
 LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
