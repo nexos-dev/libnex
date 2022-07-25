@@ -69,9 +69,10 @@ LIBNEX_PUBLIC int ObjDestroy (const Object_t* obj)
     if (obj->refCount == 0)
     {
         // Destroy the lock and object, as the object is done
-        obj->destroyObj ((Object_t*) obj);
+        if (obj->destroyObj)
+            obj->destroyObj ((Object_t*) obj);
         ObjUnlock (obj);
-        __Libnex_lock_destroy (&obj->lock);
+        __Libnex_lock_destroy (&((Object_t*) obj)->lock);
     }
     else
         ObjUnlock (obj);
@@ -91,7 +92,7 @@ LIBNEX_PUBLIC Object_t* ObjRef (const Object_t* obj)
     ObjLock (obj);
     ++((Object_t*) obj)->refCount;
     ObjUnlock (obj);
-    return obj;
+    return (Object_t*) obj;
 }
 
 /**
@@ -125,7 +126,7 @@ LIBNEX_PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2)
  */
 LIBNEX_PUBLIC void ObjLock (const Object_t* obj)
 {
-    __Libnex_lock_lock (&obj->lock);
+    __Libnex_lock_lock (&((Object_t*) obj)->lock);
 }
 
 /**
@@ -134,5 +135,5 @@ LIBNEX_PUBLIC void ObjLock (const Object_t* obj)
  */
 LIBNEX_PUBLIC void ObjUnlock (const Object_t* obj)
 {
-    __Libnex_lock_unlock (&obj->lock);
+    __Libnex_lock_unlock (&((Object_t*) obj)->lock);
 }

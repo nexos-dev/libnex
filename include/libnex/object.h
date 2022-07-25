@@ -47,11 +47,11 @@
  */
 typedef struct _Object
 {
-    const char* type;                  ///< The type of this object
-    int id;                            ///< A unique ID for this object
-    int refCount;                      ///< The number of consumers this object currently has
-    lock_t lock;                       ///< Used to synchronize access to this object
-    void (*destroyObj) (Object_t*);    ///< Function to destroy object with
+    const char* type;                        ///< The type of this object
+    int id;                                  ///< A unique ID for this object
+    int refCount;                            ///< The number of consumers this object currently has
+    lock_t lock;                             ///< Used to synchronize access to this object
+    void (*destroyObj) (struct _Object*);    ///< Function to destroy object with
 } Object_t;
 
 __DECL_START
