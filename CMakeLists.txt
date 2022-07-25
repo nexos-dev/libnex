@@ -202,9 +202,9 @@ endif()
 
 # Setup include directories
 list(APPEND LIBNEX_PRIVATE_INCLUDE_DIRS ${CMAKE_BINARY_DIR} 
-                            ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR}
                             ${CMAKE_CURRENT_SOURCE_DIR}/src ${Intl_INCLUDE_DIRS}
                             ${NEXNIXSDK_INCLUDE_DIRS})
+list(APPEND LIBNEX_INTERFACE_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 list(APPEND LIBNEX_PUBLIC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 list(APPEND LIBNEX_INSTALL_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 
@@ -234,6 +234,7 @@ set_target_properties(nex PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJ
 # Include the directories
 target_include_directories(nex PRIVATE ${LIBNEX_PRIVATE_INCLUDE_DIRS})
 target_include_directories(nex PUBLIC ${LIBNEX_PUBLIC_INCLUDE_DIRS})
+target_include_directories(nex INTERFACE ${LIBNEX_INTERFACE_INCLUDE_DIRS})
 
 # libnex_config.h is in the binary directory for the libnex build, 
 # but in ${CMAKE_INSTALL_INCLUDEDIR}/include/libnex for consumers. Ensure the headers differentiate
