@@ -25,11 +25,12 @@
  */
 
 #include <libnex/object.h>
+#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 
 // The next ID to be used
-static int nextId = 1;
+static _Atomic int nextId = 1;
 
 /**
  * @brief Creates a new object
@@ -45,7 +46,13 @@ LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj)
     obj->id = nextId++;
     obj->refCount = 1;
     obj->type = type;
+    obj->destroyObj = NULL;
     __Libnex_lock_init (&obj->lock);
+}
+
+LIBNEX_PUBLIC void ObjSetDestroy (Object_t* obj, void (*func) (Object_t*))
+{
+    obj->destroyObj = func;
 }
 
 /**
@@ -55,13 +62,14 @@ LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj)
  * ObjDestroy() will delete the core object data as well. It returns the new reference count.
  * @param[in] obj the object to destroy
  */
-LIBNEX_PUBLIC int ObjDestroy (Object_t* obj)
+LIBNEX_PUBLIC int ObjDestroy (const Object_t* obj)
 {
     ObjLock (obj);
-    --obj->refCount;
+    --((Object_t*) obj)->refCount;
     if (obj->refCount == 0)
     {
-        // Destroy the lock, as the object is done
+        // Destroy the lock and object, as the object is done
+        obj->destroyObj ((Object_t*) obj);
         ObjUnlock (obj);
         __Libnex_lock_destroy (&obj->lock);
     }
@@ -78,10 +86,10 @@ LIBNEX_PUBLIC int ObjDestroy (Object_t* obj)
  * @param[in] obj the object to reference
  * @return the object
  */
-LIBNEX_PUBLIC Object_t* ObjRef (Object_t* obj)
+LIBNEX_PUBLIC Object_t* ObjRef (const Object_t* obj)
 {
     ObjLock (obj);
-    ++obj->refCount;
+    ++((Object_t*) obj)->refCount;
     ObjUnlock (obj);
     return obj;
 }
@@ -115,7 +123,7 @@ LIBNEX_PUBLIC int ObjCompareType (const Object_t* obj1, const Object_t* obj2)
  * @brief Locks this object
  * @param[in] obj the object to lock
  */
-LIBNEX_PUBLIC void ObjLock (Object_t* obj)
+LIBNEX_PUBLIC void ObjLock (const Object_t* obj)
 {
     __Libnex_lock_lock (&obj->lock);
 }
@@ -124,7 +132,7 @@ LIBNEX_PUBLIC void ObjLock (Object_t* obj)
  * @brief Unlocks this object
  * @param[in] obj the object to unlock
  */
-LIBNEX_PUBLIC void ObjUnlock (Object_t* obj)
+LIBNEX_PUBLIC void ObjUnlock (const Object_t* obj)
 {
     __Libnex_lock_unlock (&obj->lock);
 }
