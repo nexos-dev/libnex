@@ -25,12 +25,11 @@
  */
 
 #include <libnex/object.h>
-#include <stdatomic.h>
 #include <stdio.h>
 #include <string.h>
 
 // The next ID to be used
-static _Atomic int nextId = 1;
+static unsigned long long nextId = 1;
 
 /**
  * @brief Creates a new object
@@ -66,17 +65,22 @@ LIBNEX_PUBLIC int ObjDestroy (const Object_t* obj)
 {
     ObjLock (obj);
     --((Object_t*) obj)->refCount;
+    int refCount = 0;
     if (obj->refCount == 0)
     {
         // Destroy the lock and object, as the object is done
-        if (obj->destroyObj)
-            obj->destroyObj ((Object_t*) obj);
         ObjUnlock (obj);
         __Libnex_lock_destroy (&((Object_t*) obj)->lock);
+        if (obj->destroyObj)
+            obj->destroyObj ((Object_t*) obj);
+        refCount = obj->refCount;
     }
     else
+    {
+        refCount = obj->refCount;
         ObjUnlock (obj);
-    return obj->refCount;
+    }
+    return refCount;
 }
 
 /**

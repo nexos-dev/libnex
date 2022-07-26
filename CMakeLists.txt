@@ -236,9 +236,7 @@ target_include_directories(nex PRIVATE ${LIBNEX_PRIVATE_INCLUDE_DIRS})
 target_include_directories(nex PUBLIC ${LIBNEX_PUBLIC_INCLUDE_DIRS})
 target_include_directories(nex INTERFACE ${LIBNEX_INTERFACE_INCLUDE_DIRS})
 
-# libnex_config.h is in the binary directory for the libnex build, 
-# but in ${CMAKE_INSTALL_INCLUDEDIR}/include/libnex for consumers. Ensure the headers differentiate
-# between them. This also is needed for deciding between dllexport and dllimport
+# Ensure the headers differentiate between dllexport and dllimport
 target_compile_definitions(nex PRIVATE "IN_LIBNEX")
 
 # Ensure symbols are hidden by default
