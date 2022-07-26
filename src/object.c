@@ -71,9 +71,9 @@ LIBNEX_PUBLIC int ObjDestroy (const Object_t* obj)
         // Destroy the lock and object, as the object is done
         ObjUnlock (obj);
         __Libnex_lock_destroy (&((Object_t*) obj)->lock);
+        refCount = obj->refCount;
         if (obj->destroyObj)
             obj->destroyObj ((Object_t*) obj);
-        refCount = obj->refCount;
     }
     else
     {
