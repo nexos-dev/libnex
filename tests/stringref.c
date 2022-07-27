@@ -38,7 +38,7 @@ int main()
     stringRef_t* ref2 = StrRefNew (ref);
     TEST (ref2->obj.refCount, 2, "StrRefNew() result validity 1");
     TEST (ref->obj.refCount, 2, "StrRefNew() result validity 2");
-    TEST_BOOL (!strcmp (ref2->str, "test string"), "StrRefNew()) result validity 3");
+    TEST_BOOL (!strcmp (StrRefGet (ref2), "test string"), "StrRefNew()) result validity 3");
     StrRefDestroy (ref);
     TEST_BOOL (ref2->str, "StrRefDestroy() result validity 1");
     TEST (ref2->obj.refCount, 1, "StrRefDestroy() result validity 2");

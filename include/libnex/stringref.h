@@ -60,10 +60,13 @@ static inline stringRef_t* StrRefNew (const stringRef_t* ref)
  * @brief Deletes a reference to a string
  * @param ref reference to delete
  */
-static inline void StrRefDestroy (const stringRef_t* ref)
-{
-    ObjDeRef (&ref->obj);
-}
+#define StrRefDestroy(ref) (ObjDeRef (&ref->obj))
+
+/**
+ * @brief Gets underlying string of reference
+ * @param ref reference to get string from
+ */
+#define StrRefGet(ref) ((ref)->str)
 
 __DECL_END
 
