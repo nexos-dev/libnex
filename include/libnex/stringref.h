@@ -32,6 +32,9 @@ typedef struct _strref
     const void* str;    // Underlying string
 } stringRef_t;
 
+/// Macro to help avoid confusion for using stringRef on char32_t strings
+#define stringRef32_t stringRef_t
+
 __DECL_START
 
 /**
