@@ -279,15 +279,10 @@ LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
             if (!list->usesObj)
                 free ((void*) entry->data);
             else
-            {
-                if (!ObjDestroy ((const Object_t*) (entry->data + list->objOffset)))
-                    free ((void*) entry->data);
-            }
+                ObjDestroy ((const Object_t*) (entry->data + list->objOffset));
         }
         else
-        {
             list->destroyFunc (entry->data);
-        }
         free (entry);
     }
 }
