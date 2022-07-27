@@ -24,12 +24,15 @@
 #include <libnex/decls.h>
 #include <libnex/libnex_config.h>
 #include <libnex/object.h>
+#include <stdbool.h>
 
 // String reference type
 typedef struct _strref
 {
     Object_t obj;       // Underlying object of string
     const void* str;    // Underlying string
+    bool doFree;        // Kind of pointless, but it may be convinient to allow for str
+                        // to not be free'ed automatically
 } stringRef_t;
 
 /// Macro to help avoid confusion for using stringRef on char32_t strings
@@ -67,6 +70,12 @@ static inline stringRef_t* StrRefNew (const stringRef_t* ref)
  * @param ref reference to get string from
  */
 #define StrRefGet(ref) ((ref)->str)
+
+/**
+ * @brief Ensures underlying string isn't free'ed
+ * @param ref reference to ensure this on
+ */
+#define StrRefNoFree(ref) ((ref)->doFree = false;)
 
 __DECL_END
 

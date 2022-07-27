@@ -24,8 +24,11 @@
 void destroyRef (const Object_t* obj)
 {
     stringRef_t* ref = ObjGetContainer (obj, stringRef_t, obj);
-    free ((void*) ref->str);
-    ref->str = NULL;
+    if (ref->doFree)
+    {
+        free ((void*) ref->str);
+        ref->str = NULL;
+    }
     free (ref);
 }
 
@@ -33,6 +36,7 @@ LIBNEX_PUBLIC stringRef_t* StrRefCreate (const void* s)
 {
     stringRef_t* newRef = malloc_s (sizeof (stringRef_t));
     newRef->str = s;
+    newRef->doFree = true;
     ObjCreate ("stringRef_t", &newRef->obj);
     ObjSetDestroy (&newRef->obj, destroyRef);
     return newRef;
