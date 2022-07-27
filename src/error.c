@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-LIBNEX_PUBLIC void error (char* msg, ...)
+LIBNEX_PUBLIC void error (const char* msg, ...)
 {
     // Declare the argument list
     va_list ap;
@@ -37,7 +37,7 @@ LIBNEX_PUBLIC void error (char* msg, ...)
     va_end (ap);
 }
 
-LIBNEX_PUBLIC void warn (char* msg, ...)
+LIBNEX_PUBLIC void warn (const char* msg, ...)
 {
     // Declare the argument list
     va_list ap;

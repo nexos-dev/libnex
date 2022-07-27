@@ -164,7 +164,7 @@ LIBNEX_PUBLIC char32_t* c32pbrk (const char32_t* s1, const char32_t* s2);
  * @param str the string to duplicate
  * @return the duplicated string
  */
-LIBNEX_PUBLIC char32_t* c32dup (char32_t* str);
+LIBNEX_PUBLIC char32_t* c32dup (const char32_t* str);
 
 /**
  * @brief Duplicates a string
@@ -172,7 +172,7 @@ LIBNEX_PUBLIC char32_t* c32dup (char32_t* str);
  * @param len the number of characters to duplicate
  * @return the duplicated string
  */
-LIBNEX_PUBLIC char32_t* c32ndup (char32_t* str, size_t len);
+LIBNEX_PUBLIC char32_t* c32ndup (const char32_t* str, size_t len);
 
 __DECL_END
 

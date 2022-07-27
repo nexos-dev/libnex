@@ -21,9 +21,9 @@
 #ifndef _ERROR_H
 #define _ERROR_H
 
-#include <libnex/libnex_config.h>
 #include <libnex/base.h>
 #include <libnex/decls.h>
+#include <libnex/libnex_config.h>
 
 __DECL_START
 
@@ -35,7 +35,7 @@ __DECL_START
  * @param[in] msg the message to report
  * @param[in] ... the list of variable arguments
  */
-LIBNEX_PUBLIC void error (char* msg, ...);
+LIBNEX_PUBLIC void error (const char* msg, ...);
 
 /**
  * @brief Reports a warning to stderr.
@@ -45,7 +45,7 @@ LIBNEX_PUBLIC void error (char* msg, ...);
  * @param[in] msg the message to report
  * @param[in] ... the list of variable arguments
  */
-LIBNEX_PUBLIC void warn (char* msg, ...);
+LIBNEX_PUBLIC void warn (const char* msg, ...);
 
 __DECL_END
 

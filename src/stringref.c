@@ -1,5 +1,5 @@
 /*
-    hash.h - contains hash table interface
+    stringref.c - manages references to strings
     Copyright 2022 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,31 +16,24 @@
     limitations under the License.
 */
 
-#ifndef _HASH_H
-#define _HASH_H
+/// @file stringref.c
 
-#include <libnex/decls.h>
-#include <libnex/libnex_config.h>
-#include <stdint.h>
+#include <libnex/safemalloc.h>
+#include <libnex/stringref.h>
 
-__DECL_START
+void destroyRef (const Object_t* obj)
+{
+    stringRef_t* ref = ObjGetContainer (obj, stringRef_t, obj);
+    free ((void*) ref->str);
+    ref->str = NULL;
+    free (ref);
+}
 
-/**
- * @brief Produces an FNV-1a hash for a buffer
- * HashCreateHash computes the FNV-1a hash for sz bytes of buf
- * @param buf buffer to compute hash of
- * @param sz number of bytes to compute hash of
- * @return The 32-bit FNV-1a hash
- */
-uint32_t HashCreateHash (const void* buf, size_t sz);
-
-/**
- * @brief Produces an FNV-1a hash for a string
- * @param buf bstring to compute hash of
- * @return The 32-bit FNV-1a hash
- */
-uint32_t HashCreateHashStr (const char* str);
-
-__DECL_END
-
-#endif
+LIBNEX_PUBLIC stringRef_t* StrRefCreate (const void* s)
+{
+    stringRef_t* newRef = malloc_s (sizeof (stringRef_t));
+    newRef->str = s;
+    ObjCreate ("stringRef_t", &newRef->obj);
+    ObjSetDestroy (&newRef->obj, destroyRef);
+    return newRef;
+}

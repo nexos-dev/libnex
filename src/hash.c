@@ -22,11 +22,11 @@
 #define HASH_FNV1A_PRIME       16777619
 #define HASH_FNV1A_OFFSET_BASE 2166136261
 
-uint32_t HashCreateHash (void* data, size_t sz)
+uint32_t HashCreateHash (const void* data, size_t sz)
 {
     // Get buffer bounds
-    uint8_t* buf = data;
-    uint8_t* bufEnd = buf + sz;
+    const uint8_t* buf = data;
+    const uint8_t* bufEnd = buf + sz;
     // Setup hash
     uint32_t hash = HASH_FNV1A_OFFSET_BASE;
     // Compute it
@@ -38,7 +38,7 @@ uint32_t HashCreateHash (void* data, size_t sz)
     return hash;
 }
 
-uint32_t HashCreateHashStr (char* str)
+uint32_t HashCreateHashStr (const char* str)
 {
     uint8_t* buf = (uint8_t*) str;
     // Setup hash

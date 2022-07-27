@@ -49,7 +49,7 @@ LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj)
     __Libnex_lock_init (&obj->lock);
 }
 
-LIBNEX_PUBLIC void ObjSetDestroy (Object_t* obj, void (*func) (Object_t*))
+LIBNEX_PUBLIC void ObjSetDestroy (Object_t* obj, void (*func) (const Object_t*))
 {
     obj->destroyObj = func;
 }

@@ -23,7 +23,7 @@
 #define NEXTEST_NAME "list"
 #include <nextest.h>
 
-void destroyEntry (void* data)
+void destroyEntry (const void* data)
 {
     UNUSED (data);
 }

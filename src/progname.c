@@ -21,13 +21,13 @@
 #include <libnex/error.h>
 #include <libnex/libnex_config.h>
 
-static char* progName;    ///< The name of this program. It is used when printing out error primarily
+static const char* progName;    ///< The name of this program. It is used when printing out error primarily
 
 /**
  * @brief Sets the name of this program
  * @param[in] name the name of the program
  */
-LIBNEX_PUBLIC void setprogname (char* name)
+LIBNEX_PUBLIC void setprogname (const char* name)
 {
     progName = name;
 }

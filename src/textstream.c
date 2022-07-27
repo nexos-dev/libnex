@@ -109,11 +109,7 @@ static short _textWriteFrameMaybe (TextStream_t* stream, bool force)
         return res;
 
 // Decodes count characters of text
-static short _textDecode (TextStream_t* stream,
-                          char32_t* buf,
-                          const size_t count,
-                          size_t* charsRead,
-                          bool stopOnLine)
+static short _textDecode (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead, bool stopOnLine)
 {
     assert (stream && buf);
 
@@ -265,7 +261,7 @@ end:
     return res;
 }
 
-static short _textEncode (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten)
+static short _textEncode (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten)
 {
     assert (stream && buf);
     short res = TEXT_SUCCESS;
@@ -369,7 +365,7 @@ static short _textEncode (TextStream_t* stream, const char32_t* buf, const size_
     return res;
 }
 
-LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -392,7 +388,7 @@ LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c)
     return TEXT_SUCCESS;
 }
 
-LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -403,7 +399,7 @@ LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const siz
     return res;
 }
 
-LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, const size_t count, size_t* charsWritten)
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -430,6 +426,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     if (!stream->buf)
     {
         free (stream);
+        errno = ENOMEM;
         return TEXT_SYS_ERROR;
     }
     stream->bufSize = TEXT_DEFAULT_BUFSZ;

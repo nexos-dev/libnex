@@ -37,20 +37,20 @@ __DECL_START
 typedef struct _ListEntry
 {
     Object_t obj;               ///< The underlying object
-    void* data;                 ///< The underlying data in thist list entry
+    const void* data;           ///< The underlying data in thist list entry
     int key;                    ///< Used to uniquely identify this entry
     struct _ListEntry* next;    ///< Pointer to next entry in list. NULL means end
     struct _ListEntry* prev;    ///< Pointer to previous entry in linked list. NULL means beginning
 } ListEntry_t;
 
 /// Predicate to compare two entries for equality
-typedef bool (*ListEntryCmp) (ListEntry_t* entry1, ListEntry_t* entry2);
+typedef bool (*ListEntryCmp) (const ListEntry_t* entry1, const ListEntry_t* entry2);
 
 /// Predicate to check if a piece of data identifies this entry
-typedef bool (*ListEntryFindBy) (ListEntry_t* entry, void* data);
+typedef bool (*ListEntryFindBy) (const ListEntry_t* entry, const void* data);
 
 /// Callback type that destroys a list entry
-typedef void (*ListEntryDestroy) (void* data);
+typedef void (*ListEntryDestroy) (const void* data);
 
 /**
  * @brief Describes the head of a list
@@ -89,7 +89,7 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t off
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key);
+LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, const void* data, int key);
 
 /**
  * @brief Adds an item to the back of the list
@@ -100,7 +100,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int
  * @param[in] key the key for the data so it can identified
  * @return The list entry that was allocated
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key);
+LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, const void* data, int key);
 
 /**
  * @brief Finds an item in a list
@@ -111,7 +111,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int 
  * @param[in] key the key to search for
  * @return The list entry associated with the key
  */
-LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key);
+LIBNEX_PUBLIC ListEntry_t* ListFind (const ListHead_t* list, int key);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -124,7 +124,7 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key);
  * @param[in] entry the entry before the new item
  * @return The new ListEntry_t*
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter);
+LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, int key, ListEntry_t* entryAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -138,7 +138,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const in
  * @return The new ListEntry_t*. NULL if entry specified by keyAfter doesn't
  * exist
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter);
+LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data, int key, int keyAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -151,7 +151,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const
  * @param[in] entryBefore the entry before the new item
  * @return The new ListEntry_t*
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore);
+LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int key, ListEntry_t* entryBefore);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -165,7 +165,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int
  * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
  * exist
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, int keyBefore);
+LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, const void* data, int key, int keyBefore);
 
 /**
  * @brief Removes the head of list, returning the item
@@ -184,7 +184,7 @@ LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list);
  * @param key the key to remove
  * @return The removed entry
  */
-LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key);
+LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key);
 
 /**
  * @brief Removes an entry
@@ -221,7 +221,7 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list);
  * @param data the data to find the entry by
  * @return The found entry
  */
-LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (ListHead_t* list, void* data);
+LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* data);
 
 /**
  * @brief Sets the comparing predicate for a list
@@ -247,7 +247,7 @@ LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func);
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry) ((entry)->data)                ///< Helper to access list entry data
+#define ListEntryData(entry) (((void*) (entry))->data)      ///< Helper to access list entry data
 #define ListPushFront        ListAddFront                   ///< Useful when using as a queue
 #define ListRef(item)        (ObjRef (&(item)->obj))        ///< References the underlying the object
 #define ListLock(item)       (ObjLock (&(item)->obj))       ///< Locks this entry (or list)

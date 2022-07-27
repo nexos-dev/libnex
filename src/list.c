@@ -57,7 +57,7 @@ LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func)
     ListUnlock (list);
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, const void* data, int key)
 {
     ListEntry_t* entry = malloc (sizeof (ListEntry_t));
     if (!entry)
@@ -80,7 +80,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, void* data, const int
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, const void* data, int key)
 {
     ListEntry_t* entry = malloc (sizeof (ListEntry_t));
     if (!entry)
@@ -103,7 +103,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, void* data, const int 
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListFind (const ListHead_t* list, const int key)
 {
     ListLock (list);
     ListEntry_t* search = list->front;
@@ -124,7 +124,7 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (ListHead_t* list, const int key)
     return NULL;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (ListHead_t* list, void* data)
+LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* data)
 {
     ListLock (list);
     ListUnlock (list);
@@ -146,7 +146,7 @@ LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (ListHead_t* list, void* data)
     return NULL;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const int key, ListEntry_t* entryAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, int key, ListEntry_t* entryAfter)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
     if (!entry)
@@ -170,7 +170,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, void* data, const in
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const int key, const int keyAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data, int key, int keyAfter)
 {
     ListEntry_t* entryAfter = ListFind (list, keyAfter);
     if (!entryAfter)
@@ -178,7 +178,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, void* data, const
     return ListAddBefore (list, data, key, entryAfter);
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int key, ListEntry_t* entryBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int key, ListEntry_t* entryBefore)
 {
     ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
     ListLock (list);
@@ -200,7 +200,7 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, void* data, const int
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, void* data, const int key, const int keyBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, const void* data, int key, int keyBefore)
 {
     ListEntry_t* entryBefore = ListFind (list, keyBefore);
     if (!entryBefore)
@@ -228,7 +228,7 @@ LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key)
+LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
 {
     ListEntry_t* entry = ListFind (list, key);
     if (!entry)
@@ -237,7 +237,7 @@ LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, const int key)
 }
 
 // Internal function to remove a list entry
-ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, const int doRef)
+ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
 {
     ListLock (list);
     if (doRef)
@@ -277,11 +277,11 @@ LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
         {
             // Destroy it
             if (!list->usesObj)
-                free (entry->data);
+                free ((void*) entry->data);
             else
             {
-                if (!ObjDestroy ((Object_t*) (entry->data + list->objOffset)))
-                    free (entry->data);
+                if (!ObjDestroy ((const Object_t*) (entry->data + list->objOffset)))
+                    free ((void*) entry->data);
             }
         }
         else

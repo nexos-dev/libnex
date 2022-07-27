@@ -33,7 +33,7 @@ __DECL_START
  * @brief Sets the name of this program. If null, then throws an error
  * @param[in] name the name of the program
  */
-LIBNEX_PUBLIC void setprogname (char* name);
+LIBNEX_PUBLIC void setprogname (const char* name);
 
 /**
  * @brief Gets the name of this program

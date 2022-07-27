@@ -123,7 +123,7 @@ LIBNEX_PUBLIC short TextClose (TextStream_t* stream);
  * @param[out] charsRead the number or characters read
  * @return a result code
  */
-LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead);
 
 /**
  * @brief Reads a character from a text stream
@@ -149,7 +149,7 @@ LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c);
  * @param[out] charsRead the number or characters read
  * @return a status code
  */
-LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
@@ -163,10 +163,7 @@ LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, const siz
  * @param[out] charsWritten the number or characters written
  * @return a status code
  */
-LIBNEX_PUBLIC short TextWrite (TextStream_t* stream,
-                               const char32_t* buf,
-                               const size_t count,
-                               size_t* charsWritten);
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten);
 
 /**
  * @brief Returns a textual representation of a textstream error code

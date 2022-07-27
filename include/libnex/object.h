@@ -47,11 +47,11 @@
  */
 typedef struct _Object
 {
-    const char* type;                        ///< The type of this object
-    int id;                                  ///< A unique ID for this object
-    int refCount;                            ///< The number of consumers this object currently has
-    lock_t lock;                             ///< Used to synchronize access to this object
-    void (*destroyObj) (struct _Object*);    ///< Function to destroy object with
+    const char* type;                              ///< The type of this object
+    int id;                                        ///< A unique ID for this object
+    int refCount;                                  ///< The number of consumers this object currently has
+    lock_t lock;                                   ///< Used to synchronize access to this object
+    void (*destroyObj) (const struct _Object*);    ///< Function to destroy object with
 } Object_t;
 
 __DECL_START
@@ -71,7 +71,7 @@ LIBNEX_PUBLIC void ObjCreate (const char* type, Object_t* obj);
  * @param obj object to set on
  * @param func function to destroy with
  */
-LIBNEX_PUBLIC void ObjSetDestroy (Object_t* obj, void (*func) (Object_t*));
+LIBNEX_PUBLIC void ObjSetDestroy (Object_t* obj, void (*func) (const Object_t*));
 
 /**
  * @brief Destroys an object instance
