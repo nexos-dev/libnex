@@ -33,10 +33,10 @@ typedef struct _strref
     const void* str;    // Underlying string
     bool doFree;        // Kind of pointless, but it may be convinient to allow for str
                         // to not be free'ed automatically
-} stringRef_t;
+} StringRef_t;
 
 /// Macro to help avoid confusion for using stringRef on char32_t strings
-#define stringRef32_t stringRef_t
+#define StringRef32_t StringRef_t
 
 __DECL_START
 
@@ -45,18 +45,18 @@ __DECL_START
  * @param s string to reference
  * @return String referencing object
  */
-LIBNEX_PUBLIC stringRef_t* StrRefCreate (const void* s);
+LIBNEX_PUBLIC StringRef_t* StrRefCreate (const void* s);
 
 /**
  * @brief Creates a new reference to a string
  * @param ref string reference object
  * @return our reference
  */
-static inline stringRef_t* StrRefNew (const stringRef_t* ref)
+static inline StringRef_t* StrRefNew (const StringRef_t* ref)
 {
     // Increase refcount on object
     ObjRef (&ref->obj);
-    return (stringRef_t*) ref;
+    return (StringRef_t*) ref;
 }
 
 /**

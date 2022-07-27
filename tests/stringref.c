@@ -31,11 +31,11 @@ int main()
     if (!s)
         return 1;
     strcpy (s, "test string");
-    stringRef_t* ref = StrRefCreate (s);
+    StringRef_t* ref = StrRefCreate (s);
     TEST_BOOL (ref, "StrRefCreate() success");
     TEST (ref->obj.refCount, 1, "StrRefCreate() result validity 1");
     TEST_BOOL (!strcmp (ref->str, "test string"), "StrRefCreate() result validity 2");
-    stringRef_t* ref2 = StrRefNew (ref);
+    StringRef_t* ref2 = StrRefNew (ref);
     TEST (ref2->obj.refCount, 2, "StrRefNew() result validity 1");
     TEST (ref->obj.refCount, 2, "StrRefNew() result validity 2");
     TEST_BOOL (!strcmp (StrRefGet (ref2), "test string"), "StrRefNew()) result validity 3");
