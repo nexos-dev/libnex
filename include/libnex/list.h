@@ -247,7 +247,7 @@ LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func);
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry) (((void*) (entry))->data)      ///< Helper to access list entry data
+#define ListEntryData(entry) ((void*) ((entry)->data))      ///< Helper to access list entry data
 #define ListPushFront        ListAddFront                   ///< Useful when using as a queue
 #define ListRef(item)        (ObjRef (&(item)->obj))        ///< References the underlying the object
 #define ListLock(item)       (ObjLock (&(item)->obj))       ///< Locks this entry (or list)
