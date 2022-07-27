@@ -75,7 +75,7 @@ static inline stringRef_t* StrRefNew (const stringRef_t* ref)
  * @brief Ensures underlying string isn't free'ed
  * @param ref reference to ensure this on
  */
-#define StrRefNoFree(ref) ((ref)->doFree = false;)
+#define StrRefNoFree(ref) ((ref)->doFree = false)
 
 __DECL_END
 
