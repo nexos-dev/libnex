@@ -69,7 +69,7 @@ static inline StringRef_t* StrRefNew (const StringRef_t* ref)
  * @brief Gets underlying string of reference
  * @param ref reference to get string from
  */
-#define StrRefGet(ref) ((void*) (ref)->str)
+#define StrRefGet(ref) ((void*) ((ref)->str))
 
 /**
  * @brief Ensures underlying string isn't free'ed
