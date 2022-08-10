@@ -663,7 +663,8 @@ LIBNEX_PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
         *enc = TEXT_ENC_UTF32;
         *order = TEXT_ORDER_BE;
     }
-    else if (!strcmp (encName, "windows-1252"))
+    // Note: proper ISO-8859-3 support coming soon
+    else if (!strcmp (encName, "windows-1252") || !strcmp (encName, "ISO-8859-3"))
     {
         *enc = TEXT_ENC_WIN1252;
         *order = TEXT_ORDER_NONE;
