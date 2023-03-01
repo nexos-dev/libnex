@@ -32,6 +32,7 @@
 #include <libnex/decls.h>
 #include <libnex/libnex_config.h>
 #include <libnex/lock.h>
+#include <stddef.h>
 
 /**
  * @brief An object.

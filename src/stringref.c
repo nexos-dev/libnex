@@ -20,6 +20,7 @@
 
 #include <libnex/safemalloc.h>
 #include <libnex/stringref.h>
+#include <stdlib.h>
 
 void destroyRef (const Object_t* obj)
 {

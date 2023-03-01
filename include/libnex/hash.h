@@ -21,6 +21,7 @@
 
 #include <libnex/decls.h>
 #include <libnex/libnex_config.h>
+#include <stddef.h>
 #include <stdint.h>
 
 __DECL_START

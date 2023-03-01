@@ -16,7 +16,7 @@
     limitations under the License
 ]]
 
-cmake_minimum_required(VERSION 3.00)
+cmake_minimum_required(VERSION 3.7)
 cmake_policy(SET CMP0054 NEW)
 project(libnex VERSION 0.0.1)
 enable_language(C)
@@ -120,7 +120,6 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/lock.c
      src/endian.c
      src/object.c
-     src/char32.c
      src/unicode.c
      src/crc32.c
      src/hash.c
@@ -130,6 +129,7 @@ list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
     src/getopt.c
     src/error.c
+    src/char32.c
     src/safemalloc.c
     src/internal.c)
 
@@ -171,10 +171,10 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/object.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/lock.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/unicode.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/char32.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/crc32.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/hash.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/stringref.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/stringref.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/safemalloc.h)
 
 # Figure out which libnex.h to use
 if(LIBNEX_BAREMETAL)
@@ -194,7 +194,7 @@ list(APPEND LIBNEX_HEADERS_HOSTED
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/textstream.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/progname.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/error.h
-     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/safemalloc.h)
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/char32.h)
 
 # Set the headers
 list(APPEND LIBNEX_HEADERS ${LIBNEX_HEADERS_ALWAYS})

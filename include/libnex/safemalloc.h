@@ -23,11 +23,11 @@
 
 #include <libnex/libnex_config.h>
 
-#ifndef LIBNEX_BAREMETAL
-
 #include <libnex/decls.h>
 #include <stddef.h>
 #include <stdlib.h>
+
+#ifndef LIBNEX_BAREMETAL
 
 __DECL_START
 
@@ -66,7 +66,10 @@ __DECL_END
 
 #else
 #define malloc_s  malloc
-#define calloc_s  calloc
+static inline void* calloc_s (size_t sz)
+{
+    return calloc (1, sz);
+}
 #define realloc_s realloc
 #endif
 

@@ -32,6 +32,8 @@ void __Libnex_lock_init (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_init (lock, mtx_recursive);
+#elif defined LIBNEX_BAREMETAL
+    *lock = 0;
 #else
     UNUSED (lock);
 #endif
@@ -47,6 +49,9 @@ void __Libnex_lock_lock (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_lock (lock);
+#elif defined LIBNEX_BAREMETAl
+    while (__atomic_test_and_set (lock, __ATOMIC_SEQ_CST))
+        ;
 #else
     UNUSED (lock);
 #endif
@@ -62,6 +67,8 @@ void __Libnex_lock_unlock (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_unlock (lock);
+#elif defined LIBNEX_BAREMETAL
+    __atomic_clear (lock, __ATOMIC_SEQ_CST);
 #else
     UNUSED (lock);
 #endif

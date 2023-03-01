@@ -44,11 +44,13 @@
 #endif
 
 // Ensure that ssize_t is defined
+#ifndef LIBNEX_BAREMETAL
 #ifdef WIN32
 #include <basetsd.h>
 typedef SSIZE_T ssize_t;
 #else
 #include <sys/types.h>
+#endif
 #endif
 
 // Make sure stat is defined right

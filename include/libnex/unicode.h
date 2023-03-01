@@ -21,7 +21,9 @@
 #ifndef _UNICODE_H
 #define _UNICODE_H
 
+#ifndef LIBNEX_BAREMETAL
 #include <libnex/char32.h>
+#endif
 #include <libnex/decls.h>
 #include <libnex/endian.h>
 #include <libnex/libnex_config.h>
@@ -139,6 +141,7 @@ LIBNEX_PUBLIC char UnicodeReadBom16 (const uint8_t* bom);
  */
 LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom);
 
+#ifndef LIBNEX_BAREMETAL
 /**
  * @brief Converts UTF-32 string to host's multibyte format
  * NOTE: DO NOT pass returned string to free!
@@ -150,6 +153,7 @@ LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s);
 /// Unicode to host max buffer size
 /// Ensure strings passed to UnicodeToHost DO NOT surpass this
 #define UNICODE_HOST_MAX_BUF (512 * sizeof (char32_t))
+#endif
 
 __DECL_END
 

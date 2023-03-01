@@ -25,7 +25,6 @@
  */
 
 #include <libnex/object.h>
-#include <stdio.h>
 #include <string.h>
 
 // The next ID to be used

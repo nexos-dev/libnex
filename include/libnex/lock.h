@@ -21,6 +21,7 @@
 #ifndef _LOCK_H
 #define _LOCK_H
 
+#include <libnex/base.h>
 #include <libnex/libnex_config.h>
 
 #ifdef HAVE_C11_THREADS
@@ -30,6 +31,7 @@ typedef mtx_t lock_t;
 #ifndef LIBNEX_BAREMETAL
 #error Target platform has no supported supported threading library
 #endif
+typedef char lock_t;
 #endif
 
 #ifdef IN_LIBNEX

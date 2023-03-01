@@ -127,7 +127,6 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (const ListHead_t* list, const int key)
 LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* data)
 {
     ListLock (list);
-    ListUnlock (list);
     ListEntry_t* search = list->front;
     while (search)
     {
