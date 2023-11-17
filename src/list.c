@@ -36,13 +36,6 @@ LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t off
     return head;
 }
 
-LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func)
-{
-    ListLock (list);
-    list->cmpFunc = func;
-    ListUnlock (list);
-}
-
 LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func)
 {
     ListLock (list);

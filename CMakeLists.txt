@@ -117,6 +117,7 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
 # Setup different source code types
 list(APPEND LIBNEX_SOURCES_ALWAYS
      src/list.c
+     src/array.c
      src/lock.c
      src/endian.c
      src/object.c
@@ -166,6 +167,7 @@ list(APPEND LIBNEX_HEADERS_ALWAYS
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/decls.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/endian.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/list.h
+     ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/array.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/safestring.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/bits.h
      ${CMAKE_CURRENT_SOURCE_DIR}/include/libnex/object.h
@@ -298,6 +300,7 @@ list(APPEND LIBNEX_TESTS
      bits object
      char32 unicode
      hash stringref
+     array
      )
 
 if(NOT HAVE_BSD_STRING)

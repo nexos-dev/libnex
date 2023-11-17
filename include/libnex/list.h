@@ -60,7 +60,6 @@ typedef void (*ListEntryDestroy) (const void* data);
 typedef struct _ListHead
 {
     Object_t obj;                    ///< The underlying object
-    ListEntryCmp cmpFunc;            ///< Function to compare to entries
     ListEntryFindBy findByFunc;      ///< Function to implement find by functionality
     ListEntryDestroy destroyFunc;    ///< Function to destroy list entry
     bool usesObj;                    ///< If the data that this list wraps is an object
@@ -222,13 +221,6 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list);
  * @return The found entry
  */
 LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* data);
-
-/**
- * @brief Sets the comparing predicate for a list
- * @param list the list to set the predicate on
- * @param func function to compare with
- */
-LIBNEX_PUBLIC void ListSetCmp (ListHead_t* list, ListEntryCmp func);
 
 /**
  * @brief Sets the find by predicate for a list

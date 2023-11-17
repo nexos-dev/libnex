@@ -3,4 +3,6 @@
 *.mo
 *.po~
 build
+libnex-build
+.vscode
 prefix
