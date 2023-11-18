@@ -53,6 +53,15 @@ typedef struct _lnarray
     ArrayDestroyElem destroyFun;    ///< Destroy function
 } Array_t;
 
+/**
+ * @brief Dynamic array iterator
+ */
+typedef struct _arrayiter
+{
+    int idx;      // Index of element
+    void* ptr;    // Pointer to item
+} ArrayIter_t;
+
 __DECL_START
 
 /**
@@ -122,6 +131,14 @@ void ArraySetDestroy (Array_t* array, ArrayDestroyElem func);
  * @param usesObj Flag to set
  */
 void ArraySetUseObj (Array_t* array, bool usesObj);
+
+/**
+ * @brief Iterates through array
+ * @param array Array to work in
+ * @param iter Iterator to work with
+ * @return Iterator containing new item
+ */
+ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
 
 __DECL_END
 

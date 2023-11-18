@@ -75,6 +75,27 @@ int main()
     TEST_BOOL_ANON (s);
     s->num = 0x12345678;
     TEST_BOOL_ANON (ArrayFindElement (array, (void*) 0x12345678));
+    ArrayIter_t iters = {0};
+    ArrayIter_t* iter = ArrayIterate (array, &iters);
+    while (iter)
+    {
+        if (iter->idx == 0)
+        {
+            TestStruct_t* s = iter->ptr;
+            TEST_BOOL_ANON (s->num == 0xDEADBEEF);
+        }
+        else if (iter->idx == 1)
+        {
+            TestStruct_t* s = iter->ptr;
+            TEST_BOOL_ANON (s->num == 0xCAFEBABE);
+        }
+        else if (iter->idx == 4)
+        {
+            TestStruct_t* s = iter->ptr;
+            TEST_BOOL_ANON (s->num == 0x12345678);
+        }
+        iter = ArrayIterate (array, iter);
+    }
     ArrayDestroy (array);
     return 0;
 }

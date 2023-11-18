@@ -111,12 +111,15 @@ Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t elemSize)
 void ArrayDestroy (Array_t* array)
 {
     assert (array);
+    ArrayLock (array);
     if (!ObjDestroy (&array->obj))
     {
+        ArrayUnlock (array);
         // Destroy array list
         ListDestroy (array->arrays);
         free (array);
     }
+    ArrayUnlock (array);
 }
 
 void* ArrayGetElement (Array_t* array, size_t pos)
@@ -132,27 +135,33 @@ void* ArrayGetElement (Array_t* array, size_t pos)
     // Grab element pointer
     ArrayHdr_t* hdr = (ArrayHdr_t*) (arrayPtr + (arrayPos * array->elemSize));
     if (!hdr->initialized || !hdr->isUsed)
-        return NULL;    // Item doesn't exist
+        return NULL;    // Entry doesn't exist
     return arrayPtr + (arrayPos * array->elemSize) + ARRAY_DATA_OFFSET;
 }
 
 void ArrayRemoveElement (Array_t* array, size_t pos)
 {
+    ArrayLock (array);
     // Determine which array this is in
     size_t arrayIn = pos / array->growSize;
     size_t arrayPos = pos % array->growSize;
     // Get array
     ListEntry_t* ent = ListFind (array->arrays, arrayIn);
     if (!ent)
+    {
+        ArrayUnlock (array);
         return;    // Entry doesn't exist
+    }
     void* arrayPtr = ListEntryData (ent);
     // Grab element pointer
     ArrayHdr_t* hdr = (ArrayHdr_t*) (arrayPtr + (arrayPos * array->elemSize));
     hdr->isUsed = false;    // Deallocate it
+    ArrayUnlock (array);
 }
 
 size_t ArrayFindFreeElement (Array_t* array)
 {
+    ArrayLock (array);
     ListEntry_t* iter = ListFront (array->arrays);
     int curArray = 0;
     while (iter)
@@ -173,6 +182,7 @@ size_t ArrayFindFreeElement (Array_t* array)
                     hdr->array = array;
                 }
                 hdr->isUsed = true;
+                ArrayUnlock (array);
                 // Return index of entry
                 return (curArray * array->growSize) + i;
             }
@@ -185,10 +195,16 @@ size_t ArrayFindFreeElement (Array_t* array)
     // Array is full, grow it
     // First check if we are out of space to grow
     if (array->totalElems == array->maxElems)
+    {
+        ArrayUnlock (array);
         return ARRAY_ERROR;
+    }
     void* newArray = calloc_s (array->elemSize * array->growSize);
     if (!newArray)
+    {
+        ArrayUnlock (array);
         return ARRAY_ERROR;
+    }
     // Initialize first element
     ArrayHdr_t* hdr = newArray;
     hdr->array = array;
@@ -201,6 +217,7 @@ size_t ArrayFindFreeElement (Array_t* array)
     ListAddBack (array->arrays, newArray, array->numArrays);
     ++array->numArrays;
     // Return entry
+    ArrayUnlock (array);
     return (array->numArrays - 1) * array->growSize;
 }
 
@@ -208,6 +225,7 @@ size_t ArrayFindElement (Array_t* array, void* hint)
 {
     if (!array->findByFun)
         return ARRAY_ERROR;
+    ArrayLock (array);
     ListEntry_t* iter = ListFront (array->arrays);
     int curArray = 0;
     while (iter)
@@ -222,14 +240,42 @@ size_t ArrayFindElement (Array_t* array, void* hint)
             {
                 // Attempt to find it
                 if (array->findByFun (arrayPtr + ARRAY_DATA_OFFSET, hint))
+                {
+                    ArrayUnlock (array);
                     return (curArray * array->growSize) + i;
+                }
             }
             arrayPtr += array->elemSize;
         }
         ++curArray;
         iter = iter->next;
     }
+    ArrayUnlock (array);
     return ARRAY_ERROR;
+}
+
+ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
+{
+    ArrayLock (array);
+    // Treat first iteration special
+    if (!iter->ptr && !iter->idx)
+    {
+        iter->ptr = ArrayGetElement (array, iter->idx);
+        ArrayUnlock (array);
+        return iter;
+    }
+    // Increment iter index, ensure we are in bounds, and then retrieve pointer
+    iter->idx++;
+    if (iter->idx >= array->numElems)
+    {
+        ArrayUnlock (array);
+        return NULL;
+    }
+    iter->ptr = ArrayGetElement (array, iter->idx);
+    ArrayUnlock (array);
+    if (!iter->ptr)
+        return NULL;
+    return iter;
 }
 
 void ArraySetFindBy (Array_t* array, ArrayFindBy func)
