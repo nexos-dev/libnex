@@ -109,7 +109,7 @@ size_t ArrayFindFreeElement (Array_t* array);
  * @param hint Hint to pass to find by function
  * @return Position of found element
  */
-size_t ArrayFindElement (Array_t* array, void* hint);
+size_t ArrayFindElement (Array_t* array, const void* hint);
 
 /**
  * @brief Sets find by function

@@ -221,7 +221,7 @@ size_t ArrayFindFreeElement (Array_t* array)
     return (array->numArrays - 1) * array->growSize;
 }
 
-size_t ArrayFindElement (Array_t* array, void* hint)
+size_t ArrayFindElement (Array_t* array, const void* hint)
 {
     if (!array->findByFun)
         return ARRAY_ERROR;
