@@ -264,13 +264,13 @@ ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
     {
         // Get to first allocated element
         iter->ptr = ArrayGetElement (array, iter->idx);
-        ArrayHdr_t* hdr = iter->ptr - ARRAY_DATA_OFFSET;
-        while (!hdr->isUsed)
+        while (!iter->ptr)
         {
-            if (!hdr->initialized)
-                return NULL;    // Array is empty
-            iter->ptr += array->elemSize;
-            hdr = iter->ptr - ARRAY_DATA_OFFSET;
+            // Keep going to until reach a valid element
+            ++iter->idx;
+            if (iter->idx >= array->numElems)
+                return NULL;
+            iter->ptr = ArrayGetElement (array, iter->idx);
         }
         ArrayUnlock (array);
         return iter;
@@ -283,14 +283,13 @@ ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
         return NULL;
     }
     iter->ptr = ArrayGetElement (array, iter->idx);
-    // Get to next allocated element
-    ArrayHdr_t* hdr = iter->ptr - ARRAY_DATA_OFFSET;
-    while (!hdr->isUsed)
+    while (!iter->ptr)
     {
-        if (!hdr->initialized)
-            return NULL;    // End of array
-        iter->ptr += array->elemSize;
-        hdr = iter->ptr - ARRAY_DATA_OFFSET;
+        // Keep going to until reach a valid element
+        ++iter->idx;
+        if (iter->idx >= array->numElems)
+            return NULL;
+        iter->ptr = ArrayGetElement (array, iter->idx);
     }
     ArrayUnlock (array);
     if (!iter->ptr)
