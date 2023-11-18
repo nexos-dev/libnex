@@ -156,6 +156,7 @@ void ArrayRemoveElement (Array_t* array, size_t pos)
     // Grab element pointer
     ArrayHdr_t* hdr = (ArrayHdr_t*) (arrayPtr + (arrayPos * array->elemSize));
     hdr->isUsed = false;    // Deallocate it
+    ++array->allocatedElems;
     ArrayUnlock (array);
 }
 
@@ -182,6 +183,7 @@ size_t ArrayFindFreeElement (Array_t* array)
                     hdr->array = array;
                 }
                 hdr->isUsed = true;
+                ++array->allocatedElems;
                 ArrayUnlock (array);
                 // Return index of entry
                 return (curArray * array->growSize) + i;
@@ -260,7 +262,16 @@ ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
     // Treat first iteration special
     if (!iter->ptr && !iter->idx)
     {
+        // Get to first allocated element
         iter->ptr = ArrayGetElement (array, iter->idx);
+        ArrayHdr_t* hdr = iter->ptr - ARRAY_DATA_OFFSET;
+        while (!hdr->isUsed)
+        {
+            if (!hdr->initialized)
+                return NULL;    // Array is empty
+            iter->ptr += array->elemSize;
+            hdr = iter->ptr - ARRAY_DATA_OFFSET;
+        }
         ArrayUnlock (array);
         return iter;
     }
@@ -272,6 +283,15 @@ ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
         return NULL;
     }
     iter->ptr = ArrayGetElement (array, iter->idx);
+    // Get to next allocated element
+    ArrayHdr_t* hdr = iter->ptr - ARRAY_DATA_OFFSET;
+    while (!hdr->isUsed)
+    {
+        if (!hdr->initialized)
+            return NULL;    // End of array
+        iter->ptr += array->elemSize;
+        hdr = iter->ptr - ARRAY_DATA_OFFSET;
+    }
     ArrayUnlock (array);
     if (!iter->ptr)
         return NULL;

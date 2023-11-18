@@ -44,6 +44,7 @@ typedef struct _lnarray
     ListHead_t* arrays;             ///< Allocated arrays
     int numArrays;                  ///< Number of arrays currently
     size_t numElems;                ///< Current number of initalized elements
+    size_t allocatedElems;          ///< Number of currently allocated elements
     size_t totalElems;              ///< Total number of elements, including uninitialized ones
     size_t growSize;                ///< Number of elements to grow by
     size_t maxElems;                ///< Max number of elements
