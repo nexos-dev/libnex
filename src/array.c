@@ -156,7 +156,7 @@ void ArrayRemoveElement (Array_t* array, size_t pos)
     // Grab element pointer
     ArrayHdr_t* hdr = (ArrayHdr_t*) (arrayPtr + (arrayPos * array->elemSize));
     hdr->isUsed = false;    // Deallocate it
-    ++array->allocatedElems;
+    --array->allocatedElems;
     ArrayUnlock (array);
 }
 
