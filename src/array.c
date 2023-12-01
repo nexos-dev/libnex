@@ -51,13 +51,13 @@ static void destroyArray (const void* data)
         // Ensure creator has a chance to destroy element
         if (array->usesObj)
         {
-            Object_t* obj = (Object_t*) ((void*) data + (i * array->elemSize) + sizeof (ArrayHdr_t));
+            Object_t* obj = (Object_t*) ((void*) data + (i * array->elemSize) + ARRAY_DATA_OFFSET);
             ObjDestroy (obj);
         }
         else
         {
             if (array->destroyFun)
-                array->destroyFun ((void*) data + (i * array->elemSize) + sizeof (ArrayHdr_t));
+                array->destroyFun ((void*) data + (i * array->elemSize) + ARRAY_DATA_OFFSET);
         }
     }
     // Free it
@@ -119,7 +119,8 @@ void ArrayDestroy (Array_t* array)
         ListDestroy (array->arrays);
         free (array);
     }
-    ArrayUnlock (array);
+    else
+        ArrayUnlock (array);
 }
 
 void* ArrayGetElement (Array_t* array, size_t pos)
