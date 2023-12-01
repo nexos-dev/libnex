@@ -48,6 +48,8 @@ static void destroyArray (const void* data)
         hdr = (ArrayHdr_t*) ((void*) data + (i * array->elemSize));
         if (!hdr->initialized)
             break;    // We are done
+        if (!hdr->isUsed)
+            continue;
         // Ensure creator has a chance to destroy element
         if (array->usesObj)
         {
