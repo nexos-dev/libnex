@@ -3,6 +3,8 @@
 #ifndef _UCHAR_H
 #define _UCHAR_H
 
+#include <libnex_config.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -11,6 +13,8 @@ extern "C" {
 typedef unsigned short char16_t;
 typedef unsigned char32_t;
 #endif
+
+#ifndef LIBNEX_BAREMETAL
 
 #include <wchar.h>
 
@@ -22,6 +26,8 @@ size_t mbrtoc32(char32_t *__restrict, const char *__restrict, size_t, mbstate_t 
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif
