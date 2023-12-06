@@ -3,7 +3,7 @@
 #ifndef _UCHAR_H
 #define _UCHAR_H
 
-#include <libnex_config.h>
+#include <libnex/libnex_config.h>
 
 #ifdef __cplusplus
 extern "C" {
