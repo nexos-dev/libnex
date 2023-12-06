@@ -27,6 +27,9 @@
 #ifdef HAVE_C11_THREADS
 #include <threads.h>
 typedef mtx_t lock_t;
+#elif defined HAVE_PTHREADS
+#include <pthread.h>
+typedef pthread_mutex_t lock_t;
 #else
 #ifndef LIBNEX_BAREMETAL
 #error Target platform has no supported supported threading library

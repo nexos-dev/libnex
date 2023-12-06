@@ -23,9 +23,6 @@
 #include <libnex/safemalloc.h>
 #include <libnex/unicode.h>
 #include <string.h>
-#ifndef LIBNEX_BAREMETAL
-#include <threads.h>
-#endif
 
 // UTF-16 parser states
 #define UTF16_START         0
@@ -272,7 +269,7 @@ LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom)
 
 #ifndef LIBNEX_BAREMETAL
 // Buffers used by UnicodeToHost
-thread_local char* hostEncBuf = NULL;
+__thread char* hostEncBuf = NULL;
 
 LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s)
 {

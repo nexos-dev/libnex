@@ -96,6 +96,8 @@ endif()
 check_symbol_exists(strlcpy "string.h" HAVE_BSD_STRING)
 check_symbol_exists(setprogname "stdlib.h" HAVE_PROGNAME)
 check_symbol_exists(mtx_init "threads.h" HAVE_C11_THREADS)
+check_symbol_exists(pthread_mutex_lock "pthread.h" HAVE_PTHREADS)
+check_symbol_exists(c32rtomb "uchar.h" HAVE_UCHAR)
 # Check for stat
 check_symbol_exists(stat "sys/stat.h" HAVE_UNIX_STAT)
 if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)
@@ -133,6 +135,10 @@ list(APPEND LIBNEX_HOSTED_SOURCES
     src/char32.c
     src/safemalloc.c
     src/internal.c)
+
+if(NOT HAVE_UCHAR)
+    list(APPEND LIBNEX_HOSTED_SOURCES src/uchar.c)
+endif()
 
 # If the host lacks some functions, add them
 if(NOT HAVE_PROGNAME)
@@ -213,8 +219,8 @@ list(APPEND LIBNEX_PUBLIC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
 list(APPEND LIBNEX_INSTALL_INCLUDE_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 
 # Setup libraries to link with
-if(Intl_LIB)
-    list(APPEND LIBNEX_LIBRARIES ${Intl_LIB})
+if(Intl_LIBRARIES)
+    list(APPEND LIBNEX_LIBRARIES ${Intl_LIBRARIES})
 endif()
 
 # MSVC specific options
@@ -274,6 +280,9 @@ endif()
 # Install header files
 install(FILES ${LIBNEX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 install(FILES ${LIBNEX_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(NOT HAVE_UCHAR AND NOT LIBNEX_BAREMETAL)
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/uchar.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+endif()
 install(FILES ${CMAKE_BINARY_DIR}/libnex/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 
 # Configure package configuration file

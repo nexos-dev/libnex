@@ -32,6 +32,9 @@ void __Libnex_lock_init (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_init (lock, mtx_recursive);
+#elif defined HAVE_PTHREADS
+    pthread_mutexattr_t attr;
+    pthread_mutex_init (lock, &attr);
 #elif defined LIBNEX_BAREMETAL
     *lock = 0;
 #else
@@ -49,6 +52,8 @@ void __Libnex_lock_lock (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_lock (lock);
+#elif defined HAVE_PTHREADS
+    pthread_mutex_lock (lock);
 #elif defined LIBNEX_BAREMETAl
     while (__atomic_test_and_set (lock, __ATOMIC_SEQ_CST))
         ;
@@ -67,6 +72,8 @@ void __Libnex_lock_unlock (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_unlock (lock);
+#elif defined HAVE_PTHREADS
+    pthread_mutex_unlock (lock);
 #elif defined LIBNEX_BAREMETAL
     __atomic_clear (lock, __ATOMIC_SEQ_CST);
 #else
@@ -84,6 +91,8 @@ void __Libnex_lock_destroy (lock_t* lock)
 {
 #ifdef HAVE_C11_THREADS
     mtx_destroy (lock);
+#elif defined HAVE_PTHREADS
+    pthread_mutex_destroy (lock);
 #else
     UNUSED (lock);
 #endif

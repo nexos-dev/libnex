@@ -23,6 +23,7 @@
 #cmakedefine HAVE_BSD_STRING
 #cmakedefine HAVE_PROGNAME
 #cmakedefine HAVE_C11_THREADS
+#cmakedefine HAVE_PTHREADS
 #cmakedefine HAVE_VISIBILITY
 #cmakedefine HAVE_DECLSPEC_EXPORT
 #cmakedefine LIBNEX_ENABLE_NLS
