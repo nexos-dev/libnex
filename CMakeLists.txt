@@ -323,7 +323,7 @@ endif()
 foreach(test ${LIBNEX_TESTS})
     nextest_add_library_test(NAME ${test}
                              SOURCE tests/${test}.c
-                             LIBS nex
+                             LIBS nex pthread
                              INCLUDES ${LIBNEX_PRIVATE_INCLUDE_DIRS} ${LIBNEX_PUBLIC_INCLUDE_DIRS}
                              DEFINES IN_LIBNEX
                              WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
