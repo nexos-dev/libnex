@@ -249,6 +249,11 @@ target_include_directories(nex INTERFACE ${LIBNEX_INTERFACE_INCLUDE_DIRS})
 # Ensure the headers differentiate between dllexport and dllimport
 target_compile_definitions(nex PRIVATE "IN_LIBNEX")
 
+# If baremetal, compile as PIE
+if(LIBNEX_BAREMETAL AND NOT MSVC)
+    target_compile_options(nex PRIVATE -fpie)
+endif()
+
 # Ensure symbols are hidden by default
 if(BUILD_SHARED_LIBS)
     set_target_properties(nex PROPERTIES C_VISIBILITY_PRESET hidden)
