@@ -282,16 +282,16 @@ LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
 {
     ListLock (list);
-    // Go through every entry, destroying it
-    ListEntry_t* curEntry = list->front;
-    while (curEntry)
-    {
-        ListEntry_t* next = curEntry->next;
-        ListDestroyEntry (list, curEntry);
-        curEntry = next;
-    }
     if (!ListDeRef (list))
     {
+        // Go through every entry, destroying it
+        ListEntry_t* curEntry = list->front;
+        while (curEntry)
+        {
+            ListEntry_t* next = curEntry->next;
+            ListDestroyEntry (list, curEntry);
+            curEntry = next;
+        }
         ListUnlock (list);
         free (list);
     }
