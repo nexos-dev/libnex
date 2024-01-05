@@ -27,6 +27,18 @@ option(BUILD_SHARED_LIBS "Specifies if shared libraries should be built" OFF)
 option(LIBNEX_ENABLE_TESTS "Specifies if the test suite should be built" OFF)
 option(LIBNEX_BAREMETAL "Specifies if the build should be tailored to baremetal platforms" OFF)
 option(LIBNEX_ENABLE_NLS "Specifies if NLS support should be compiled into libnex" ON)
+option(LIBNEX_BUILDONLY "Specifies if libnex should be built without installing" OFF)
+
+if(LIBNEX_BUILDONLY AND LIBNEX_ENABLE_NLS)
+    # Turn NLS off
+    message(STATUS "LIBNEX_BUILDONLY specified, turning off NLS")
+    set(LIBNEX_ENABLE_NLS OFF)
+endif()
+
+if(LIBNEX_BUILDONLY AND BUILD_SHARED_LIBS)
+    message(STATUS "LIBNEX_BUILDONLY specified, turning off BUILD_SHARED_LIBS")
+    set(BUILD_SHARED_LIBS OFF)
+endif()
 
 if(${LIBNEX_ENABLE_TESTS} AND NOT ${CMAKE_CROSSCOMPILING})
     enable_testing()
@@ -262,11 +274,12 @@ endif()
 # Check for a visibility method
 check_library_visibility(HAVE_DECLSPEC_EXPORT HAVE_VISIBILITY)
 
-# Install pkgconfig script
-install(FILES ${CMAKE_BINARY_DIR}/nex.pc DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig)
-
-# Install the library
-install(TARGETS nex)
+if(NOT LIBNEX_BUILDONLY)
+    # Install pkgconfig script
+    install(FILES ${CMAKE_BINARY_DIR}/nex.pc DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig)
+    # Install the library
+    install(TARGETS nex)
+endif()
 
 # Figure out library type
 if(BUILD_SHARED_LIBS)
@@ -282,13 +295,15 @@ else()
         "${CMAKE_INSTALL_FULL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}nex${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
 
-# Install header files
-install(FILES ${LIBNEX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
-install(FILES ${LIBNEX_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-if(NOT HAVE_UCHAR AND NOT LIBNEX_BAREMETAL)
-    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/uchar.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+if(NOT LIBNEX_BUILDONLY)
+    # Install header files
+    install(FILES ${LIBNEX_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
+    install(FILES ${LIBNEX_HEADER} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    if(NOT HAVE_UCHAR AND NOT LIBNEX_BAREMETAL)
+        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/uchar.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    endif()
+    install(FILES ${CMAKE_BINARY_DIR}/libnex/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 endif()
-install(FILES ${CMAKE_BINARY_DIR}/libnex/libnex_config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/libnex)
 
 # Configure package configuration file
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/data/LibNexConfig.cmake.in 
@@ -300,13 +315,14 @@ write_basic_package_version_file(${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake
                                  COMPATIBILITY AnyNewerVersion)
 
 # Install cmake package files
-install(FILES ${CMAKE_BINARY_DIR}/LibNexConfig.cmake 
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
-install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake 
-        DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
-
-# Install man pages
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/man DESTINATION ${CMAKE_INSTALL_DATADIR})
+if(NOT LIBNEX_BUILDONLY)
+    install(FILES ${CMAKE_BINARY_DIR}/LibNexConfig.cmake 
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
+    install(FILES ${CMAKE_BINARY_DIR}/LibNexConfigVersion.cmake 
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake)
+    # Install man pages
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/man DESTINATION ${CMAKE_INSTALL_DATADIR})
+endif()
 
 # Figure out which tests to run
 list(APPEND LIBNEX_TESTS
