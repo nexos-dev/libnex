@@ -43,7 +43,5 @@ int main()
     TEST_BOOL (ref2->str, "StrRefDestroy() result validity 1");
     TEST (ref2->obj.refCount, 1, "StrRefDestroy() result validity 2");
     StrRefDestroy (ref2);
-    // WARNING: Use after free. This shouldn't cause problems, though (in theory)
-    TEST_BOOL (!ref2->str, "StrRefDestroy() result validity");
     return 0;
 }
