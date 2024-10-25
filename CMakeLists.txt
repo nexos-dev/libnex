@@ -263,7 +263,7 @@ target_compile_definitions(nex PRIVATE "IN_LIBNEX")
 
 # If baremetal, compile as PIE
 if(LIBNEX_BAREMETAL AND NOT MSVC)
-    target_compile_options(nex PRIVATE -fpie)
+    #target_compile_options(nex PRIVATE -fpie)
 elseif(NOT MSVC)
     target_compile_options(nex PRIVATE -fpic)
 endif()
