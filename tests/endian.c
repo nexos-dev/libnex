@@ -1,6 +1,6 @@
 /*
     endian.c - contains test suite for endian values
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -38,7 +38,9 @@ int main()
     {
         uint16_t val16 = 0x3454;
         TEST (EndianRead16 (&val16, ENDIAN_LITTLE), 0x3454, "reading value with like endianess as host (16 bit)");
-        TEST (EndianRead16 (&val16, ENDIAN_BIG), 0x5434, "reading value of differing endianess then host (16 bit)");
+        TEST (EndianRead16 (&val16, ENDIAN_BIG),
+              0x5434,
+              "reading value of differing endianess then host (16 bit)");
 
         EndianWrite16 (&val16, 0x5689, ENDIAN_LITTLE);
         TEST (val16, 0x5689, "writing value with like endianess as host (16 bit)");
@@ -46,8 +48,12 @@ int main()
         TEST (val16, 0x8956, "writing value with like endianess as host (16 bit)");
 
         uint32_t val32 = 0x14243454;
-        TEST (EndianRead32 (&val32, ENDIAN_LITTLE), 0x14243454, "reading value with like endianess as host (32 bit)");
-        TEST (EndianRead32 (&val32, ENDIAN_BIG), 0x54342414, "reading value of differing endianess then host (32 bit)");
+        TEST (EndianRead32 (&val32, ENDIAN_LITTLE),
+              0x14243454,
+              "reading value with like endianess as host (32 bit)");
+        TEST (EndianRead32 (&val32, ENDIAN_BIG),
+              0x54342414,
+              "reading value of differing endianess then host (32 bit)");
 
         EndianWrite32 (&val32, 0x568965, ENDIAN_LITTLE);
         TEST (val32, 0x568965, "writing value with like endianess as host (32 bit)");
@@ -71,7 +77,9 @@ int main()
     {
         uint16_t val16 = 0x3454;
         TEST (EndianRead16 (&val16, ENDIAN_BIG), 0x3454, "reading value with like endianess as host (16 bit)");
-        TEST (EndianRead16 (&val16, ENDIAN_LITTLE), 0x5434, "reading value of differing endianess then host (16 bit)");
+        TEST (EndianRead16 (&val16, ENDIAN_LITTLE),
+              0x5434,
+              "reading value of differing endianess then host (16 bit)");
 
         EndianWrite16 (&val16, 0x5689, ENDIAN_BIG);
         TEST (val16, 0x5689, "writing value with like endianess as host (16 bit)");

@@ -1,6 +1,6 @@
 /*
     libnex_baremetal.h - contains libnex base stuff that is applicable to baremetal
-    Copyright 2022, 2023 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,5 +29,6 @@
 #include <libnex/unicode.h>
 #include <libnex/array.h>
 #include <libnex/list.h>
+#include <libnex/hash.h>
 
 #endif

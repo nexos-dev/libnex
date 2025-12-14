@@ -1,6 +1,6 @@
 /*
     list.c - linked list test driver
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -28,37 +28,38 @@ void destroyEntry (const void* data)
     UNUSED (data);
 }
 
+static ListEntry_t entries[7] = {0};
+
 int main()
 {
     // Test list creation
-    ListHead_t* head = ListCreate ("Test", false, 0);
+    ListHead_t* head = ListCreate ("Test", NULL, destroyEntry, 0);
     TEST_BOOL_ANON (head->back == NULL && head->front == NULL);
-    ListSetDestroy (head, destroyEntry);
     // Test adding to the front of a list
-    ListEntry_t* entry1 = ListAddFront (head, NULL, 1);
+    ListEntry_t* entry1 = ListAddFront (head, &entries[0], 1);
     TEST_BOOL_ANON (entry1->next == NULL && entry1->prev == NULL);
     TEST_BOOL_ANON (head->front->key == entry1->key && head->back->key == entry1->key);
     // Test adding to the front of the list again
-    ListEntry_t* entry2 = ListAddFront (head, NULL, 2);
+    ListEntry_t* entry2 = ListAddFront (head, &entries[1], 2);
     TEST_BOOL_ANON (entry2->next->key == entry1->key && entry1->prev->key == entry2->key &&
                     head->front->key == entry2->key && entry2->prev == NULL);
     // Test adding to the back of the list
-    ListEntry_t* entry3 = ListAddBack (head, NULL, 3);
+    ListEntry_t* entry3 = ListAddBack (head, &entries[2], 3);
     TEST_BOOL_ANON (entry3->next == NULL && entry1->next->key == entry3->key && entry3->prev->key == entry1->key &&
                     head->back->key == entry3->key);
     // Test adding an item at the end of the list with the ListAddAfterKey function
-    ListEntry_t* entry4 = ListAddAfterKey (head, NULL, 4, entry3->key);
+    ListEntry_t* entry4 = ListAddAfterKey (head, &entries[3], 4, entry3->key);
     TEST_BOOL_ANON (entry4->next == NULL && entry4->prev->key == entry3->key && entry3->next->key == entry4->key);
     // Test adding an item in the middle
-    ListEntry_t* entry5 = ListAddAfterKey (head, NULL, 5, entry1->key);
+    ListEntry_t* entry5 = ListAddAfterKey (head, &entries[4], 5, entry1->key);
     TEST_BOOL_ANON (entry5->next->key == entry3->key && entry5->prev->key == entry1->key &&
                     entry3->prev->key == entry5->key && entry1->next->key == entry5->key);
     // Test ListAddBeforeKey in the same way
     // Test adding an item at the end of the list with the ListAddBeforeKey function
-    ListEntry_t* entry6 = ListAddBeforeKey (head, NULL, 6, entry2->key);
+    ListEntry_t* entry6 = ListAddBeforeKey (head, &entries[5], 6, entry2->key);
     TEST_BOOL_ANON (entry6->prev == NULL && entry6->next->key == entry2->key && entry2->prev->key == entry6->key);
     // Test adding an item in the middle
-    ListEntry_t* entry7 = ListAddBeforeKey (head, NULL, 7, entry1->key);
+    ListEntry_t* entry7 = ListAddBeforeKey (head, &entries[6], 7, entry1->key);
     TEST_BOOL_ANON (entry7->next->key == entry1->key && entry7->prev->key == entry2->key &&
                     entry1->prev->key == entry7->key && entry2->next->key == entry7->key);
     // Test that every item in the list is in the right order going forwards

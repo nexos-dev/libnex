@@ -1,6 +1,6 @@
 /*
     stringref.h - manages references to strings
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -34,9 +34,6 @@ typedef struct _strref
     bool doFree;        // Kind of pointless, but it may be convinient to allow for str
                         // to not be free'ed automatically
 } StringRef_t;
-
-/// Macro to help avoid confusion for using stringRef on char32_t strings
-#define StringRef32_t StringRef_t
 
 __DECL_START
 

@@ -1,6 +1,6 @@
 /*
     list.h - contains linked list functions
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@
 #include <libnex/object.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 __DECL_START
 
@@ -39,12 +40,10 @@ typedef struct _ListEntry
     Object_t obj;               ///< The underlying object
     const void* data;           ///< The underlying data in thist list entry
     int key;                    ///< Used to uniquely identify this entry
+    int flags;                  ///< Entry flags
     struct _ListEntry* next;    ///< Pointer to next entry in list. NULL means end
     struct _ListEntry* prev;    ///< Pointer to previous entry in linked list. NULL means beginning
 } ListEntry_t;
-
-/// Predicate to compare two entries for equality
-typedef bool (*ListEntryCmp) (const ListEntry_t* entry1, const ListEntry_t* entry2);
 
 /// Predicate to check if a piece of data identifies this entry
 typedef bool (*ListEntryFindBy) (const ListEntry_t* entry, const void* data);
@@ -62,8 +61,7 @@ typedef struct _ListHead
     Object_t obj;                    ///< The underlying object
     ListEntryFindBy findByFunc;      ///< Function to implement find by functionality
     ListEntryDestroy destroyFunc;    ///< Function to destroy list entry
-    bool usesObj;                    ///< If the data that this list wraps is an object
-    size_t objOffset;                ///< Offest to object in list entry data
+    int flags;                       ///< List flags
     struct _ListEntry* front;        ///< The first item on the list
     struct _ListEntry* back;         ///< The last item on the list
 } ListHead_t;
@@ -71,11 +69,18 @@ typedef struct _ListHead
 /**
  * @brief Creates a new linked list
  * @param type the data type of this entry. Used in the underlying object
- * @param usesObj if the data the list wraps uses libnex objects
- * @param offToObj offset to object in data structure to be wrapped by list
+ * @param findBy function used to find a list entry
+ * @param destroy function used to destroy a list entry
+ * @param flags flags related to list
  * @return The allocated list entry
  */
-LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t offToObj);
+LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type,
+                                      ListEntryFindBy findBy,
+                                      ListEntryDestroy destroy,
+                                      int flags);
+
+#define LIST_FLAG_ENTRY_NOT_DATA (1 << 0)
+#define LIST_ENTRY_FLAG_MASK     0x1    // Flags to be copied from list to entry
 
 /**
  * @brief Adds an item to the front of the list
@@ -222,31 +227,20 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list);
  */
 LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* data);
 
-/**
- * @brief Sets the find by predicate for a list
- * @param list the list to set the predicate on
- * @param func the predicate
- */
-LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func);
-
-/**
- * @brief Sets callback that destroys a list entry
- * @param list the list to set callback on
- * @param func function to use to destroy
- */
-LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func);
-
 __DECL_END
 
 // Some helper macros to work with list entries
-#define ListEntryData(entry) ((void*) ((entry)->data))      ///< Helper to access list entry data
-#define ListPushFront        ListAddFront                   ///< Useful when using as a queue
-#define ListRef(item)        (ObjRef (&(item)->obj))        ///< References the underlying the object
-#define ListLock(item)       (ObjLock (&(item)->obj))       ///< Locks this entry (or list)
-#define ListUnlock(item)     (ObjUnlock (&(item)->obj))     ///< Unlocks the entry
-#define ListDeRef(item)      (ObjDestroy (&(item)->obj))    ///< Dereferences this entry
-#define ListFront(list)      ((list)->front)                ///< Gets front of list
-#define ListIsEmpty(list)    ((list)->front == NULL)        ///< Checks if the list is empty or not
-#define ListIterate(list)    ((list)->next)                 ///< Iterates to the next list entry
+#define ListEntryData(entry)                                                                  \
+    ((entry->flags & LIST_FLAG_ENTRY_NOT_DATA) ? ((void*) entry->data + sizeof (ListEntry_t)) \
+                                               : (void*) entry->data)     ///< Helper to access list entry data
+#define ListPushFront        ListAddFront                                 ///< Useful when using as a queue
+#define ListRef(item)        (ListEntry_t*) (ObjRef (&(item)->obj))       ///< References the underlying the object
+#define ListLock(item)       (ObjLock (&(item)->obj))                     ///< Locks this entry (or list)
+#define ListUnlock(item)     (ObjUnlock (&(item)->obj))                   ///< Unlocks the entry
+#define ListDeRef(item)      (ObjDestroy (&(item)->obj))                  ///< Dereferences this entry
+#define ListFront(list)      ((list)->front)                              ///< Gets front of list
+#define ListIsEmpty(list)    ((list)->front == NULL)                      ///< Checks if the list is empty or not
+#define ListIterate(list)    ((list)->next)                               ///< Iterates to the next list entry
+#define ListEntryInit(entry) (memset (entry, 0, sizeof (ListEntry_t)))    ///< Initializes list entry
 
 #endif

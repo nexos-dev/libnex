@@ -1,6 +1,6 @@
 /*
     unicode.h - contains declarations to work with text
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -44,10 +44,9 @@ typedef struct _utf8state
     uint8_t bytesLeft;        ///< The remaining number of bytes needed to finish processing
 } Utf8State_t;
 
-#define UnicodeIsAccepted(state)  ((state).state == 6)     ///< Checks if state has been accepted
-#define UnicodeIsAcceptedP(state) ((state)->state == 6)    ///< Checks if state has been accepted
-#define UnicodeStateInit(state)   ((state).state = 0)      ///< Initializes a state structure
-#define UnicodeStateInitP(state)  ((state)->state = 0)     ///< Initiailzes a state structure by pointer
+#define UnicodeIsAccepted(p) ((p)->state == 6)    ///< Checks if state has been accepted
+#define UnicodeStateInit(p)  ((p)->state = 0)     ///< Initializes a state structure
+#define UTF8_MAX             4
 
 /**
  * @brief Decodes a UTF-16 character to UTF-32
@@ -55,7 +54,7 @@ typedef struct _utf8state
  * @param in a pointer to UTF-16 data to decode
  * @param sz the size of in
  * @param endian the endianess of the input buffer, either ENDIAN_LITTLE or ENDIAN_BIG
- * @return How many 16 bit values were decoded. If -1, then an invalid character was found
+ * @return How many 16 bit values were decoded. If 0, then an invalid character was found
  */
 LIBNEX_PUBLIC size_t UnicodeDecode16 (char32_t* out, const uint16_t* in, size_t sz, char endian);
 
@@ -78,7 +77,7 @@ LIBNEX_PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian);
  * @param in the current byte in the sequence
  * @param state pointer to structure maintaining the parser's state
  */
-LIBNEX_PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state);
+LIBNEX_PUBLIC size_t UnicodeDecodeOctet8 (char32_t* out, uint8_t in, Utf8State_t* state);
 
 /**
  * @brief Decodes a UTF-8 character to UTF-32
@@ -93,8 +92,16 @@ LIBNEX_PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz
  * @param out the buffer to write the encoded UTF-8 out to
  * @param in character to encode
  * @param sz size of out
+ * @return number of bytes placed in out
  */
 LIBNEX_PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz);
+
+/**
+ * @brief Gets length of a UTF-8 character
+ * @param buf buffer containing character
+ * @return length of character
+ */
+LIBNEX_PUBLIC size_t UnicodeGetCharLen8 (const uint8_t* buf);
 
 /**
  * @brief Writes out a UTF-8 byte order mark (BOM)
@@ -140,20 +147,6 @@ LIBNEX_PUBLIC char UnicodeReadBom16 (const uint8_t* bom);
  * otherwise
  */
 LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom);
-
-#ifndef LIBNEX_BAREMETAL
-/**
- * @brief Converts UTF-32 string to host's multibyte format
- * NOTE: DO NOT pass returned string to free!
- * @param s string to convert
- * @return multibyte string. DO NOT pass to free. Returns NULL on error
- */
-LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s);
-
-/// Unicode to host max buffer size
-/// Ensure strings passed to UnicodeToHost DO NOT surpass this
-#define UNICODE_HOST_MAX_BUF (512 * sizeof (char32_t))
-#endif
 
 __DECL_END
 

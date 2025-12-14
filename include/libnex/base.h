@@ -1,6 +1,6 @@
 /*
     base.h - contains macros that handle base stuff
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,6 +21,9 @@
 #ifndef _BASE_H
 #define _BASE_H
 
+#include <libnex/libnex_config.h>
+#include <stddef.h>
+
 /// Used to specify that a parameter is unused
 #define UNUSED(param) (void) (param);
 
@@ -33,5 +36,31 @@
 #else
 #define NORETURN
 #endif
+
+/// Aligns a number to the specified power of two
+static inline size_t AlignNumberUp (size_t num, size_t align)
+{
+    return (num + (align - 1)) & ~(align - 1);
+}
+
+/// Aligns a number down to the power of 2
+static inline size_t AlignNumberDown (size_t num, size_t align)
+{
+    return (num + (align - 1)) & ~(align - 1);
+}
+
+// Libnex error codes
+#define LIBNEX_ERR_NONE         0
+#define LIBNEX_ERR_BOUNDS       1
+#define LIBNEX_ERR_SYS          2
+#define LIBNEX_ERR_BAD_PARAM    3
+#define LIBNEX_ERR_BUF_SMALL    4
+#define LIBNEX_ERR_NO_EXIST     5
+#define LIBNEX_ERR_OUT_OF_SPACE 6
+#define LIBNEX_ERR_OOM          7
+#define LIBNEX_ERR_MAX          7
+
+/// Gets error code
+LIBNEX_PUBLIC int LibnexGetError();
 
 #endif

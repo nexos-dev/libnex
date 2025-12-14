@@ -1,6 +1,6 @@
 /*
     textstream.c - contains functions to work with text files
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
 
 /// @file textstream.c
 
-#include "codepages/win1252toUtf32.h"
+#include "codepages/win1252toUtf8.h"
 #include "internal.h"
 #include <assert.h>
 #include <errno.h>
-#include <libnex/base.h>
 #include <libnex/bits.h>
 #include <libnex/endian.h>
 #include <libnex/safemalloc.h>
@@ -37,7 +36,7 @@
 #define TEXT_DEFAULT_BUFSZ 1024    // Staging buffer has a default size of 4 KiB
 
 // Reads in a new frame if needed. Returns error code or TEXT_SUCCESS
-static short _textReadFrameMaybe (TextStream_t* stream)
+static inline short _textReadFrameMaybe (TextStream_t* stream)
 {
     assert (stream);
     assert (stream->mode == TEXT_MODE_READ);
@@ -65,7 +64,7 @@ static short _textReadFrameMaybe (TextStream_t* stream)
 }
 
 // Writes out the current frame if needed
-static short _textWriteFrameMaybe (TextStream_t* stream, bool force)
+static inline short _textWriteFrameMaybe (TextStream_t* stream, bool force)
 {
     assert (stream);
     assert (stream->mode != TEXT_MODE_READ);
@@ -81,291 +80,251 @@ static short _textWriteFrameMaybe (TextStream_t* stream, bool force)
     return TEXT_SUCCESS;
 }
 
-// Macro to help checking for a newline
-#define CHECK_NEWLINE            \
-    if (stopOnLine)              \
-    {                            \
-        if (buf[i] == '\n')      \
-            break;               \
-        else if (buf[i] == '\r') \
-        {                        \
-            buf[i] = '\n';       \
-            foundCr = true;      \
-        }                        \
-    }
-
-// Macro to help reading in a buffer
-#define READ_BUFFER                     \
-    res = _textReadFrameMaybe (stream); \
-    if (res != TEXT_SUCCESS)            \
-        return res;                     \
-    if (stream->isEof)                  \
-        goto end;
-
-// Macro to help writing a buffer
-#define WRITE_BUFFER                            \
-    res = _textWriteFrameMaybe (stream, false); \
-    if (res != TEXT_SUCCESS)                    \
-        return res;
-
 // Decodes count characters of text
-static short _textDecode (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead, bool stopOnLine)
+static short _textDecode (TextStream_t* stream, char* buf, size_t count, size_t* charsRead, bool stopOnLine)
 {
     assert (stream && buf);
-
     bool foundCr = false;
     size_t charsParsed = 0;
     short res = TEXT_SUCCESS;
+    size_t charSz = 0;
     int i = 0;
-    // Decide what encoding we are decoding
-    if (stream->encoding == TEXT_ENC_ASCII)
+    // Loop through buffer
+    for (; i < (count - 1); i += charSz)
     {
-        // This is easy. Loop through stream->buf, casting.
-        for (; i < (count - 1); ++i)
+        // Maybe read the buffer
+        res = _textReadFrameMaybe (stream);
+        if (res != TEXT_SUCCESS)
+            return res;
+        // If we hit EOF, end decoding
+        if (stream->isEof)
+            break;
+        if (stream->encoding == TEXT_ENC_ASCII)
         {
-            // Maybe read the buffer
-            READ_BUFFER
-            assert (foundCr ? stopOnLine : true);
-            // If we are simply skipping an LF, don't copy out a character
-            if (!foundCr)
-                buf[i] = (char32_t) stream->buf[stream->bufPos];
-            // If we are looking for a LF, only advance if an LF is found
-            if (!foundCr || (foundCr && stream->buf[stream->bufPos] == '\n'))
+            // Get character
+            char c = stream->buf[stream->bufPos++];
+            // Handle a CRLF combo
+            if (stream->skipLf)
             {
-                ++stream->bufPos;
-                ++charsParsed;
-            }
-            // Check if we should stop on newline
-            CHECK_NEWLINE
-        }
-    }
-    else if (stream->encoding == TEXT_ENC_WIN1252)
-    {
-        // Loop through the buffer
-        for (; i < (count - 1); ++i)
-        {
-            READ_BUFFER
-            assert (foundCr ? stopOnLine : true);
-            // If we are simply skipping an LF, don't copy out a character
-            if (!foundCr)
-            {
-                // Here is the algorithm for decoding: If stream->buf[stream->bufPos] doesn't have bit 7 set,
-                // or it is an ISO-8859-1 character, we copy it directly.
-                // Else, we go into the Windows 1252 to Unicode decoding table
-                // to get the right character
-                if (BitGet (stream->buf[stream->bufPos], 7) == 0 || stream->buf[stream->bufPos] >= 0xA0)
+                stream->skipLf = false;
+                if (c == '\n')
                 {
-                    // This character lies in the ASCII or ISO-8859-1 realm
-                    buf[i] = (char32_t) stream->buf[stream->bufPos];
-                }
-                else
-                {
-                    // Translate from table
-                    buf[i] = win1252toUtf32[BitClearNew (stream->buf[stream->bufPos], 7)];
+                    charSz = 0;    // Dont change i
+                    continue;
                 }
             }
-            // If we are looking for a LF, only advance if an LF is found
-            if (!foundCr || (foundCr && stream->buf[stream->bufPos] == '\n'))
-            {
-                ++stream->bufPos;
-                ++charsParsed;
-            }
-            CHECK_NEWLINE
+            buf[i] = c;    // Copy out
+            charSz = 1;    // ASCII is always one byte sized
         }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF32)
-    {
-        for (; i < (count - 1); ++i)
+        else if (stream->encoding == TEXT_ENC_WIN1252)
         {
-            // Maybe read the buffer
-            READ_BUFFER
-            assert (foundCr ? stopOnLine : true);
-            // If we are simply skipping an LF, don't copy out a character
-            if (!foundCr)
-                buf[i] = EndianRead32 ((char32_t*) (stream->buf + stream->bufPos), stream->order);
-            // If we are looking for a LF, only advance if an LF is found
-            if (!foundCr ||
-                (foundCr && (EndianRead32 ((char32_t*) (stream->buf + stream->bufPos), stream->order) == '\n')))
+            // Here is the algorithm for decoding: If current char doesn't have bit 7 set,
+            // or it is an ISO-8859-1 character, we copy it directly.
+            // Else, we go into the Windows 1252 to Unicode decoding table
+            // to get the right character
+            if (BitGet (stream->buf[stream->bufPos], 7) == 0)
             {
-                stream->bufPos += 4;
-                ++charsParsed;
-            }
-            // Check if we should stop on newline
-            CHECK_NEWLINE
-        }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF16)
-    {
-        for (; i < (count - 1); ++i)
-        {
-            READ_BUFFER
-            assert (foundCr ? stopOnLine : true);
-            if (!foundCr)
-            {
-                // FIXME: If stream->buf's last 16 bit element is a surrogate pair,
-                // then this will return TEXT_INVALID_CHAR (as it would be an incomplete pair)
-                ssize_t u16sParsed = (ssize_t) UnicodeDecode16 (&buf[i],
-                                                                ((uint16_t*) (stream->buf + stream->bufPos)),
-                                                                stream->bufSize - stream->bufPos,
-                                                                stream->order);
-                if (u16sParsed == 0)
-                    return TEXT_INVALID_CHAR;
-                stream->bufPos += (u16sParsed * 2);
-                ++charsParsed;
-            }
-            if (foundCr && (EndianRead16 ((uint16_t*) (stream->buf + stream->bufPos), stream->order) == '\n'))
-            {
-                stream->bufPos += 2;
-                ++charsParsed;
-            }
-            CHECK_NEWLINE
-        }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF8)
-    {
-        for (; i < (count - 1); ++i)
-        {
-            assert (foundCr ? stopOnLine : true);
-            if (!foundCr)
-            {
-                // Decode part by part
-                Utf8State_t state;
-                UnicodeStateInit (state);
-                while (!UnicodeIsAccepted (state))
+                // This character lies in the ASCII or ISO-8859-1 realm
+                char c = stream->buf[stream->bufPos++];
+                // Check if we need to skip an LF
+                if (c == '\n' && stream->skipLf)
                 {
-                    // Read in a buffer if needed
-                    READ_BUFFER
-                    size_t u8sparsed = UnicodeDecodePart8 (&buf[i], stream->buf[stream->bufPos], &state);
-                    if (u8sparsed == 0)
-                    {
-                        buf[i] = 0xFFFD;
-                        stream->bufPos += 1;
-                        break;
-                    }
-                    stream->bufPos += u8sparsed;
+                    charSz = 0;
+                    continue;
                 }
-                ++charsParsed;
+                buf[i] = c;
+                charSz = 1;
             }
-            if (foundCr && stream->buf[stream->bufPos] == '\n')
+            else if (stream->buf[stream->bufPos] >= 0xA0)
             {
-                ++stream->bufPos;
-                ++charsParsed;
+                // Convert to UTF-8// This character lies in the ASCII or ISO-8859-1 realm
+                char c = stream->buf[stream->bufPos++];
+                charSz = UnicodeEncode8 (&buf[i], c, 4);
             }
-            CHECK_NEWLINE
+            else
+            {
+                // This is a windows-1252 character, meaning we need to reference the table
+                char* c = win1252ToUtf8[BitClearNew (stream->buf[stream->bufPos++], 7)];
+                // Copy to buffer
+                memcpy (&buf[i], c, strlen (c));
+                charSz = strlen (c);
+            }
+            // Reset skipLf
+            if (stream->skipLf)
+                stream->skipLf = false;
+        }
+        else if (stream->encoding == TEXT_ENC_UTF32)
+        {
+            // Get a character
+            char32_t* ptr = (char32_t*) (stream->buf + stream->bufPos);
+            stream->bufPos += 4;    // To next character
+            char32_t c = EndianRead32 (ptr, stream->order);
+            // Handle newline
+            if (stream->skipLf)
+            {
+                stream->skipLf = false;
+                if (c == U'\n')
+                {
+                    charSz = 0;    // Dont change i
+                    continue;
+                }
+            }
+            // Add to buffer
+            charSz = UnicodeEncode8 (&buf[i], *ptr, 4);
+        }
+        else if (stream->encoding == TEXT_ENC_UTF16)
+        {
+            // Get character in UTF-32
+            char32_t c32 = 0;
+            ssize_t u16sParsed = (ssize_t) UnicodeDecode16 (&c32,
+                                                            ((uint16_t*) (stream->buf + stream->bufPos)),
+                                                            stream->bufSize - stream->bufPos,
+                                                            stream->order);
+            if (u16sParsed == 0)
+                return TEXT_INVALID_CHAR;
+            // Update buffer
+            stream->bufPos += (u16sParsed * 2);
+            // Handle newline
+            if (stream->skipLf)
+            {
+                stream->skipLf = false;
+                if (c32 == U'\n')
+                {
+                    charSz = 0;    // Dont change i
+                    continue;
+                }
+            }
+            // Convert to UTF-8
+            charSz = UnicodeEncode8 (&buf[i], c32, 4);
+        }
+        else if (stream->encoding == TEXT_ENC_UTF8)
+        {
+            uint8_t* c = stream->buf + stream->bufPos;
+            // Get length of c
+            size_t len = UnicodeGetCharLen8 (c);
+            if (!len)
+                return TEXT_INVALID_CHAR;
+            stream->bufPos += len;
+            charSz = len;
+            // Handle newline
+            if (stream->skipLf)
+            {
+                stream->skipLf = false;
+                if (*c == '\n')
+                {
+                    charSz = 0;    // Dont change i
+                    continue;
+                }
+            }
+            // Copy it out
+            memcpy (&buf[i], c, len);
+        }
+        else
+            assert (false);
+        // Handle CR
+        if (buf[i] == '\r')
+        {
+            stream->skipLf = true;
+            buf[i] = '\n';
+        }
+        ++charsParsed;
+        if (buf[i] == '\n' && stopOnLine)
+        {
+            ++i;    // Move i passed the newline
+            break;
         }
     }
-end:
     buf[i] = 0;
     if (charsRead)
         *charsRead = charsParsed;
     return res;
 }
 
-static short _textEncode (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten)
+static short _textEncode (TextStream_t* stream, const char* buf, size_t count, size_t* charsWritten)
 {
     assert (stream && buf);
     short res = TEXT_SUCCESS;
     size_t charsEncoded = 0;
-    // Decide to encoding to encode buf in
-    if (stream->encoding == TEXT_ENC_ASCII)
+    size_t charSz = 0;
+    for (int i = 0; i < count; i += charSz)
     {
-        // Just copy it out in a loop, taking buffering into account
-        for (int i = 0; i < count; ++i)
+        if (stream->encoding == TEXT_ENC_ASCII)
         {
-            if (buf[i] > SCHAR_MAX)
-                return TEXT_INVALID_CHAR;
-            stream->buf[stream->bufPos] = (uint8_t) buf[i];
-            ++charsEncoded;
-            ++stream->bufPos;
-            WRITE_BUFFER
+            stream->buf[stream->bufPos++] = buf[i];
+            charSz = 1;
         }
-    }
-    else if (stream->encoding == TEXT_ENC_WIN1252)
-    {
-        // Loop through buffer
-        for (int i = 0; i < count; ++i)
+        else if (stream->encoding == TEXT_ENC_WIN1252)
         {
-            res = _textWriteFrameMaybe (stream, false);
-            if (res != TEXT_SUCCESS)
-                return res;
-            // Check if this character's Unicode code
-            // is the same as its Windows-1252 one. If it is, directly copy to destination
-            // buffer
-            if (buf[i] <= 0x7F || (buf[i] >= 0xA0 && buf[i] <= 0xFF))
+            // Convert to UTF-32
+            char32_t c = 0;
+            charSz = UnicodeDecode8 (&c, &buf[i], 4);
+            if (c <= 0x7F || (c >= 0x80 && c <= 0xFF))
             {
-                // Copy out
-                stream->buf[stream->bufPos] = (uint8_t) buf[i];
+                stream->buf[stream->bufPos++] = (char) c;
             }
-            // It's a Windows-1252 character
             else
             {
+                // Reference table
                 // This is kind of slow, but the best way overall.
                 // We loop through the translation table until we find character that matches
                 // buf[i]. We set bit 7 on the index, and that's the character
-                const int tableSize = ARRAY_SIZE (win1252toUtf32);
-                int tableIndex = 0;
-                int charFound = 0;
-                while (tableIndex < tableSize)
+                const int tableSize = ARRAY_SIZE (win1252ToUtf8);
+                int tableIdx = 0;
+                bool charFound = 0;
+                while (tableIdx < tableSize)
                 {
-                    // Check for a match
-                    if (win1252toUtf32[tableIndex] == buf[i])
+                    if (!memcmp (&win1252ToUtf8[tableIdx], &buf[i], strlen (win1252ToUtf8[tableIdx])))
                     {
                         // Set bit 7 on tableIndex, and that is the character
-                        stream->buf[stream->bufPos] = BitSetNew (tableIndex, 7);
-                        charFound = 1;
+                        stream->buf[stream->bufPos++] = BitSetNew (tableIdx, 7);
+                        charFound = true;
                         break;
                     }
-                    ++tableIndex;
+                    ++tableIdx;
                 }
                 if (!charFound)
                     return TEXT_INVALID_CHAR;
             }
-            ++charsEncoded;
-            ++stream->bufPos;
-            WRITE_BUFFER
         }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF32)
-    {
-        // Copy out
-        for (int i = 0; i < count; ++i)
+        else if (stream->encoding == TEXT_ENC_UTF32)
         {
-            EndianWrite32 ((char32_t*) (stream->buf + stream->bufPos), buf[i], stream->order);
-            ++charsEncoded;
+            // COnvert to UTF-32
+            char32_t c = 0;
+            charSz = UnicodeDecode8 (&c, &buf[i], 4);
+            // Write it out
+            uint32_t* ptr = (uint32_t*) (stream->buf + stream->bufPos);
+            *ptr = c;
             stream->bufPos += 4;
-            WRITE_BUFFER
         }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF16)
-    {
-        // Copy out, encoding it
-        for (int i = 0; i < count; ++i)
+        else if (stream->encoding == TEXT_ENC_UTF16)
         {
-            size_t u16sEncoded =
-                UnicodeEncode16 ((uint16_t*) (stream->buf + stream->bufPos), buf[i], stream->order);
-            ++charsEncoded;
+            // Convert to UTF-32
+            char32_t c = 0;
+            charSz = UnicodeDecode8 (&c, &buf[i], 4);
+            // Encode as UTF-16
+            size_t u16sEncoded = UnicodeEncode16 ((uint16_t*) (stream->buf + stream->bufPos), c, stream->order);
             stream->bufPos += (u16sEncoded * 2);
-            WRITE_BUFFER
         }
-    }
-    else if (stream->encoding == TEXT_ENC_UTF8)
-    {
-        // Copy out, encoding everything
-        for (int i = 0; i < count; ++i)
+        else if (stream->encoding == TEXT_ENC_UTF8)
         {
-            size_t u8sEncoded =
-                UnicodeEncode8 (stream->buf + stream->bufPos, buf[i], stream->bufSize - stream->bufPos);
-            if (u8sEncoded == 0)
-                return TEXT_INVALID_CHAR;
-            stream->bufPos += u8sEncoded;
-            ++charsEncoded;
-            WRITE_BUFFER
+            // Get length of current character
+            charSz = UnicodeGetCharLen8 (&buf[i]);
+            // Copy it out
+            memcpy (stream->buf + stream->bufPos, &buf[i], charSz);
+            stream->bufPos += charSz;
         }
+        else
+            assert (false);
+        ++charsEncoded;
+        // Check if we need to write out to file
+        res = _textWriteFrameMaybe (stream, false);
+        if (res != TEXT_SUCCESS)
+            return res;
     }
     return res;
 }
 
-LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char* buf, size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -376,11 +335,11 @@ LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count,
     return res;
 }
 
-LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c)
+LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char* c)
 {
     if (!stream || !c)
         return TEXT_INVALID_PARAMETER;
-    char32_t buf[2];
+    char buf[2];
     short res = TextRead (stream, buf, 2, NULL);
     if (res != TEXT_SUCCESS)
         return res;
@@ -388,7 +347,7 @@ LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c)
     return TEXT_SUCCESS;
 }
 
-LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead)
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char* buf, size_t count, size_t* charsRead)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -399,7 +358,7 @@ LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, size_t co
     return res;
 }
 
-LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten)
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char* buf, size_t count, size_t* charsWritten)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;

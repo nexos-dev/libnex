@@ -1,6 +1,6 @@
 /*
     decls.h - contains code for C++ declaration safety
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 */
 
 /// @file decls.h
+
+#include <libnex/base.h>
+#include <libnex/libnex_config.h>
 
 #ifndef _DECLS_H
 #define _DECLS_H

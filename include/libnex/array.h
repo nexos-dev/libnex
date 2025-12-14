@@ -1,6 +1,6 @@
 /*
     array.h - contains dynamic array implementation
-    Copyright 2023 The NexNix Project
+    Copyright 2023 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -40,18 +40,6 @@ typedef void (*ArrayDestroyElem) (void* elem);
  */
 typedef struct _lnarray
 {
-    Object_t obj;                   ///< Underlying object
-    ListHead_t* arrays;             ///< Allocated arrays
-    int numArrays;                  ///< Number of arrays currently
-    size_t numElems;                ///< Current number of initalized elements
-    size_t allocatedElems;          ///< Number of currently allocated elements
-    size_t totalElems;              ///< Total number of elements, including uninitialized ones
-    size_t growSize;                ///< Number of elements to grow by
-    size_t maxElems;                ///< Max number of elements
-    size_t elemSize;                ///< Size of an element
-    bool usesObj;                   ///< Wheter data elements use Object_t struct
-    ArrayFindBy findByFun;          ///< Find by function
-    ArrayDestroyElem destroyFun;    ///< Destroy function
 } Array_t;
 
 /**
@@ -73,13 +61,13 @@ __DECL_START
  * @param elemSize Size of an element
  * @return The initialized array
  */
-Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t elemSize);
+LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t elemSize);
 
 /**
  * @brief Destroys a dynamic array
  * @param array array to destroy
  */
-void ArrayDestroy (Array_t* array);
+LIBNEX_PUBLIC void ArrayDestroy (Array_t* array);
 
 /**
  * @brief Gets element pointer
@@ -87,14 +75,14 @@ void ArrayDestroy (Array_t* array);
  * @param pos Position of element.
  * @return Element pointer
  */
-void* ArrayGetElement (Array_t* array, size_t pos);
+LIBNEX_PUBLIC void* ArrayGetElement (Array_t* array, size_t pos);
 
 /**
  * @brief Remove element from array
  * @param array Array to remove from
  * @param pos Position of element to remove
  */
-void ArrayRemoveElement (Array_t* array, size_t pos);
+LIBNEX_PUBLIC void ArrayRemoveElement (Array_t* array, size_t pos);
 
 /**
  * @brief Find first free element
@@ -102,7 +90,7 @@ void ArrayRemoveElement (Array_t* array, size_t pos);
  * @param expand Wheter we are allowed to expand the array if needed
  * @return Position of free element
  */
-size_t ArrayFindFreeElement (Array_t* array);
+LIBNEX_PUBLIC size_t ArrayFindFreeElement (Array_t* array);
 
 /**
  * @brief Finds a specified element in array
@@ -110,28 +98,21 @@ size_t ArrayFindFreeElement (Array_t* array);
  * @param hint Hint to pass to find by function
  * @return Position of found element
  */
-size_t ArrayFindElement (Array_t* array, const void* hint);
+LIBNEX_PUBLIC size_t ArrayFindElement (Array_t* array, const void* hint);
 
 /**
  * @brief Sets find by function
  * @param array Array to work in
  * @param func Function
  */
-void ArraySetFindBy (Array_t* array, ArrayFindBy func);
+LIBNEX_PUBLIC void ArraySetFindBy (Array_t* array, ArrayFindBy func);
 
 /**
  * @brief Sets destroy function
  * @param array Array to work in
  * @param func Function
  */
-void ArraySetDestroy (Array_t* array, ArrayDestroyElem func);
-
-/**
- * @brief Sets if array elements use objects
- * @param array Array to work in
- * @param usesObj Flag to set
- */
-void ArraySetUseObj (Array_t* array, bool usesObj);
+LIBNEX_PUBLIC void ArraySetDestroy (Array_t* array, ArrayDestroyElem func);
 
 /**
  * @brief Iterates through array
@@ -139,13 +120,14 @@ void ArraySetUseObj (Array_t* array, bool usesObj);
  * @param iter Iterator to work with
  * @return Iterator containing new item
  */
-ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
+LIBNEX_PUBLIC ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
 
 __DECL_END
 
-#define ARRAY_ERROR       0xFFFFFFFF                    ///< Signifies an array occured in a function
-#define ArrayRef(item)    (ObjRef (&(item)->obj))       ///< References the underlying object
-#define ArrayLock(item)   (ObjLock (&(item)->obj))      ///< Locks this array
-#define ArrayUnlock(item) (ObjUnlock (&(item)->obj))    ///< Unlocks the array
+#define ARRAY_ERROR         0xFFFFFFFF                    ///< Signifies an array occured in a function
+#define ArrayRef(item)      (ObjRef (&(item)->obj))       ///< References the underlying object
+#define ArrayLock(item)     (ObjLock (&(item)->obj))      ///< Locks this array
+#define ArrayUnlock(item)   (ObjUnlock (&(item)->obj))    ///< Unlocks the array
+#define ArrayIterData(iter) ((iter)->ptr)
 
 #endif

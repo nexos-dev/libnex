@@ -1,6 +1,6 @@
 /*
     internal.h - contains internal libnex things that shouldn't be visible to the outside
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -37,5 +37,8 @@ void __Libnex_i18n_init();
 #define _(str)  (str)
 #define N_(str) (str)
 #endif
+
+// Sets an error code
+void LibnexSetError (int code);
 
 #endif

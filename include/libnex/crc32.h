@@ -7,7 +7,6 @@
 #ifndef _CRC32_H
 #define _CRC32_H
 
-#include <libnex/base.h>
 #include <libnex/decls.h>
 #include <libnex/libnex_config.h>
 #include <stddef.h>

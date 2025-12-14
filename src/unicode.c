@@ -1,6 +1,6 @@
 /*
     unicode.c - contains unicode handling functions
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -99,9 +99,9 @@ LIBNEX_PUBLIC size_t UnicodeEncode16 (uint16_t* out, char32_t in, char endian)
 #define UTF8_ACCEPT 6
 
 // Checks if this is a bad octet
-#define IsBadOctect(oct) ((oct) == 0xC0 || (oct) == 0xC1 || ((oct) >= 0xF5))
+#define IsBadOctet(oct) ((oct) == 0xC0 || (oct) == 0xC1 || ((oct) >= 0xF5))
 
-LIBNEX_PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t* state)
+LIBNEX_PUBLIC size_t UnicodeDecodeOctet8 (char32_t* out, uint8_t in, Utf8State_t* state)
 {
     // If this sequence has been accepted, return
     if (state->state == UTF8_ACCEPT)
@@ -129,7 +129,7 @@ LIBNEX_PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t*
     }
 
     // Ensure in isn't a bad octet
-    if (IsBadOctect (in))
+    if (IsBadOctet (in))
         return 0;
 
     // Update the codepoint
@@ -148,6 +148,7 @@ LIBNEX_PUBLIC size_t UnicodeDecodePart8 (char32_t* out, uint8_t in, Utf8State_t*
 LIBNEX_PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz)
 {
     Utf8State_t state;
+    UnicodeStateInit (&state);
     const uint8_t* oin = in;
     memset (&state, 0, sizeof (Utf8State_t));
     do
@@ -156,10 +157,10 @@ LIBNEX_PUBLIC size_t UnicodeDecode8 (char32_t* out, const uint8_t* in, size_t sz
         if (in > (oin + sz))
             return 0;
         // Decode current octet
-        if (!UnicodeDecodePart8 (out, *in, &state))
+        if (!UnicodeDecodeOctet8 (out, *in, &state))
             *out = 0xFFFD;
         ++in;
-    } while (!UnicodeIsAccepted (state));
+    } while (!UnicodeIsAccepted (&state));
     return in - oin;
 }
 
@@ -215,6 +216,21 @@ LIBNEX_PUBLIC size_t UnicodeEncode8 (uint8_t* out, char32_t in, size_t sz)
         return 0;
 }
 
+LIBNEX_PUBLIC size_t UnicodeGetCharLen8 (const uint8_t* buf)
+{
+    uint8_t c = *buf;
+    // Determine character length
+    if ((c & 0x80) == 0)
+        return 1;
+    else if ((c & 0xE0) == 0xC0)
+        return 2;
+    else if ((c & 0xF0) == 0xE0)
+        return 3;
+    else if ((c & 0xF8) == 0xF0)
+        return 4;
+    return 0;
+}
+
 LIBNEX_PUBLIC void UnicodeWriteBom8 (uint8_t* buf)
 {
     buf[0] = 0xEF;
@@ -266,26 +282,3 @@ LIBNEX_PUBLIC char UnicodeReadBom32 (const uint8_t* bom)
     else
         return 0;
 }
-
-#ifndef LIBNEX_BAREMETAL
-// Buffers used by UnicodeToHost
-__thread char* hostEncBuf = NULL;
-
-LIBNEX_PUBLIC char* UnicodeToHost (const char32_t* s)
-{
-    // Allocate buffer for encoding buffer if needed
-    // FIXME: hostEncBuf currently leaks. Need to figure out a way to fix that
-    if (!hostEncBuf)
-    {
-        // We allocate enough memory for the worst case scenario here
-        hostEncBuf = malloc_s ((UNICODE_HOST_MAX_BUF + 1) * sizeof (char32_t));
-        if (!hostEncBuf)
-            return NULL;
-    }
-    // Convert
-    mbstate_t state = {0};
-    if (c32stombs (hostEncBuf, s, (c32len (s) + 1) * sizeof (char32_t), &state) < 0)
-        return NULL;
-    return hostEncBuf;
-}
-#endif

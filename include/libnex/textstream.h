@@ -1,6 +1,6 @@
 /*
     textstream.h - contains declarations to work with text files
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -69,13 +69,14 @@ typedef struct _TextStream
 {
     Object_t obj;      // The object for this stream
     FILE* file;        // Pointer to underlying file object
-    uint8_t* buf;      // Buffer to use for staging
+    char* buf;         // Buffer to use for staging
     size_t bufSize;    // Size of above buffer
     size_t bufPos;     // Read position within buffer. Used only for reading
     char encoding;     // Underlying encoding of the stream
     char order;        // Order of bytes for multi byte character sets
     char mode;         // Mode used to open text stream
     bool isEof;        // Contains if EOF was reached
+    bool skipLf;       // Last read character was CR so skip an LF
 } TextStream_t;
 
 /**
@@ -118,12 +119,12 @@ LIBNEX_PUBLIC short TextClose (TextStream_t* stream);
  * decoded into the main buffer specified by buf.
  *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of char32_t's to decode into
- * @param[in] count the number of char32_t's to decode plus a null terminator
+ * @param[out] buf a buffer of characters to decode into
+ * @param[in] count the number of characters to decode plus a null terminator
  * @param[out] charsRead the number or characters read
  * @return a result code
  */
-LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char* buf, size_t count, size_t* charsRead);
 
 /**
  * @brief Reads a character from a text stream
@@ -132,7 +133,7 @@ LIBNEX_PUBLIC short TextRead (TextStream_t* stream, char32_t* buf, size_t count,
  * @param c pointer to character to write out to
  * @return a result code
  */
-LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c);
+LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char* c);
 
 /**
  * @brief Reads data from a text stream
@@ -144,26 +145,26 @@ LIBNEX_PUBLIC short TextReadChar (TextStream_t* stream, char32_t* c);
  * decoded into the main buffer specified by buf
  *
  * @param[in] stream the stream to read from
- * @param[out] buf a buffer of char32_t's to decode into
- * @param[in] count the max number of char32_t's to decode
+ * @param[out] buf a buffer of characters to decode into
+ * @param[in] count the max number of characters to decode
  * @param[out] charsRead the number or characters read
  * @return a status code
  */
-LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char32_t* buf, size_t count, size_t* charsRead);
+LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char* buf, size_t count, size_t* charsRead);
 
 /**
  * @brief Writes data into a text stream
  *
- * TextWrite writes out a buffer of char32_t's to a file, encoding them first.
+ * TextWrite writes out a buffer of characters to a file, encoding them first.
  * Data is encoded into a staging buffer, and then written to stream
  *
  * @param[in] stream the stream to write to
  * @param[in] buf the buffer to write from
- * @param[in] count the number of char32_t's to write
+ * @param[in] count the number of characters to write
  * @param[out] charsWritten the number or characters written
  * @return a status code
  */
-LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char32_t* buf, size_t count, size_t* charsWritten);
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char* buf, size_t count, size_t* charsWritten);
 
 /**
  * @brief Returns a textual representation of a textstream error code

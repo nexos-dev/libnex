@@ -1,6 +1,6 @@
 /*
     list.c - contains linked list functions
-    Copyright 2022 The NexNix Project
+    Copyright 2022 - 2025 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -18,81 +18,81 @@
 
 /// @file list.c
 
+#include <assert.h>
 #include <libnex/list.h>
 #include <libnex/lock.h>
 #include <libnex/safemalloc.h>
 #include <stdlib.h>
 
-LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type, bool usesObj, size_t offToObj)
+// Prepares a list entry
+static inline ListEntry_t* listPrepareEntry (const void* data, int flags, int key)
 {
-    ListHead_t* head = calloc (sizeof (ListHead_t), 1);
-    if (!head)
-        return NULL;
-    // Initialize the object associated with this list
-    ObjCreate (type, &head->obj);
-    // Initialize the other stuff
-    head->usesObj = usesObj;
-    head->objOffset = offToObj;
-    return head;
-}
-
-LIBNEX_PUBLIC void ListSetFindBy (ListHead_t* list, ListEntryFindBy func)
-{
-    ListLock (list);
-    list->findByFunc = func;
-    ListUnlock (list);
-}
-
-LIBNEX_PUBLIC void ListSetDestroy (ListHead_t* list, ListEntryDestroy func)
-{
-    ListLock (list);
-    list->destroyFunc = func;
-    ListUnlock (list);
-}
-
-LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* head, const void* data, int key)
-{
-    ListEntry_t* entry = malloc (sizeof (ListEntry_t));
-    if (!entry)
-        return NULL;
-    ListLock (head);
-    // Set all the links
-    if (head->front)
-        head->front->prev = entry;
-    entry->next = head->front;
-    entry->prev = NULL;
-    head->front = entry;
-    // If this is the first entry
-    if (!head->back)
-        head->back = head->front;
-    // Set everything else
-    entry->data = data;
+    ListEntry_t* entry = (ListEntry_t*) data;
+    entry->flags = flags & LIST_ENTRY_FLAG_MASK;
     entry->key = key;
-    ObjCreate (ObjGetType (head), &entry->obj);
-    ListUnlock (head);
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* head, const void* data, int key)
+LIBNEX_PUBLIC ListHead_t* ListCreate (const char* type,
+                                      ListEntryFindBy findBy,
+                                      ListEntryDestroy destroy,
+                                      int flags)
 {
-    ListEntry_t* entry = malloc (sizeof (ListEntry_t));
-    if (!entry)
+    ListHead_t* list = calloc (1, sizeof (ListHead_t));
+    if (!list)
+    {
+        LibnexSetError (LIBNEX_ERR_OOM);
         return NULL;
-    ObjCreate (ObjGetType (head), &entry->obj);
-    ListLock (head);
+    }
+    // Initialize the object associated with this list
+    ObjCreate (type, &list->obj);
+    // Initialize the other stuff
+    list->findByFunc = findBy, list->destroyFunc = destroy;
+    list->flags = flags;
+    return list;
+}
+
+LIBNEX_PUBLIC ListEntry_t* ListAddFront (ListHead_t* list, const void* data, int key)
+{
+    assert (list && data);
+    ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
+    ListLock (list);
     // Set all the links
-    entry->prev = head->back;
-    if (head->back)
-        head->back->next = entry;
-    entry->next = NULL;
-    head->back = entry;
+    if (list->front)
+        list->front->prev = entry;
+    entry->next = list->front;
+    entry->prev = NULL;
+    list->front = entry;
     // If this is the first entry
-    if (!head->front)
-        head->front = head->back;
+    if (!list->back)
+        list->back = list->front;
     // Set everything else
     entry->data = data;
     entry->key = key;
-    ListUnlock (head);
+    ObjCreate (ObjGetType (list), &entry->obj);
+    ListUnlock (list);
+    return entry;
+}
+
+LIBNEX_PUBLIC ListEntry_t* ListAddBack (ListHead_t* list, const void* data, int key)
+{
+    assert (list && data);
+    ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
+    ObjCreate (ObjGetType (list), &entry->obj);
+    ListLock (list);
+    // Set all the links
+    entry->prev = list->back;
+    if (list->back)
+        list->back->next = entry;
+    entry->next = NULL;
+    list->back = entry;
+    // If this is the first entry
+    if (!list->front)
+        list->front = list->back;
+    // Set everything else
+    entry->data = data;
+    entry->key = key;
+    ListUnlock (list);
     return entry;
 }
 
@@ -140,11 +140,9 @@ LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* 
 
 LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, int key, ListEntry_t* entryAfter)
 {
-    ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
-    if (!entry)
-        return NULL;
+    assert (list && data);
+    ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
     ListLock (list);
-    ListRef (entryAfter);
     ListLock (entryAfter);
     ObjCreate (ObjGetType (list), &entry->obj);
     entry->key = key;
@@ -157,7 +155,6 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, in
     if (list->front == entryAfter)
         list->front = entry;
     ListUnlock (entryAfter);
-    ListDeRef (entryAfter);
     ListUnlock (list);
     return entry;
 }
@@ -172,9 +169,9 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data,
 
 LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int key, ListEntry_t* entryBefore)
 {
-    ListEntry_t* entry = (ListEntry_t*) malloc (sizeof (ListEntry_t));
+    assert (list && data);
+    ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
     ListLock (list);
-    ListRef (entryBefore);
     ListLock (entryBefore);
     ObjCreate (ObjGetType (list), &entry->obj);
     entry->key = key;
@@ -187,7 +184,6 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int
     if (list->back == entryBefore)
         list->back = entry;
     ListUnlock (entryBefore);
-    ListDeRef (entryBefore);
     ListUnlock (list);
     return entry;
 }
@@ -202,20 +198,19 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, const void* data, 
 
 LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
 {
+    assert (list);
     ListLock (list);
     if (!list->front)
     {
         ListUnlock (list);
         return NULL;
     }
-    ListRef (list->front);
     ListEntry_t* entry = list->front;
     ListLock (entry);
     if (entry->next)
         entry->next->prev = NULL;
     list->front = entry->next;
     ListUnlock (entry);
-    ListDeRef (entry);
     ListUnlock (list);
     return entry;
 }
@@ -225,11 +220,11 @@ LIBNEX_PUBLIC ListEntry_t* ListRemoveKey (ListHead_t* list, int key)
     ListEntry_t* entry = ListFind (list, key);
     if (!entry)
         return NULL;
-    return ListRemove (list, entry);
+    ListRemove (list, entry);
 }
 
 // Internal function to remove a list entry
-ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
+static ListEntry_t* listRemove (ListHead_t* list, ListEntry_t* entry, bool doRef)
 {
     ListLock (list);
     if (doRef)
@@ -252,36 +247,29 @@ ListEntry_t* _listRemove (ListHead_t* list, ListEntry_t* entry, int doRef)
 
 LIBNEX_PUBLIC ListEntry_t* ListRemove (ListHead_t* list, ListEntry_t* entry)
 {
+    assert (list && entry);
     if (!ListDeRef (entry))
-        return _listRemove (list, entry, 0);
+        return listRemove (list, entry, false);
     else
         return entry;
 }
 
 LIBNEX_PUBLIC void ListDestroyEntry (ListHead_t* list, ListEntry_t* entry)
 {
+    assert (list && entry);
     // De-reference the entry and remove it
     if (!ListDeRef (entry))
     {
-        _listRemove (list, entry, 0);
-        // Destroy it
-        if (!list->destroyFunc)
-        {
-            // Destroy it
-            if (!list->usesObj)
-                free ((void*) entry->data);
-            else
-                ObjDestroy ((const Object_t*) (entry->data + list->objOffset));
-        }
-        else
+        listRemove (list, entry, true);
+        // Destroy it if we have a callback
+        if (list->destroyFunc)
             list->destroyFunc (entry->data);
-        free (entry);
     }
 }
 
 LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
 {
-    ListLock (list);
+    assert (list);
     if (!ListDeRef (list))
     {
         // Go through every entry, destroying it
@@ -292,9 +280,6 @@ LIBNEX_PUBLIC void ListDestroy (ListHead_t* list)
             ListDestroyEntry (list, curEntry);
             curEntry = next;
         }
-        ListUnlock (list);
         free (list);
     }
-    else
-        ListUnlock (list);
 }
