@@ -1,6 +1,6 @@
 /*
     array.h - contains dynamic array implementation
-    Copyright 2023 - 2025 The NexNix Project
+    Copyright 2023 - 2026 The NexNix Project
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /// Function pointer types
 typedef bool (*ArrayFindBy) (const void* elem, const void* data);
@@ -40,6 +41,18 @@ typedef void (*ArrayDestroyElem) (void* elem);
  */
 typedef struct _lnarray
 {
+    Object_t obj;                    ///< Underlying object for reference counting
+    void* data;                      ///< Pointer to array data
+    size_t elemSize;                 ///< Size of each element
+    size_t numElements;              ///< Current number of allocated elements
+    size_t maxElements;              ///< Maximum allowed elements
+    size_t growSize;                 ///< Size to grow by when expanding
+    ArrayFindBy findFunc;            ///< Custom find callback
+    ArrayDestroyElem destroyFunc;    ///< Custom destroy callback
+    uint8_t** usedMaps;              ///< Maps of bitmaps used to track used elements
+    size_t numMaps;                  ///< CUrrent number of maps we have
+    size_t maxMaps;                  ////< Max number of maps we can have, based on maxElements
+    uint8_t* hotMap;                 ///< Bitmap for quick access to first bitmap
 } Array_t;
 
 /**
@@ -76,6 +89,14 @@ LIBNEX_PUBLIC void ArrayDestroy (Array_t* array);
  * @return Element pointer
  */
 LIBNEX_PUBLIC void* ArrayGetElement (Array_t* array, size_t pos);
+
+/**
+ * @brief Sets element at position as used
+ * @param array Array to work on
+ * @param pos Position to set
+ * @return true on success, false on failure
+ */
+LIBNEX_PUBLIC bool ArrayMarkElementUsed (Array_t* array, size_t pos);
 
 /**
  * @brief Remove element from array
