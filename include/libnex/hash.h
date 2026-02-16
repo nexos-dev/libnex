@@ -27,46 +27,116 @@
 
 __DECL_START
 
-// Hash table data
-typedef struct _hashbuf
-{
-    int type;     // Type of data
-    size_t sz;    // Size of data
-    union
-    {
-        void* data;    // Data
-        uint8_t buf[0];
-    };
-} HashBuf_t;
-
-/// Callback type that destroys a hash entry
-typedef void (*HashEntryDestroy) (HashBuf_t* buf);
-
 typedef unsigned long hash_t;
 
-// Hash table structure
-typedef struct _hashtable
+typedef struct _hasht HashTable_t;
+typedef struct _hashe HashEntry_t;
+
+/// Callback type that destroys a hash entry
+typedef void (*HashEntryDestroy) (void* buf);
+/// Callback for check if keys are equals
+typedef bool (*HashMatchKey) (const char* key1, const char* key2);
+/// Callback for hashing
+typedef hash_t (*HashMakeHash) (const char* key);
+
+/**
+ * @brief Creates a hash table
+ * @param elemSize Size of each element in the hash table
+ * @param numBuckets Number of buckets to use in the hash table to start out with
+ * @param destroyFunc Function to call when an entry is removed from the hash table
+ * @param flags Flags for the hash table.
+ * @return Pointer to created hash table, or NULL on failure
+ */
+LIBNEX_PUBLIC HashTable_t* HashCreateTable (size_t elemSize,
+                                            size_t numBuckets,
+                                            HashEntryDestroy destroyFunc,
+                                            int flags);
+
+#define HASH_FLAG_STATIC (1 << 0)    ///< Indicates that size of hash table is invariant
+#define HASH_FLAG_BUF \
+    (1 << 1)    ///< Indicates that the entries contain buffers and there we must copy there data into
+                ///< them
+
+/**
+ * @brief Destroys a hash table
+ * @param table Hash table to destroy
+ */
+LIBNEX_PUBLIC void HashDestroyTable (HashTable_t* table);
+
+/**
+ * @brief Sets hashing functions
+ * @param table Table to set on
+ * @param hashFunc Function to hash a key
+ * @param matchFunc Function to match a key
+ */
+LIBNEX_PUBLIC void HashSetFuncs (HashTable_t* table, HashMatchKey matchKey, HashMakeHash makeKey);
+
+/**
+ * @brief Inserts an element into a hash table by the key
+ * @param table Hash table to insert into
+ * @param key key of element to instert
+ * @param value value to insert at key.
+ * If HASH_FLAG_BUF is set, this should be a pointer to a buffer containing the data to insert
+ * @return true on success, false on failure
+ */
+LIBNEX_PUBLIC bool HashInsertEntry (HashTable_t* table, const char* key, const void* value);
+
+/**
+ * @brief Removes an element with specified key from hash table
+ * @param table Hash table to remove from
+ * @param key Key of element to remove
+ */
+LIBNEX_PUBLIC void HashRemoveEntry (HashTable_t* table, const char* key);
+
+/**
+ * @brief Finds an element in the table with specified key
+ * @param table Table to look in
+ * @param key Key to find
+ * @return Data associated with key, NULL if key is non-existant
+ */
+LIBNEX_PUBLIC void* HashFindEntry (HashTable_t* table, const char* key);
+
+/**
+ * @brief Gets element with hash but also copies its data into provided buffer
+ * Only for hash tables with HASH_FLAG_BUF set
+ * @param table Table to get from
+ * @param key Key of value to obtain
+ * @param buf Buffer to copy data into. Must be at least elemSize bytes long
+ * @return false if hash isn't found, true otherwise
+ */
+LIBNEX_PUBLIC bool HashGetEntryBuf (HashTable_t* table, const char* key, void* buf);
+
+/**
+ * @brief Checks if key exists
+ * @param table Table to check in
+ * @param key Key to check
+ * @return true if found, false otherwise
+ */
+LIBNEX_PUBLIC bool HashCheckEntry (HashTable_t* table, const char* key);
+
+/// Iterator structure
+typedef struct _hashi
 {
-    Object_t obj;                    // For reference counting
-    HashEntryDestroy destroyFunc;    // Destroy function
-    size_t numElems;                 // Number of elements we can use
-    size_t usedElems;                // Number of used elements
-    size_t maxElems;                 // Max number of elements
-    size_t elemSize;                 // Size of a single element
-    size_t dataSize;                 // Size of a single data buffer
-    size_t arraySize;                // Current size of array
-    int flags;
-    void* array;    // Data array
-} HashTable_t;
+    HashTable_t* table;
+    HashEntry_t* entry;    // Current entry we are at
+    size_t idx;            // Current index we are at
+    const char* key;
+    void* value;
+} HashIter_t;
+/**
+ * @brief Initializes an iterator for a hash table
+ * @param table Table to iterate over
+ * @param iter Iterator to initialize
+ * @param key Optional key to start iteration from. If NULL, iteration starts from the beginning
+ */
+LIBNEX_PUBLIC void HashStartIter (HashTable_t* table, HashIter_t* iter, const char* key);
 
-#define HASH_FLAG_ENTRY_IS_DATA \
-    (1 << 0)    /// Used if we actually want to set the entry data, and
-                /// not just return a pointer to it on allocations
-
-#define HASH_TYPE_CSTRING 0
-#define HASH_TYPE_PTR     1
-#define HASH_TYPE_INT     2
-#define HASH_TYPE_BUF     3
+/**
+ * @brief Iterates through table
+ * @param iter Iterator to iterate through
+ * @return Same iterator, just with updated data. NULL if we reached end
+ */
+LIBNEX_PUBLIC HashIter_t* HashIterate (HashIter_t* iter);
 
 /**
  * @brief Produces an FNV-1a hash for a string
@@ -74,122 +144,6 @@ typedef struct _hashtable
  * @return The FNV-1a hash
  */
 LIBNEX_PUBLIC hash_t HashCreateHash (const char* str);
-
-/**
- * @brief Creates a hash table
- * @param elemSize size of each element
- * @param maxElems max number elements allowed. 0 for infinite sized hash table
- * @param destroyFunc function to destroy a hash table entry
- * @return the hash table
- */
-LIBNEX_PUBLIC HashTable_t* HashCreateTable (size_t elemSize,
-                                            size_t maxElems,
-                                            HashEntryDestroy destroyFunc,
-                                            int flags);
-
-/**
- * @brief Destroys hash table
- * @param table hash table
- */
-LIBNEX_PUBLIC void HashDestroyTable (HashTable_t* table);
-
-/**
- * @brief Inserts entry into hash table, potentially expanding it
- * @param table table to operate on
- * @param key key used to hash data
- * @param data data to hash
- * @param flags flags used for insertion
- * @return wheter it was successful
- */
-LIBNEX_PUBLIC bool HashInsertEntry (HashTable_t* table, const char* key, HashBuf_t* data, int flags);
-
-#define HASH_FLAG_NO_EXPAND (1 << 0)    /// Don't expand it automatically
-
-/**
- * @brief Gets free entry into hash table and allows us to manipulate data directly
- * @param table table to operate on
- * @param key key to get
- * @param flags flags used for insertion
- * @return free entry
- */
-LIBNEX_PUBLIC void* HashGetEntry (HashTable_t* table, const char* key, int flags);
-
-/**
- * @brief Inserts entry by index instead of key
- * @param table table to work on
- * @param idx index into table
- * @param data data to hash
- * @param flags flags used for insertion
- * @return sucess status
- */
-LIBNEX_PUBLIC bool HashInsertEntryIdx (HashTable_t* table, hash_t idx, HashBuf_t* data, int flags);
-
-/**
- * @brief Gets free entry into hash table by index
- * @param table table to operate on
- * @param idx index into table
- * @param flags flags used for insertion
- * @return free entry
- */
-LIBNEX_PUBLIC void* HashGetEntryIdx (HashTable_t* table, hash_t idx, int flags);
-
-/**
- * @brief Remove and entry in table
- * @param table entry to remove
- * @param key key to remove
- */
-LIBNEX_PUBLIC void HashRemoveEntry (HashTable_t* table, const char* key);
-
-/**
- * @brief Remove entry by index
- * @param table table to work on
- * @param idx index into table
- */
-LIBNEX_PUBLIC void HashRemoveEntryIdx (HashTable_t* table, hash_t idx);
-
-/**
- * @brief Finds an entry by key
- * @param table table to find in
- * @param key key to look for
- * @return the data. Cast it to what you need it to be
- */
-LIBNEX_PUBLIC void* HashFindEntry (HashTable_t* table, const char* key);
-
-/**
- * @brief Gets an entry by index
- * @param table table to get from
- * @param idx idx to retrieve
- * @return the data
- */
-LIBNEX_PUBLIC void* HashFindEntryIdx (HashTable_t* table, hash_t idx);
-
-/**
- * @brief Expand the table. Will only expand if load factor is sufficient
- * @param table table to expand
- * @return Wheter allocation suceeded or not
- */
-LIBNEX_PUBLIC bool HashTableExpand (HashTable_t* table);
-
-// Hash table iterator
-typedef struct _htieter
-{
-    HashTable_t* table;    // table we are iterating through
-    hash_t idx;            // Current interator index
-} HashIter_t;
-
-/**
- * @brief Initializes a hash table iterator
- * @param table table to iterate on
- * @param iter iterator to use
- */
-LIBNEX_PUBLIC void HashStartIterate (HashTable_t* table, HashIter_t* iter);
-
-/**
- * @brief Iterates to next hash table entry
- * @param iter iterator to use
- * @return iterator or NULL if we reached end
- */
-LIBNEX_PUBLIC HashIter_t* HashIterate (HashIter_t* iter);
 
 // Helper macros
 #define HashRef(item)    (ObjRef (&(item)->obj))       ///< References the underlying object

@@ -26,14 +26,34 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Array structure definition
+typedef struct _lnarray
+{
+    Object_t obj;                    ///< Underlying object for reference counting
+    void* data;                      ///< Pointer to array data
+    size_t elemSize;                 ///< Size of each element
+    size_t numElements;              ///< Current number of allocated elements
+    size_t maxElements;              ///< Maximum allowed elements
+    size_t growSize;                 ///< Size to grow by when expanding
+    ArrayFindBy findFunc;            ///< Custom find callback
+    ArrayDestroyElem destroyFunc;    ///< Custom destroy callback
+    uint8_t* usedMap;                ///< Maps of bitmaps used to track used elements
+    size_t mapSize;
+    size_t freeHint;    ///< Used to track where a free element might be at. If -1 there is no hint
+} Array_t;
+
 #define ARRAY_MAP_SIZE 4096
 
-LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t elemSize)
+LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements,
+                                    size_t maxElems,
+                                    size_t elemSize,
+                                    ArrayDestroyElem destroyFunc)
 {
-    assert (elements > 0);
-    assert (maxElems > 0);
-    assert (elemSize > 0);
-    assert (elements <= maxElems);
+    if (!elements || !maxElems || !elemSize || elements > maxElems || elements > (ARRAY_MAP_SIZE / 8))
+    {
+        LibnexSetError (LIBNEX_ERR_BAD_PARAM);
+        return NULL;
+    }
     // Allocate array structure
     Array_t* arr = malloc_s (sizeof (Array_t));
     if (!arr)
@@ -46,69 +66,52 @@ LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t ele
         free (arr);
         return NULL;
     }
-    // Create map of bitmaps. Based on maxElems. We want there to be a bitmap for every ARRAY_MAP_SIZE elements.
-    // That sould be reasonable to cover most needs. And then if someone needs more than ARRAY_MAP_SIZE elements,
-    // we will just add another bitmap as needed.
-    // If maxElems is changed, we will need to reallocate the map of maps
-    // First get number of bitmaps
-    size_t numMaps = (maxElems + (ARRAY_MAP_SIZE - 1)) / ARRAY_MAP_SIZE;
-    arr->maxMaps = numMaps;
-    arr->usedMaps = calloc_s (numMaps * sizeof (uint8_t**));
-    if (!arr->usedMaps)
+    // Create bitmap to keep track of used elements
+    arr->usedMap = calloc_s (ARRAY_MAP_SIZE);
+    if (!arr->usedMap)
     {
         free (arr->data);
         free (arr);
         return NULL;
     }
-    // Create first bitmap
-    arr->usedMaps[0] = calloc_s (ARRAY_MAP_SIZE / 8);
-    if (!arr->usedMaps[0])
-    {
-        free (arr->usedMaps);
-        free (arr->data);
-        free (arr);
-        return NULL;
-    }
+    arr->mapSize = ARRAY_MAP_SIZE;
     // Initialize array members
-    arr->hotMap = arr->usedMaps[0];
     arr->elemSize = elemSize;
     arr->numElements = elements;
     arr->maxElements = maxElems;
     arr->growSize = elements;
     arr->findFunc = NULL;
-    arr->destroyFunc = NULL;
-    arr->numMaps = 1;
+    arr->destroyFunc = destroyFunc;
+    arr->freeHint = 0;
     return arr;
 }
 
 LIBNEX_PUBLIC void ArrayDestroy (Array_t* array)
 {
-    if (!array)
-        return;
-    // If there's a destroy callback, call it on all used elements
-    if (array->destroyFunc)
+    assert (array);
+    if (!ObjDeRef (&array->obj))
     {
-        for (size_t i = 0; i < array->numElements; i++)
+        // If there's a destroy callback, call it on all used elements
+        if (array->destroyFunc)
         {
-            // Get bitmap for this element
-            uint8_t* map = array->usedMaps[i / ARRAY_MAP_SIZE];
-            size_t byteIdx = (i % ARRAY_MAP_SIZE) / 8;
-            size_t bitIdx = (i % ARRAY_MAP_SIZE) % 8;
-            if (map[byteIdx] & (1 << bitIdx))
+            for (size_t i = 0; i < array->numElements; i++)
             {
-                void* elem = (char*) array->data + (i * array->elemSize);
-                array->destroyFunc (elem);
+                // Get bitmap for this element
+                size_t byteIdx = i / 8;
+                size_t bitIdx = i % 8;
+                if (array->usedMap[byteIdx] & (1 << bitIdx))
+                {
+                    void* elem = (char*) array->data + (i * array->elemSize);
+                    array->destroyFunc (elem);
+                }
             }
         }
-    }
 
-    // Free everything
-    free (array->data);
-    for (int i = 0; i < array->numMaps; ++i)
-        free (array->usedMaps[i]);
-    free (array->usedMaps);
-    ObjDestroy (&array->obj);
-    free (array);
+        // Free everything
+        free (array->data);
+        free (array->usedMap);
+        free (array);
+    }
 }
 
 LIBNEX_PUBLIC void* ArrayGetElement (Array_t* array, size_t pos)
@@ -122,13 +125,11 @@ LIBNEX_PUBLIC void ArrayRemoveElement (Array_t* array, size_t pos)
 {
     if (!array || pos >= array->numElements)
         return;
-    // Get bitmap for this element. If pos is less than 4096, we will use the hot map
-    uint8_t* map = (pos < ARRAY_MAP_SIZE) ? array->hotMap : array->usedMaps[pos / ARRAY_MAP_SIZE];
     // Get location in bitmap
-    size_t byteIdx = (pos % ARRAY_MAP_SIZE) / 8;
-    size_t bitIdx = (pos % ARRAY_MAP_SIZE) % 8;
+    size_t byteIdx = pos / 8;
+    size_t bitIdx = pos % 8;
     // Check if element is actually in use
-    if (!(map[byteIdx] & (1 << bitIdx)))
+    if (!(array->usedMap[byteIdx] & (1 << bitIdx)))
         return;
     // If there's a destroy callback, call it
     if (array->destroyFunc)
@@ -137,24 +138,46 @@ LIBNEX_PUBLIC void ArrayRemoveElement (Array_t* array, size_t pos)
         array->destroyFunc (elem);
     }
     // Mark as unused
-    map[byteIdx] &= ~(1 << bitIdx);
+    array->usedMap[byteIdx] &= ~(1 << bitIdx);
+    // Set the free hint to this
+    // FIXME: this may be a bad idea if the array isn't very fragmented
+    // Needs testing
+    array->freeHint = pos;
 }
 
 LIBNEX_PUBLIC bool ArrayMarkElementUsed (Array_t* array, size_t pos)
 {
     if (!array || pos >= array->numElements)
         return false;
-    // Get bitmap for this element
-    uint8_t* map = (pos < ARRAY_MAP_SIZE) ? array->hotMap : array->usedMaps[pos / ARRAY_MAP_SIZE];
     // Get location in map
-    size_t byteIdx = (pos % ARRAY_MAP_SIZE) / 8;
-    size_t bitIdx = (pos % ARRAY_MAP_SIZE) % 8;
+    size_t byteIdx = pos / 8;
+    size_t bitIdx = pos % 8;
     // If already used, return false
-    if (map[byteIdx] & (1 << bitIdx))
+    if (array->usedMap[byteIdx] & (1 << bitIdx))
         return false;
     // Mark as in use
-    map[byteIdx] |= (1 << bitIdx);
+    array->usedMap[byteIdx] |= (1 << bitIdx);
     return true;
+}
+
+// Helper function to check a range of an array
+static inline size_t arrayCheckRange (Array_t* array, size_t start, size_t end)
+{
+    for (size_t i = start; i < end; i++)
+    {
+        // Get location in bitmap
+        size_t byteIdx = i / 8;
+        size_t bitIdx = i % 8;
+        if (!(array->usedMap[byteIdx] & (1 << bitIdx)))
+        {
+            // Mark as used, clearing old data
+            void* elem = (char*) array->data + (i * array->elemSize);
+            memset (elem, 0, array->elemSize);
+            array->usedMap[byteIdx] |= (1 << bitIdx);
+            return i;
+        }
+    }
+    return -1;
 }
 
 LIBNEX_PUBLIC size_t ArrayFindFreeElement (Array_t* array)
@@ -165,20 +188,21 @@ LIBNEX_PUBLIC size_t ArrayFindFreeElement (Array_t* array)
         return ARRAY_ERROR;
     }
     // Search for an unused element
-    for (size_t i = 0; i < array->numElements; i++)
+    // Start with freeHint
+    size_t idx = arrayCheckRange (array, array->freeHint, array->numElements);
+    if (idx != -1)
     {
-        // Get bitmap for this element
-        uint8_t* map = (i < ARRAY_MAP_SIZE) ? array->hotMap : array->usedMaps[i / ARRAY_MAP_SIZE];
-        // Get location in bitmap
-        size_t byteIdx = (i % ARRAY_MAP_SIZE) / 8;
-        size_t bitIdx = (i % ARRAY_MAP_SIZE) % 8;
-        if (!(map[byteIdx] & (1 << bitIdx)))
+        array->freeHint = idx + 1;
+        return idx;
+    }
+    // Check under free hint
+    if (array->freeHint)
+    {
+        idx = arrayCheckRange (array, 0, array->freeHint);
+        if (idx != -1)
         {
-            // Mark as used, clearing old data
-            void* elem = (char*) array->data + (i * array->elemSize);
-            memset (elem, 0, array->elemSize);
-            map[byteIdx] |= (1 << bitIdx);
-            return i;
+            array->freeHint = idx + 1;
+            return idx;
         }
     }
     // No free elements found, try to expand if allowed
@@ -191,6 +215,22 @@ LIBNEX_PUBLIC size_t ArrayFindFreeElement (Array_t* array)
     size_t newSize = array->numElements + array->growSize;
     if (newSize > array->maxElements)
         newSize = array->maxElements;
+    // Check if we need to re-allocate used map
+    // mapSize is in bytes, each byte tracks 8 elements
+    if (newSize > (array->mapSize * 8))
+    {
+        size_t oldMapSize = array->mapSize;
+        uint8_t* newUsedMap = realloc_s (array->usedMap, array->mapSize * 2);
+        if (!newUsedMap)
+        {
+            LibnexSetError (LIBNEX_ERR_OOM);
+            return ARRAY_ERROR;
+        }
+        array->usedMap = newUsedMap;
+        array->mapSize *= 2;
+        // Clear it
+        memset (array->usedMap + oldMapSize, 0, array->mapSize - oldMapSize);
+    }
     // Expand data buffer
     void* newData = realloc_s (array->data, newSize * array->elemSize);
     if (!newData)
@@ -198,29 +238,20 @@ LIBNEX_PUBLIC size_t ArrayFindFreeElement (Array_t* array)
         LibnexSetError (LIBNEX_ERR_OOM);
         return ARRAY_ERROR;
     }
-    array->data = newData;
-    // Determine if we need to add a new bitmap
-    if (newSize > array->numMaps * ARRAY_MAP_SIZE)
-    {
-        // Create a new bitmap
-        uint8_t* newMap = calloc_s (ARRAY_MAP_SIZE / 8);
-        if (!newMap)
-        {
-            LibnexSetError (LIBNEX_ERR_OOM);
-            return ARRAY_ERROR;
-        }
-        // Add to map of maps
-        array->usedMaps[array->numMaps + 1] = newMap;
-        array->numMaps++;
-    }
+    // Zero out the newly allocated elements
+    memset ((char*) newData + (array->numElements * array->elemSize),
+            0,
+            (newSize - array->numElements) * array->elemSize);
     // Mark the first new element as used
     size_t freeIdx = array->numElements;
-    size_t byteIdx = (freeIdx % ARRAY_MAP_SIZE) / 8;
-    size_t bitIdx = (freeIdx % ARRAY_MAP_SIZE) % 8;
-    uint8_t* map = array->usedMaps[freeIdx / ARRAY_MAP_SIZE];
-    map[byteIdx] |= (1 << bitIdx);
-    // Update size
+    size_t byteIdx = freeIdx / 8;
+    size_t bitIdx = freeIdx % 8;
+    array->usedMap[byteIdx] |= (1 << bitIdx);
+    // Update size and increase grow size
     array->numElements = newSize;
+    array->growSize *= 2;
+    array->data = newData;
+    array->freeHint = freeIdx + 1;
     return freeIdx;
 }
 
@@ -234,12 +265,11 @@ LIBNEX_PUBLIC size_t ArrayFindElement (Array_t* array, const void* hint)
     // Search through all elements
     for (size_t i = 0; i < array->numElements; i++)
     {
-        // Get bitmap for this element
-        uint8_t* map = (i < ARRAY_MAP_SIZE) ? array->hotMap : array->usedMaps[i / ARRAY_MAP_SIZE];
-        size_t byteIdx = (i % ARRAY_MAP_SIZE) / 8;
-        size_t bitIdx = (i % ARRAY_MAP_SIZE) % 8;
+        // Get bitmap
+        size_t byteIdx = i / 8;
+        size_t bitIdx = i % 8;
         // Check if element is in use
-        if (!(map[byteIdx] & (1 << bitIdx)))
+        if (!(array->usedMap[byteIdx] & (1 << bitIdx)))
             continue;
         void* elem = (char*) array->data + (i * array->elemSize);
         if (array->findFunc (elem, hint))
@@ -257,10 +287,9 @@ LIBNEX_PUBLIC ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter)
     {
         int i = iter->idx;
         iter->idx++;
-        uint8_t* map = (i < ARRAY_MAP_SIZE) ? array->hotMap : array->usedMaps[i / ARRAY_MAP_SIZE];
-        size_t byteIdx = (i % ARRAY_MAP_SIZE) / 8;
-        size_t bitIdx = (i % ARRAY_MAP_SIZE) % 8;
-        if (map[byteIdx] & (1 << bitIdx))
+        size_t byteIdx = i / 8;
+        size_t bitIdx = i % 8;
+        if (array->usedMap[byteIdx] & (1 << bitIdx))
         {
             iter->ptr = (char*) array->data + (i * array->elemSize);
             return iter;
@@ -275,10 +304,4 @@ LIBNEX_PUBLIC void ArraySetFindBy (Array_t* array, ArrayFindBy func)
 {
     if (array)
         array->findFunc = func;
-}
-
-LIBNEX_PUBLIC void ArraySetDestroy (Array_t* array, ArrayDestroyElem func)
-{
-    if (array)
-        array->destroyFunc = func;
 }

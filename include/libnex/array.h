@@ -39,21 +39,7 @@ typedef void (*ArrayDestroyElem) (void* elem);
  * Contains information to manage array structure, such as data buffer,
  * max size, current size, element size, and so on
  */
-typedef struct _lnarray
-{
-    Object_t obj;                    ///< Underlying object for reference counting
-    void* data;                      ///< Pointer to array data
-    size_t elemSize;                 ///< Size of each element
-    size_t numElements;              ///< Current number of allocated elements
-    size_t maxElements;              ///< Maximum allowed elements
-    size_t growSize;                 ///< Size to grow by when expanding
-    ArrayFindBy findFunc;            ///< Custom find callback
-    ArrayDestroyElem destroyFunc;    ///< Custom destroy callback
-    uint8_t** usedMaps;              ///< Maps of bitmaps used to track used elements
-    size_t numMaps;                  ///< CUrrent number of maps we have
-    size_t maxMaps;                  ////< Max number of maps we can have, based on maxElements
-    uint8_t* hotMap;                 ///< Bitmap for quick access to first bitmap
-} Array_t;
+typedef struct _lnarray Array_t;
 
 /**
  * @brief Dynamic array iterator
@@ -74,7 +60,10 @@ __DECL_START
  * @param elemSize Size of an element
  * @return The initialized array
  */
-LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements, size_t maxElems, size_t elemSize);
+LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements,
+                                    size_t maxElems,
+                                    size_t elemSize,
+                                    ArrayDestroyElem destroyFunc);
 
 /**
  * @brief Destroys a dynamic array
@@ -129,13 +118,6 @@ LIBNEX_PUBLIC size_t ArrayFindElement (Array_t* array, const void* hint);
 LIBNEX_PUBLIC void ArraySetFindBy (Array_t* array, ArrayFindBy func);
 
 /**
- * @brief Sets destroy function
- * @param array Array to work in
- * @param func Function
- */
-LIBNEX_PUBLIC void ArraySetDestroy (Array_t* array, ArrayDestroyElem func);
-
-/**
  * @brief Iterates through array
  * @param array Array to work in
  * @param iter Iterator to work with
@@ -145,9 +127,9 @@ LIBNEX_PUBLIC ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
 
 __DECL_END
 
-#define ARRAY_ERROR         0xFFFFFFFF                    ///< Signifies an array occured in a function
-#define ArrayRef(item)      (ObjRef (&(item)->obj))       ///< References the underlying object
-#define ArrayLock(item)     (ObjLock (&(item)->obj))      ///< Locks this array
+#define ARRAY_ERROR         0xFFFFFFFF                  ///< Signifies an array occured in a function
+#define ArrayRef(item)      (ObjRef (&(item)->obj))     ///< References the underlying object
+#define ArrayLock(item)     (ObjLock (&(item)->obj))    ///< Locks this array
 #define ArrayUnlock(item)   (ObjUnlock (&(item)->obj))    ///< Unlocks the array
 #define ArrayIterData(iter) ((iter)->ptr)
 

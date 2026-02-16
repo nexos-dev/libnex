@@ -138,7 +138,10 @@ LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* 
     return NULL;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, int key, ListEntry_t* entryAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list,
+                                          const void* data,
+                                          int key,
+                                          ListEntry_t* entryAfter)
 {
     assert (list && data);
     ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
@@ -159,7 +162,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, in
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data, int key, int keyAfter)
+LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list,
+                                             const void* data,
+                                             int key,
+                                             int keyAfter)
 {
     ListEntry_t* entryAfter = ListFind (list, keyAfter);
     if (!entryAfter)
@@ -167,7 +173,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data,
     return ListAddBefore (list, data, key, entryAfter);
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int key, ListEntry_t* entryBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list,
+                                         const void* data,
+                                         int key,
+                                         ListEntry_t* entryBefore)
 {
     assert (list && data);
     ListEntry_t* entry = listPrepareEntry (data, list->flags, key);
@@ -188,7 +197,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int
     return entry;
 }
 
-LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, const void* data, int key, int keyBefore)
+LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list,
+                                            const void* data,
+                                            int key,
+                                            int keyBefore)
 {
     ListEntry_t* entryBefore = ListFind (list, keyBefore);
     if (!entryBefore)
@@ -210,6 +222,8 @@ LIBNEX_PUBLIC ListEntry_t* ListPopFront (ListHead_t* list)
     if (entry->next)
         entry->next->prev = NULL;
     list->front = entry->next;
+    if (!list->front)
+        list->back = NULL;
     ListUnlock (entry);
     ListUnlock (list);
     return entry;

@@ -128,7 +128,10 @@ LIBNEX_PUBLIC ListEntry_t* ListFind (const ListHead_t* list, int key);
  * @param[in] entry the entry before the new item
  * @return The new ListEntry_t*
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, int key, ListEntry_t* entryAfter);
+LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list,
+                                          const void* data,
+                                          int key,
+                                          ListEntry_t* entryAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -142,7 +145,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBefore (ListHead_t* list, const void* data, in
  * @return The new ListEntry_t*. NULL if entry specified by keyAfter doesn't
  * exist
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data, int key, int keyAfter);
+LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list,
+                                             const void* data,
+                                             int key,
+                                             int keyAfter);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -155,7 +161,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddBeforeKey (ListHead_t* list, const void* data,
  * @param[in] entryBefore the entry before the new item
  * @return The new ListEntry_t*
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int key, ListEntry_t* entryBefore);
+LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list,
+                                         const void* data,
+                                         int key,
+                                         ListEntry_t* entryBefore);
 
 /**
  * @brief Adds an item to a list somewhere in the middle
@@ -169,7 +178,10 @@ LIBNEX_PUBLIC ListEntry_t* ListAddAfter (ListHead_t* list, const void* data, int
  * @return The new ListEntry_t*. NULL if entry specified by keyBefore doesn't
  * exist
  */
-LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list, const void* data, int key, int keyBefore);
+LIBNEX_PUBLIC ListEntry_t* ListAddAfterKey (ListHead_t* list,
+                                            const void* data,
+                                            int key,
+                                            int keyBefore);
 
 /**
  * @brief Removes the head of list, returning the item
@@ -229,18 +241,23 @@ LIBNEX_PUBLIC ListEntry_t* ListFindEntryBy (const ListHead_t* list, const void* 
 
 __DECL_END
 
+static inline void* ListEntryData (ListEntry_t* entry)
+{
+    if (entry->flags & LIST_FLAG_ENTRY_NOT_DATA)
+        return (void*) entry + sizeof (ListEntry_t);
+    return (void*) entry;
+}
+
 // Some helper macros to work with list entries
-#define ListEntryData(entry)                                                                  \
-    ((entry->flags & LIST_FLAG_ENTRY_NOT_DATA) ? ((void*) entry->data + sizeof (ListEntry_t)) \
-                                               : (void*) entry->data)     ///< Helper to access list entry data
-#define ListPushFront        ListAddFront                                 ///< Useful when using as a queue
-#define ListRef(item)        (ListEntry_t*) (ObjRef (&(item)->obj))       ///< References the underlying the object
-#define ListLock(item)       (ObjLock (&(item)->obj))                     ///< Locks this entry (or list)
-#define ListUnlock(item)     (ObjUnlock (&(item)->obj))                   ///< Unlocks the entry
-#define ListDeRef(item)      (ObjDestroy (&(item)->obj))                  ///< Dereferences this entry
-#define ListFront(list)      ((list)->front)                              ///< Gets front of list
-#define ListIsEmpty(list)    ((list)->front == NULL)                      ///< Checks if the list is empty or not
-#define ListIterate(list)    ((list)->next)                               ///< Iterates to the next list entry
+#define ListPushFront ListAddFront    ///< Useful when using as a queue
+#define ListRef(item) \
+    (ListEntry_t*) (ObjRef (&(item)->obj))                  ///< References the underlying the object
+#define ListLock(item)       (ObjLock (&(item)->obj))       ///< Locks this entry (or list)
+#define ListUnlock(item)     (ObjUnlock (&(item)->obj))     ///< Unlocks the entry
+#define ListDeRef(item)      (ObjDestroy (&(item)->obj))    ///< Dereferences this entry
+#define ListFront(list)      ((list)->front)                ///< Gets front of list
+#define ListIsEmpty(list)    ((list)->front == NULL)        ///< Checks if the list is empty or not
+#define ListIterate(list)    ((list)->next)                 ///< Iterates to the next list entry
 #define ListEntryInit(entry) (memset (entry, 0, sizeof (ListEntry_t)))    ///< Initializes list entry
 
 #endif

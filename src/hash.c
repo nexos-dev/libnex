@@ -17,163 +17,365 @@
 */
 
 #include <assert.h>
+#include <libnex/endian.h>
 #include <libnex/hash.h>
+#include <libnex/object.h>
+#include <libnex/safemalloc.h>
 #include <stdlib.h>
 #include <string.h>
 
-// Hash table entry
-typedef struct _htentry
+// Hash table data structure
+typedef struct _hasht
 {
-    bool removed;       // Has this entry been removed?
-    const char* key;    // Key of this entry
-    HashBuf_t buf;      // Buffer of data
+    Object_t obj;              // Object for reference counting
+    size_t elemSize;           // Size of each element in the hash table
+    size_t elemUnalignedSz;    // Size used for copies
+    size_t numBuckets;         // Current number of buckets in the hash table
+    size_t usedElems;          // Number of elements currently in the hash table
+                               // Load factor is usedElems / numBuckets, we'll resize when it reaches
+                               // 0.7
+    int flags;                 // Flags for the hash table
+    HashEntryDestroy destroyFunc;    // Function to call when an entry is removed from the hash
+                                     // table
+    HashMatchKey matchKey;           // Function to match keys
+    HashMakeHash makeHash;           // Function to make keys
+    void* entries;                   // Open addressed array of entries, each entry is elemSize bytes
+} HashTable_t;
+
+// Hash table entry structure
+typedef struct _hashe
+{
+    hash_t hash;    // Hash of this entry
+    const char* key;
+    int removed;    // Wheter this entry has been removed. An int for alignment's sake
 } HashEntry_t;
 
-#define HASH_ARRAY_OBJ_MIN 8
-#define HASH_ARRAY_OBJ_MAX 1024
-#define HASH_ARRAY_MAX_SZ  (256 * 1024)
+static bool hashMatchHash (const char* key1, const char* key2)
+{
+    return !strcmp (key1, key2);
+}
 
-// Array of arrays expansion
-#define HASH_ARRAY_ARRAY_MIN              1024
-#define HASH_ARRAY_EXPAND_SIZE(numArrays) (((numArrays) * sizeof (void*)) / 2)
+// Gets a pointer to a  element in the table
+#define HASH_GET_PTR(table, idx) \
+    ((HashEntry_t*) ((table)->entries + ((idx) * (sizeof (HashEntry_t) + table->elemSize))))
+// Gets a pointer to where data goes in key-value elements
+#define HASH_GET_VALUE_PTR(entry) ((const void**) ((void*) entry + sizeof (HashEntry_t)))
 
 LIBNEX_PUBLIC HashTable_t* HashCreateTable (size_t elemSize,
-                                            size_t maxElems,
+                                            size_t numBuckets,
                                             HashEntryDestroy destroyFunc,
                                             int flags)
 {
-    // Allocate the hash table
-    HashTable_t* table = malloc (sizeof (HashTable_t));
-    if (!table)
+    if (elemSize == 0 || numBuckets == 0)
     {
-        LibnexSetError (LIBNEX_ERR_OOM);
+        LibnexSetError (LIBNEX_ERR_BAD_PARAM);
         return NULL;
     }
-    memset (table, 0, sizeof (HashTable_t));
-    // Initialize it
-    ObjCreate ("HashTable_t", &table->obj);
-    table->destroyFunc = destroyFunc;
-    table->dataSize = elemSize;
-    elemSize += sizeof (HashEntry_t);
-    // Align to 64 for cache efficiency
-    elemSize = AlignNumberUp (elemSize, 64);
-    table->elemSize = elemSize;
-    table->maxElems = (!maxElems) ? SIZE_MAX : maxElems;
-    table->flags = flags;
-    table->numElems = 0, table->usedElems = 0;
-    // Figure out array size
-    // We must fit at least HASH_ARRAY_OBJ_MIN objects in the array,
-    // but also dont want it to be larger than 256KiB
-    // First bound maxElems
-    size_t arrayMax = (HASH_ARRAY_OBJ_MAX > maxElems) ? maxElems : HASH_ARRAY_OBJ_MAX;
-    size_t arrayMin = elemSize * HASH_ARRAY_OBJ_MIN;
-    size_t arraySize = arrayMax * elemSize;
-    // Now ensure it is smaller then 256KiB
-    while (arraySize > HASH_ARRAY_MAX_SZ)
+    // Allocate the hash table
+    HashTable_t* table = (HashTable_t*) malloc_s (sizeof (HashTable_t));
+    if (!table)
+        return NULL;
+    ObjCreate ("HashTable", &table->obj);
+    table->elemUnalignedSz = elemSize;
+    // Round up elemSize to power of 2, for better cache performance as long as it is smaller
+    // than a cache line (64 bytes Otherwise round up to 64 bytes to ensure good cache
+    // performance
+    if (elemSize < sizeof (void*))
+        elemSize = sizeof (void*);
+    else if (elemSize < 64)
     {
-        size_t tmp = arraySize;
-        tmp -= elemSize;
-        // Ensure we didn't go to small
-        if (tmp < arrayMin)
-            break;    // we're done
+        size_t rounded = 1;
+        while (rounded < elemSize)
+            rounded <<= 1;
+        elemSize = rounded;
     }
-    table->arraySize = arraySize;
-    // Allocate array
-    table->array = malloc (arraySize);
-    if (!table->array)
+    else
+        elemSize = AlignNumberUp (elemSize, 64);
+    // Set up fields
+    table->elemSize = elemSize;
+    table->numBuckets = numBuckets;
+    table->usedElems = 0;
+    table->destroyFunc = destroyFunc;
+    table->flags = flags;
+    table->entries = calloc_s (numBuckets * (sizeof (HashEntry_t) + elemSize));
+    table->makeHash = HashCreateHash;
+    table->matchKey = hashMatchHash;
+    if (!table->entries)
     {
-        LibnexSetError (LIBNEX_ERR_OOM);
         free (table);
         return NULL;
     }
-    memset (table->array, 0, arraySize);
     return table;
 }
 
+// Destroy a hash table
 LIBNEX_PUBLIC void HashDestroyTable (HashTable_t* table)
 {
-    assert (table);
-    if (!ObjDestroy (&table->obj))
+    if (!table)
+        return;
+    if (!ObjDeRef (&table->obj))
     {
-        // Free every entry
-        HashEntry_t* entry = (HashEntry_t*) table->array;
-        for (int i = 0; i < (table->arraySize / table->elemSize); ++i)
+        // Go through all entries and call destroy callback on used entries
+        if (table->destroyFunc)
         {
-            if (!entry->key)
-                break;    // End of array
-            if (entry->removed)
-                continue;
-            // Check if data needs to be destroyed
-            HashBuf_t* buf = &entry->buf;
-            if (table->destroyFunc && buf->type != HASH_TYPE_INT && buf->type != HASH_TYPE_CSTRING)
-                table->destroyFunc (buf);
+            for (int i = 0; i < table->numBuckets; ++i)
+            {
+                HashEntry_t* entry =
+                    (HashEntry_t*) (table->entries + (i * (sizeof (HashEntry_t) + table->elemSize)));
+                if (entry->hash && !entry->removed)
+                {
+                    void* elem = (void*) entry + sizeof (HashEntry_t);
+                    table->destroyFunc (elem);
+                }
+            }
         }
-        // Free memory
-        free (table->array);
+        free (table->entries);
         free (table);
     }
 }
 
-// Allocates a hash table entry
-static HashEntry_t* hashAllocateEntry (hash_t hash, int flags)
+LIBNEX_PUBLIC void HashSetFuncs (HashTable_t* table, HashMatchKey matchKey, HashMakeHash makeHash)
 {
-    return NULL;
+    if (!table || !matchKey || !makeHash)
+        return;
+    table->makeHash = makeHash;
+    table->matchKey = matchKey;
 }
 
-LIBNEX_PUBLIC bool HashInsertEntry (HashTable_t* table, const char* key, HashBuf_t* buf, int flags)
+// Sets up a hash table entry
+static inline void hashSetEntry (HashTable_t* table, HashEntry_t* entry, const void* buf)
 {
-    assert (key && table && buf);
-    // Obtain hash number
-    hash_t hash = HashCreateHash (key);
-    // Get hash table entry
-    HashEntry_t* entry = hashAllocateEntry (hash, flags);
-    if (!entry)
-        return false;
-    entry->key = key;
-    entry->removed = false;
-    // Setup buffer
-    entry->buf.type = buf->type;
+    // Figure out how to add entry
+    if (table->flags & HASH_FLAG_BUF)
+    {
+        // Copy it out
+        memcpy ((void*) entry + sizeof (HashEntry_t), buf, table->elemUnalignedSz);
+    }
+    else
+    {
+        assert (table->elemSize == sizeof (void*));
+        const void** loc = HASH_GET_VALUE_PTR (entry);
+        *loc = buf;
+    }
+}
+
+// Checks if a resize is needed
+static inline bool hashCheckResize (HashTable_t* table)
+{
+    // Check if a resize is needed
+    if (((float) (table->usedElems + 1) / (float) table->numBuckets) >= 0.7)
+    {
+        // Figure out number of buckets we need (we double it)
+        size_t numBuckets = table->numBuckets * 2;
+        // Allocvate new array
+        void* newEntries = calloc_s (numBuckets * (sizeof (HashEntry_t) + table->elemSize));
+        if (!newEntries)
+        {
+            LibnexSetError (LIBNEX_ERR_OOM);
+            return false;
+        }
+        // Rehash onto new array also removing removed entries
+        for (int i = 0; i < table->numBuckets; ++i)
+        {
+            HashEntry_t* entry = HASH_GET_PTR (table, i);
+            if (entry->hash && !entry->removed)
+            {
+                // Compute index of new element
+                size_t newIdx = entry->hash % numBuckets;
+                // Add to array
+                while (1)
+                {
+                    HashEntry_t* newEntry =
+                        (HashEntry_t*) (newEntries +
+                                        (newIdx * (sizeof (HashEntry_t) + table->elemSize)));
+                    // Check if hash is free
+                    if (!newEntry->hash)
+                    {
+                        // Add to it
+                        if (table->flags & HASH_FLAG_BUF)
+                            hashSetEntry (table, newEntry, (void*) entry + sizeof (HashEntry_t));
+                        else
+                        {
+                            const void** loc = HASH_GET_VALUE_PTR (entry);
+                            hashSetEntry (table, newEntry, *loc);
+                        }
+                        newEntry->hash = entry->hash;
+                        newEntry->key = entry->key;
+                        break;
+                    }
+                    newIdx = (newIdx + 1) % numBuckets;
+                }
+            }
+        }
+        // Set new fields
+        free (table->entries);
+        table->entries = newEntries;
+        table->numBuckets = numBuckets;
+    }
     return true;
 }
 
-LIBNEX_PUBLIC void* HashGetEntry (HashTable_t* table, const char* key, int flags)
+LIBNEX_PUBLIC bool HashInsertEntry (HashTable_t* table, const char* key, const void* value)
 {
+    if (!table || !key || !value)
+    {
+        LibnexSetError (LIBNEX_ERR_BAD_PARAM);
+        return false;
+    }
+    if (!hashCheckResize (table))
+        return false;
+    // Get entry
+    hash_t hash = table->makeHash (key);
+    size_t idx = hash % table->numBuckets;
+    size_t startIdx = idx;
+    HashEntry_t* entry = HASH_GET_PTR (table, idx);
+    while (entry->hash)
+    {
+        if (entry->hash == hash && table->matchKey (key, entry->key))
+            return false;    // Entry already exists
+        // Keep advancing until we find a free bucket
+        idx = (idx + 1) % table->numBuckets;
+        if (idx == startIdx)
+            return false;
+        entry = HASH_GET_PTR (table, idx);
+    }
+    assert (entry && !entry->hash);
+    // Setup new entry
+    entry->removed = false;
+    entry->key = key;
+    entry->hash = hash;
+    hashSetEntry (table, entry, value);
+    // Bookkeeping
+    table->usedElems++;
+    return true;
 }
 
-LIBNEX_PUBLIC bool HashInsertEntryIdx (HashTable_t* table, hash_t idx, HashBuf_t* data, int flags)
+// Find a hash entry
+static inline HashEntry_t* hashFindEntry (HashTable_t* table, const char* key)
 {
-}
-
-LIBNEX_PUBLIC void* HashGetEntryIdx (HashTable_t* table, hash_t idx, int flags)
-{
+    hash_t hash = table->makeHash (key);
+    // Get entry associated with hash
+    size_t idx = hash % table->numBuckets;
+    size_t startIdx = idx;
+    while (1)
+    {
+        HashEntry_t* cur = HASH_GET_PTR (table, idx);
+        // Check if it matches
+        if (cur->hash == hash && !cur->removed)
+        {
+            // Now compare keys
+            // We don't just compare keys for performance reasons
+            if (table->matchKey (key, cur->key))
+                return cur;
+        }
+        idx = (idx + 1) % table->numBuckets;
+        if (idx == startIdx)
+            return NULL;
+    }
+    return NULL;
 }
 
 LIBNEX_PUBLIC void HashRemoveEntry (HashTable_t* table, const char* key)
 {
+    if (!table || !key)
+        return;
+    HashEntry_t* entry = hashFindEntry (table, key);
+    if (!entry)
+        return;
+    entry->removed = true;
+    --table->usedElems;
+}
+LIBNEX_PUBLIC bool HashGetEntryBuf (HashTable_t* table, const char* key, void* buf)
+{
+    if (!table || !key || !buf)
+        return false;
+    HashEntry_t* entry = hashFindEntry (table, key);
+    if (!entry)
+        return NULL;
+    // Copy it
+    memcpy (buf, entry + 1, table->elemUnalignedSz);
+    return true;
 }
 
-LIBNEX_PUBLIC void HashRemoveEntryIdx (HashTable_t* table, hash_t idx)
+LIBNEX_PUBLIC bool HashCheckEntry (HashTable_t* table, const char* key)
 {
+    if (!table || !key)
+        return false;
+    return !!hashFindEntry (table, key);
 }
 
 LIBNEX_PUBLIC void* HashFindEntry (HashTable_t* table, const char* key)
 {
+    if (!table || !key)
+        return NULL;
+    HashEntry_t* entry = hashFindEntry (table, key);
+    if (!entry)
+        return NULL;
+    void** ptr = (void**) HASH_GET_VALUE_PTR (entry);
+    return *ptr;
 }
 
-LIBNEX_PUBLIC void* HashFindEntryIdx (HashTable_t* table, hash_t idx)
+static inline void hashSetupIter (HashTable_t* table, HashIter_t* iter, HashEntry_t* entry)
 {
+    iter->entry = entry;
+    // Setup key/value
+    iter->key = entry->key;
+    if (table->flags & HASH_FLAG_BUF)
+        iter->value = (void*) entry + sizeof (HashEntry_t);
+    else
+        iter->value = *((void**) HASH_GET_VALUE_PTR (entry));
 }
 
-LIBNEX_PUBLIC bool HashTableExpand (HashTable_t* table)
+LIBNEX_PUBLIC void HashStartIter (HashTable_t* table, HashIter_t* iter, const char* key)
 {
-}
-
-LIBNEX_PUBLIC void HashStartIterate (HashTable_t* table, HashIter_t* iter)
-{
+    if (!table || !iter)
+        return;
+    // Initialize iter
+    iter->table = table;
+    iter->entry = (HashEntry_t*) table->entries;
+    iter->idx = 0;
+    if (key)
+    {
+        HashEntry_t* entry = hashFindEntry (table, key);
+        if (entry)
+        {
+            iter->idx = ((void*) entry - table->entries) / table->elemSize;
+            hashSetupIter (table, iter, entry);
+        }
+    }
+    else
+    {
+        // Go ahead and iterate to first entry if it isn't valid
+        if (!iter->entry->hash)
+            HashIterate (iter);
+        else
+            hashSetupIter (table, iter, iter->entry);
+    }
 }
 
 LIBNEX_PUBLIC HashIter_t* HashIterate (HashIter_t* iter)
 {
+    if (!iter)
+        return NULL;
+    HashTable_t* table = iter->table;
+    HashEntry_t* next = iter->entry;
+    // Find next valid entry
+    while (1)
+    {
+        ++iter->idx;
+        // Check if we've reached end
+        if (iter->idx >= table->numBuckets)
+            break;
+        next = (HashEntry_t*) ((void*) next + table->elemUnalignedSz + sizeof (HashEntry_t));
+        // Check if we found a valid entry
+        if (next->hash && !next->removed)
+        {
+            // Return this
+            hashSetupIter (table, iter, next);
+            return iter;
+        }
+    }
+    return NULL;
 }
 
 // Hash function parameters
@@ -183,6 +385,8 @@ LIBNEX_PUBLIC HashIter_t* HashIterate (HashIter_t* iter)
 // Hashes a string
 LIBNEX_PUBLIC hash_t HashCreateHash (const char* str)
 {
+    if (!str)
+        return 0;
     uint8_t* buf = (uint8_t*) str;
     // Setup hash
     hash_t hash = HASH_FNV1A_OFFSET_BASE;
