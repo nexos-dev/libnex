@@ -4,7 +4,6 @@
 *.po~
 build
 libnex-build
+.VSCodeCounter
 .vscode
 prefix
-
-p *((HashEntry_t*)(table->entries+(4*(sizeof(HashEntry_t)+table->elemSize))))

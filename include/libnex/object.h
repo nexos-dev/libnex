@@ -48,10 +48,10 @@
  */
 typedef struct _Object
 {
-    const char* type;                              ///< The type of this object
-    int id;                                        ///< A unique ID for this object
-    int refCount;                                  ///< The number of consumers this object currently has
-    lock_t lock;                                   ///< Used to synchronize access to this object
+    const char* type;    ///< The type of this object
+    int id;              ///< A unique ID for this object
+    int refCount;        ///< The number of consumers this object currently has
+    lock_t lock;         ///< Used to synchronize access to this object
     void (*destroyObj) (const struct _Object*);    ///< Function to destroy object with
 } Object_t;
 
@@ -89,8 +89,8 @@ LIBNEX_PUBLIC int ObjDestroy (const Object_t* obj);
 /**
  * @brief References an object
  *
- * ObjRef() adds a reference to this object. Use this to ensure an object isn't destroyed while another
- * consumer is using it. It should be called EVERY time a reference to an object is handed out
+ * ObjRef() adds a reference to this object. Use this to ensure an object isn't destroyed while
+ * another consumer is using it. It should be called EVERY time a reference to an object is handed out
  * @param[in] obj the object to reference
  * @return the object
  */
