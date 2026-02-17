@@ -80,6 +80,14 @@ LIBNEX_PUBLIC void ArrayDestroy (Array_t* array);
 LIBNEX_PUBLIC void* ArrayGetElement (Array_t* array, size_t pos);
 
 /**
+ * @brief Checks if element exists
+ * @param array Array to check
+ * @param pos Position to check
+ * @return True if found, false otherwise
+ */
+LIBNEX_PUBLIC bool ArrayCheckElement (Array_t* array, size_t pos);
+
+/**
  * @brief Sets element at position as used
  * @param array Array to work on
  * @param pos Position to set

@@ -27,6 +27,7 @@
 #cmakedefine HAVE_VISIBILITY
 #cmakedefine HAVE_DECLSPEC_EXPORT
 #cmakedefine LIBNEX_ENABLE_NLS
+#cmakedefine HAVE_GETOPT
 #ifdef LIBNEX_ENABLE_NLS
 #define LIBNEX_LOCALE_BASE "@LIBNEX_LOCALE_BASE@"
 #endif
@@ -36,9 +37,9 @@
 #define LIBNEX_PUBLIC __attribute__ ((visibility ("default")))
 #elif defined HAVE_DECLSPEC_EXPORT
 #ifdef IN_LIBNEX
-#define LIBNEX_PUBLIC __declspec(dllexport)
+#define LIBNEX_PUBLIC __declspec (dllexport)
 #else
-#define LIBNEX_PUBLIC __declspec(dllimport)
+#define LIBNEX_PUBLIC __declspec (dllimport)
 #endif
 #else
 #define LIBNEX_PUBLIC

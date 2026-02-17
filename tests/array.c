@@ -137,6 +137,21 @@ int main()
     foundIdx = ArrayFindElement (arr, (void*) (uintptr_t) 300);
     TEST_BOOL_ANON (foundIdx != ARRAY_ERROR);
 
+    // Test ArrayCheckElement for existing elements
+    TEST_BOOL_ANON (ArrayCheckElement (arr, 0) == true);           // Element 1 exists
+    TEST_BOOL_ANON (ArrayCheckElement (arr, 2) == true);           // Element 3 exists
+    TEST_BOOL_ANON (ArrayCheckElement (arr, freeIdx) == true);     // Element 4 exists
+    TEST_BOOL_ANON (ArrayCheckElement (arr, freeIdx2) == true);    // Element 5 exists
+
+    // Test ArrayCheckElement for removed element
+    TEST_BOOL_ANON (ArrayCheckElement (arr, 1) == false);    // Element 2 was removed
+
+    // Test ArrayCheckElement for never-used element
+    TEST_BOOL_ANON (ArrayCheckElement (arr, 10) == false);
+
+    // Test ArrayCheckElement for out-of-bounds element
+    TEST_BOOL_ANON (ArrayCheckElement (arr, 5005) == false);
+
     // Test ArrayDestroy
     ArrayDestroy (arr);
 
@@ -144,6 +159,9 @@ int main()
 
     // Test NULL pointer handling for ArrayGetElement
     TEST_BOOL_ANON (ArrayGetElement (NULL, 0) == NULL);
+
+    // Test ArrayCheckElement with NULL array
+    TEST_BOOL_ANON (ArrayCheckElement (NULL, 0) == false);
 
     // Test ArrayFindFreeElement with NULL array
     TEST_BOOL_ANON (ArrayFindFreeElement (NULL) == ARRAY_ERROR);

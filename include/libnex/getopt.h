@@ -1,8 +1,8 @@
 #ifndef GETOPT_LIBNEX_H
 #define GETOPT_LIBNEX_H
 
-#include <libnex/libnex_config.h>
 #include <libnex/decls.h>
+#include <libnex/libnex_config.h>
 
 /* include files needed by this include file */
 
@@ -56,13 +56,16 @@ LIBNEX_PUBLIC int _libnex_getopt_long_only (int argc,
 
 __DECL_END
 
-// A hack so we can use these functions even if the host provides getopt(3)
+#ifndef HAVE_GETOPT
+
 #undef getopt
 #define getopt _libnex_getopt
 #undef getopt_long
 #define getopt_long _libnex_getopt_long
 #undef getopt_long_only
 #define getopt_long_only
+
+#endif    // HAVE_GETOPT
 
 #endif /* GETOPT_H */
 

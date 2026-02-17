@@ -110,6 +110,7 @@ check_symbol_exists(setprogname "stdlib.h" HAVE_PROGNAME)
 check_symbol_exists(mtx_init "threads.h" HAVE_C11_THREADS)
 check_symbol_exists(pthread_mutex_lock "pthread.h" HAVE_PTHREADS)
 check_symbol_exists(c32rtomb "uchar.h" HAVE_UCHAR)
+check_symbol_exists(getopt "unistd.h" HAVE_GETOPT)
 # Check for stat
 check_symbol_exists(stat "sys/stat.h" HAVE_UNIX_STAT)
 if(NOT HAVE_UNIX_STAT AND NOT LIBNEX_BAREMETAL)

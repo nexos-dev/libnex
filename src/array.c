@@ -49,7 +49,8 @@ LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements,
                                     size_t elemSize,
                                     ArrayDestroyElem destroyFunc)
 {
-    if (!elements || !maxElems || !elemSize || elements > maxElems || elements > (ARRAY_MAP_SIZE / 8))
+    if (!elements || !elemSize || elements > (ARRAY_MAP_SIZE / 8) ||
+        ((maxElems) ? maxElems < elements : 0))
     {
         LibnexSetError (LIBNEX_ERR_BAD_PARAM);
         return NULL;
@@ -78,7 +79,10 @@ LIBNEX_PUBLIC Array_t* ArrayCreate (size_t elements,
     // Initialize array members
     arr->elemSize = elemSize;
     arr->numElements = elements;
-    arr->maxElements = maxElems;
+    if (maxElems)
+        arr->maxElements = maxElems;
+    else
+        arr->maxElements = SIZE_MAX;
     arr->growSize = elements;
     arr->findFunc = NULL;
     arr->destroyFunc = destroyFunc;
@@ -119,6 +123,18 @@ LIBNEX_PUBLIC void* ArrayGetElement (Array_t* array, size_t pos)
     if (!array || pos >= array->numElements)
         return NULL;
     return (char*) array->data + (pos * array->elemSize);
+}
+
+LIBNEX_PUBLIC bool ArrayCheckElement (Array_t* array, size_t pos)
+{
+    if (!array || pos >= array->numElements)
+        return NULL;
+    // Get in bitmap
+    size_t byteIdx = pos / 8;
+    size_t bitIdx = pos % 8;
+    if (array->usedMap[byteIdx] & (1 << bitIdx))
+        return true;
+    return false;
 }
 
 LIBNEX_PUBLIC void ArrayRemoveElement (Array_t* array, size_t pos)

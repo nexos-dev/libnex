@@ -57,6 +57,9 @@ LIBNEX_PUBLIC HashTable_t* HashCreateTable (size_t elemSize,
     (1 << 1)    ///< Indicates that the entries contain buffers and there we must copy there data into
                 ///< them
 
+#define HASH_ELEM_VAL \
+    8    // passed to elemSize to indicate that table contains values and not buffers
+
 /**
  * @brief Destroys a hash table
  * @param table Hash table to destroy
