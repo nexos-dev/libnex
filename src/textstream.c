@@ -81,7 +81,11 @@ static inline short _textWriteFrameMaybe (TextStream_t* stream, bool force)
 }
 
 // Decodes count characters of text
-static short _textDecode (TextStream_t* stream, char* buf, size_t count, size_t* charsRead, bool stopOnLine)
+static short _textDecode (TextStream_t* stream,
+                          char* buf,
+                          size_t count,
+                          size_t* charsRead,
+                          bool stopOnLine)
 {
     assert (stream && buf);
     bool foundCr = false;
@@ -176,10 +180,11 @@ static short _textDecode (TextStream_t* stream, char* buf, size_t count, size_t*
         {
             // Get character in UTF-32
             char32_t c32 = 0;
-            ssize_t u16sParsed = (ssize_t) UnicodeDecode16 (&c32,
-                                                            ((uint16_t*) (stream->buf + stream->bufPos)),
-                                                            stream->bufSize - stream->bufPos,
-                                                            stream->order);
+            ssize_t u16sParsed =
+                (ssize_t) UnicodeDecode16 (&c32,
+                                           ((uint16_t*) (stream->buf + stream->bufPos)),
+                                           stream->bufSize - stream->bufPos,
+                                           stream->order);
             if (u16sParsed == 0)
                 return TEXT_INVALID_CHAR;
             // Update buffer
@@ -302,7 +307,8 @@ static short _textEncode (TextStream_t* stream, const char* buf, size_t count, s
             char32_t c = 0;
             charSz = UnicodeDecode8 (&c, &buf[i], 4);
             // Encode as UTF-16
-            size_t u16sEncoded = UnicodeEncode16 ((uint16_t*) (stream->buf + stream->bufPos), c, stream->order);
+            size_t u16sEncoded =
+                UnicodeEncode16 ((uint16_t*) (stream->buf + stream->bufPos), c, stream->order);
             stream->bufPos += (u16sEncoded * 2);
         }
         else if (stream->encoding == TEXT_ENC_UTF8)
@@ -358,7 +364,10 @@ LIBNEX_PUBLIC short TextReadLine (TextStream_t* stream, char* buf, size_t count,
     return res;
 }
 
-LIBNEX_PUBLIC short TextWrite (TextStream_t* stream, const char* buf, size_t count, size_t* charsWritten)
+LIBNEX_PUBLIC short TextWrite (TextStream_t* stream,
+                               const char* buf,
+                               size_t count,
+                               size_t* charsWritten)
 {
     if (!stream || !buf)
         return TEXT_INVALID_PARAMETER;
@@ -377,7 +386,7 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
                               char order)
 {
     // Allocate the new stream
-    TextStream_t* stream = (TextStream_t*) malloc (sizeof (TextStream_t));
+    TextStream_t* stream = (TextStream_t*) calloc (1, sizeof (TextStream_t));
     if (!stream)
         return TEXT_SYS_ERROR;
     // Allocate the staging buffer
@@ -412,8 +421,8 @@ LIBNEX_PUBLIC short TextOpen (const char* file,
     }
     // If encoding is 0, then chances are, file is in an unsupported format.
     // The reason for this is because if we use libchardet, and TextGetEncId sees that
-    // libchardet found an encoding that we don't support, it will return 0. Then, when the user passes
-    // that ID, we will see that here
+    // libchardet found an encoding that we don't support, it will return 0. Then, when the user
+    // passes that ID, we will see that here
     if (!encoding)
     {
         (void) fclose (stream->file);
@@ -637,10 +646,10 @@ LIBNEX_PUBLIC void TextGetEncId (const char* encName, char* enc, char* order)
 
 // Error condition strings
 static const char* errorStrings[] = {
-    "",                          // 0 doesn't represent anything
-    N_ ("No error"),             // TEXT_SUCCESS
-    NULL,                        // TEXT_SYS_ERROR. This is NULL so TextError knows to call strerror(3) instead
-    N_ ("Invalid parameter"),    // TEXT_INVALID_PARAMETER
+    "",                 // 0 doesn't represent anything
+    N_ ("No error"),    // TEXT_SUCCESS
+    NULL,               // TEXT_SYS_ERROR. This is NULL so TextError knows to call strerror(3) instead
+    N_ ("Invalid parameter"),                              // TEXT_INVALID_PARAMETER
     N_ ("Invalid byte order mark"),                        // TEXT_BAD_BOM
     N_ ("Character can't be encoded by character set"),    // TEXT_INVALID_CHAR
     N_ ("Result buffer too small"),                        // TEXT_BUF_TOO_SMALL
