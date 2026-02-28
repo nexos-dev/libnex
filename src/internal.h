@@ -19,10 +19,12 @@
 #ifndef _LIBNEX_INTERNAL_H
 #define _LIBNEX_INTERNAL_H
 
+
+#include <libnex/libnex_config.h>
+
 #ifndef LIBNEX_BAREMETAL
 
 #include <libintl.h>
-#include <libnex/libnex_config.h>
 #include <locale.h>
 
 #endif
