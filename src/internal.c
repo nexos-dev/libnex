@@ -28,6 +28,8 @@ static bool isLocaleInit = false;
 
 static int libnexError = 0;
 
+#ifndef LIBNEX_BAREMETAL
+
 // Sets up i18n for libnex.
 void __Libnex_i18n_init()
 {
@@ -39,6 +41,8 @@ void __Libnex_i18n_init()
     }
 #endif
 }
+
+#endif
 
 // Sets an error code
 void LibnexSetError (int code)

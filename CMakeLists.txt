@@ -139,15 +139,15 @@ list(APPEND LIBNEX_SOURCES_ALWAYS
      src/unicode.c
      src/crc32.c
      src/hash.c
-     src/stringref.c)
+     src/stringref.c
+     src/internal.c)
 
 list(APPEND LIBNEX_HOSTED_SOURCES
     src/textstream.c
     src/getopt.c
     src/error.c
     src/char32.c
-    src/safemalloc.c
-    src/internal.c)
+    src/safemalloc.c)
 
 if(NOT HAVE_UCHAR)
     list(APPEND LIBNEX_HOSTED_SOURCES src/uchar.c)
