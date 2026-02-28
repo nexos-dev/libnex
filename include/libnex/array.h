@@ -135,10 +135,17 @@ LIBNEX_PUBLIC ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
 
 /**
  * @brief Gets size of array
- * @param array array to get size og
+ * @param array array to get size of
  * @return Size of the array
 */
 LIBNEX_PUBLIC size_t ArrayGetSize(Array_t* array);
+
+/**
+ * @brief Gets max size of array
+ * @param array array to get from
+ * @return Max size of array
+*/
+LIBNEX_PUBLIC size_t ArrayGetMaxSize (Array_t* array);
 
 __DECL_END
 

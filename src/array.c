@@ -326,3 +326,8 @@ LIBNEX_PUBLIC size_t ArrayGetSize(Array_t* array)
 {
     return array->numElements;
 }
+
+LIBNEX_PUBLIC size_t ArrayGetMaxSize (Array_t* array)
+{
+    return array->maxElements;
+}
