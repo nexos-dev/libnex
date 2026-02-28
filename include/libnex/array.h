@@ -133,6 +133,13 @@ LIBNEX_PUBLIC void ArraySetFindBy (Array_t* array, ArrayFindBy func);
  */
 LIBNEX_PUBLIC ArrayIter_t* ArrayIterate (Array_t* array, ArrayIter_t* iter);
 
+/**
+ * @brief Gets size of array
+ * @param array array to get size og
+ * @return Size of the array
+*/
+LIBNEX_PUBLIC size_t ArrayGetSize(Array_t* array);
+
 __DECL_END
 
 #define ARRAY_ERROR         0xFFFFFFFF                  ///< Signifies an array occured in a function

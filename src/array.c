@@ -321,3 +321,8 @@ LIBNEX_PUBLIC void ArraySetFindBy (Array_t* array, ArrayFindBy func)
     if (array)
         array->findFunc = func;
 }
+
+LIBNEX_PUBLIC size_t ArrayGetSize(Array_t* array)
+{
+    return array->numElements;
+}
